@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickPoll - Access Control Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-pass { background-color: #d4edda; border-color: #c3e6cb; }
+        .test-fail { background-color: #f8d7da; border-color: #f5c6cb; }
+        h2 { color: #333; }
+        h3 { color: #666; }
+        code { background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>QuickPoll Access Control Implementation</h1>
+    
+    <div class="test-section test-pass">
+        <h2>✅ Implementation Complete</h2>
+        <p>Successfully implemented access control to restrict poll results viewing to poll creators only.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🔒 Access Control Features</h2>
+        
+        <h3>1. Results Page Authorization</h3>
+        <ul>
+            <li><strong>Protected:</strong> <code>renderResultsPage()</code> method checks if current user matches poll creator</li>
+            <li><strong>Anonymous polls:</strong> Still accessible to anyone (backward compatibility)</li>
+            <li><strong>Authenticated polls:</strong> Only creator with matching email can view results</li>
+            <li><strong>Error handling:</strong> Shows sign-in prompt for unauthorized users</li>
+        </ul>
+
+        <h3>2. "View Results" Button Visibility</h3>
+        <ul>
+            <li><strong>After voting:</strong> Only shown to poll creators</li>
+            <li><strong>Poll creation:</strong> Results link available to creator</li>
+            <li><strong>Home page:</strong> Poll ID prompt still works but results page will check authorization</li>
+        </ul>
+
+        <h3>3. "Close Poll" Button Restriction</h3>
+        <ul>
+            <li><strong>Results page:</strong> Only poll creators can see the Close Poll button</li>
+            <li><strong>Anonymous polls:</strong> Close button still available (backward compatibility)</li>
+            <li><strong>Authenticated polls:</strong> Only creator with matching email can close poll</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Test Scenarios</h2>
+        
+        <h3>Scenario 1: Poll Creator Views Results</h3>
+        <p><strong>Expected:</strong> ✅ Full access to results and close poll functionality</p>
+        <ol>
+            <li>User creates authenticated poll</li>
+            <li>Same user visits results page</li>
+            <li>User sees full results and "Close Poll" button</li>
+        </ol>
+
+        <h3>Scenario 2: Non-Creator Views Results</h3>
+        <p><strong>Expected:</strong> ❌ Access denied with sign-in prompt</p>
+        <ol>
+            <li>User A creates authenticated poll</li>
+            <li>User B (different email) tries to view results</li>
+            <li>User B sees "Access Restricted" message with sign-in option</li>
+        </ol>
+
+        <h3>Scenario 3: Anonymous Poll Results</h3>
+        <p><strong>Expected:</strong> ✅ Open access (backward compatibility)</p>
+        <ol>
+            <li>Anonymous poll created</li>
+            <li>Anyone can view results</li>
+            <li>Anyone can close the poll</li>
+        </ol>
+
+        <h3>Scenario 4: After Voting Experience</h3>
+        <p><strong>Expected:</strong> "View Results" button only for creators</p>
+        <ol>
+            <li>User votes in authenticated poll</li>
+            <li>If voter is creator: "View Results" button shown</li>
+            <li>If voter is not creator: No "View Results" button</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Technical Implementation</h2>
+        
+        <h3>Authorization Logic</h3>
+        <code>
+        // Check if user is authorized to view results
+        if (this.pollData.createdBy && this.pollData.createdBy !== 'anonymous') {
+            if (!this.currentUser || this.currentUser.email !== this.pollData.createdBy) {
+                // Show access denied message
+                return;
+            }
+        }
+        </code>
+
+        <h3>Creator Tracking</h3>
+        <p>Polls store creator information in <code>createdBy</code> field:</p>
+        <ul>
+            <li><strong>Authenticated polls:</strong> <code>createdBy: user.email</code></li>
+            <li><strong>Anonymous polls:</strong> <code>createdBy: 'anonymous'</code></li>
+        </ul>
+    </div>
+
+    <div class="test-section test-pass">
+        <h2>🎯 Ready for Testing</h2>
+        <p>The access control implementation is complete and ready for testing. Users can now:</p>
+        <ul>
+            <li>Create authenticated polls that only they can view results for</li>
+            <li>Share voting links without worrying about unauthorized result access</li>
+            <li>Maintain control over poll closure</li>
+            <li>Still use anonymous polls for open access scenarios</li>
+        </ul>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+            <li>Test with multiple user accounts</li>
+            <li>Verify authorization works across browser sessions</li>
+            <li>Confirm anonymous polls still work as expected</li>
+        </ol>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="index.html" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Test QuickPoll App</a>
+    </div>
+</body>
+</html>

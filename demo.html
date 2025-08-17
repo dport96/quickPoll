@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyVote Demo</title>
+    <title>QuickPoll Demo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,35 +40,23 @@
     </style>
 </head>
 <body>
-    <h1>MyVote Application Demo</h1>
+    <h1>QuickPoll Application Demo</h1>
     
     <div class="demo-section">
         <h2>🎯 Quick Start</h2>
-        <p>Choose your version of MyVote:</p>
-        <a href="index.html" class="demo-link">Launch MyVote (Anonymous)</a>
-        <a href="index-email-auth.html" class="demo-link">Launch MyVote (Email Auth)</a>
+        <p>Launch QuickPoll:</p>
+        <a href="index.html" class="demo-link">Launch QuickPoll</a>
         
-        <h3>Version Comparison:</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
-            <div style="padding: 15px; border: 2px solid #ddd; border-radius: 8px;">
-                <h4>📊 Anonymous</h4>
-                <ul style="text-align: left; font-size: 0.85em;">
-                    <li>No setup needed</li>
-                    <li>Multiple votes allowed</li>
-                    <li>Quick & simple</li>
-                    <li>Casual polls</li>
-                </ul>
-            </div>
-            <div style="padding: 15px; border: 2px solid #17a2b8; border-radius: 8px;">
-                <h4>📧 Email Auth</h4>
-                <ul style="text-align: left; font-size: 0.85em;">
-                    <li>Simple email entry</li>
-                    <li>One vote per email</li>
-                    <li>Persistent sign-in session</li>
-                    <li>Optional email whitelist</li>
-                    <li>Professional voting</li>
-                </ul>
-            </div>
+        <h3>Features:</h3>
+        <div style="padding: 15px; border: 2px solid #667eea; border-radius: 8px; margin-top: 15px;">
+            <ul style="text-align: left; font-size: 0.85em;">
+                <li>No setup needed</li>
+                <li>Three poll types: Simple, Rating, and Ranking</li>
+                <li>Real-time results</li>
+                <li>Mobile responsive</li>
+                <li>Quick & simple to use</li>
+                <li>Share polls via URL</li>
+            </ul>
         </div>
     </div>
 
@@ -98,11 +86,11 @@
             <li><strong>Mobile Responsive:</strong> Works seamlessly on phones, tablets, and desktops</li>
             <li><strong>No Server Required:</strong> Pure client-side JavaScript with localStorage</li>
             <li><strong>Easy Sharing:</strong> Share polls via URL with query parameters</li>
-            <li><strong>Email Authentication:</strong> Optional user identification for fair voting</li>
+            <li><strong>Poll Management:</strong> Close and delete polls permanently from results page</li>
         </ul>
         
         <h3>How It Works</h3>
-        <p>MyVote uses query string parameters to pass poll data between pages and localStorage to persist votes. This means:</p>
+        <p>QuickPoll uses query string parameters to pass poll data between pages and localStorage to persist votes. This means:</p>
         <ul>
             <li>No database or server setup required</li>
             <li>Works as static files on any web server</li>
@@ -127,29 +115,19 @@
     <div class="demo-section">
         <h2>🚀 Getting Started</h2>
         <ol>
-            <li><strong>Choose Version:</strong> Select Anonymous or Email Auth version above</li>
+            <li><strong>Launch QuickPoll:</strong> Click the launch button above</li>
             <li><strong>Create Poll:</strong> Click "Create New Poll" and fill in your options</li>
             <li><strong>Share:</strong> Copy the generated voting URL to share with participants</li>
             <li><strong>View Results:</strong> Click "View Results" or use the results URL</li>
+            <li><strong>Manage Poll:</strong> Use "Close Poll" button to permanently delete when finished</li>
         </ol>
         
-        <h3>Email Authentication Setup</h3>
-        <p>The email authentication version includes:</p>
-        <ul>
-            <li><strong>Persistent Sign-In:</strong> Enter email once, stay signed in across polls</li>
-            <li>Simple email entry modal</li>
-            <li>One vote per email address enforcement</li>
-            <li>Optional email whitelist validation</li>
-            <li>Session management with localStorage</li>
-            <li><strong>Seamless Experience:</strong> No need to re-enter email for subsequent polls</li>
-        </ul>
-        
-        <p>Perfect for professional surveys, team voting, or any scenario where you need to prevent duplicate votes while keeping setup simple. <strong>Users only enter their email once and stay signed in!</strong></p>
+        <p>Perfect for quick surveys, team voting, casual polls, or any scenario where you need fast and simple voting without complex setup.</p>
     </div>
 
     <div class="demo-section">
         <h2>📱 Browser Compatibility</h2>
-        <p>MyVote works on all modern browsers that support:</p>
+        <p>QuickPoll works on all modern browsers that support:</p>
         <ul>
             <li>ES6+ JavaScript features</li>
             <li>CSS Grid and Flexbox</li>

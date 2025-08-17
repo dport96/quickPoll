@@ -1,6 +1,6 @@
-# MyVote - Real-time Voting Application
+# QuickPoll - Real-time Voting Application
 
-MyVote is a web-based application that enables you to create ranking, rating, and poll voting contests and view the results in real time. Your audience can participate live on their mobile phones, tablets, and desktops. There is nothing to download or install.
+QuickPoll is a web-based application that enables you to create ranking, rating, and poll voting contests and view the results in real time. Your audience can participate live on their mobile phones, tablets, and desktops. There is nothing to download or install.
 
 ## Features
 
@@ -44,6 +44,13 @@ MyVote is a web-based application that enables you to create ranking, rating, an
 1. Use the results link or enter the Poll ID when prompted
 2. Results update in real-time as new votes are submitted
 3. Click "Refresh Results" to see the latest data
+4. Use "Close Poll" button to permanently delete the poll and all its data
+
+### Managing Polls
+
+- **Close Poll**: Permanently delete a poll and all its votes from localStorage
+- **Confirmation Required**: Double confirmation prevents accidental deletion
+- **Immediate Effect**: Once closed, the poll becomes completely inaccessible
 
 ## Technical Details
 
@@ -53,7 +60,8 @@ MyVote is a web-based application that enables you to create ranking, rating, an
 quickPoll/
 ├── index.html          # Main application file
 ├── styles.css          # Styling and responsive design
-├── script.js           # Application logic and functionality
+├── email-auth-script.js # Application logic and functionality
+├── email-auth-styles.css # Email authentication styles
 └── README.md          # This documentation
 ```
 

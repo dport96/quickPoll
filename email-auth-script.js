@@ -1,5 +1,5 @@
-// MyVote Application with Email Authentication
-class MyVoteEmailApp {
+// QuickPoll Application with Email Authentication
+class QuickPollEmailApp {
     constructor() {
         this.currentPage = 'landing';
         this.pollData = null;
@@ -42,10 +42,22 @@ class MyVoteEmailApp {
             radio.addEventListener('change', (e) => this.handleAuthModeChange(e));
         });
 
+        // Template selection change
+        document.querySelectorAll('input[name="template"]').forEach(radio => {
+            radio.addEventListener('change', (e) => this.handleTemplateChange(e));
+        });
+
         // Option removal events
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-option')) {
                 this.removeOption(e.target);
+            }
+        });
+
+        // Option input change events - switch to custom when manually edited
+        document.addEventListener('input', (e) => {
+            if (e.target.name === 'option') {
+                this.switchToCustomTemplate();
             }
         });
 
@@ -75,13 +87,81 @@ class MyVoteEmailApp {
     handleAuthModeChange(e) {
         const authInfo = document.getElementById('auth-info');
         const validEmailsContainer = document.getElementById('valid-emails-container');
+        const authRequirementNote = document.getElementById('auth-requirement-note');
+        const authSignedInNote = document.getElementById('auth-signed-in-note');
+        const authNotSignedInNote = document.getElementById('auth-not-signed-in-note');
         
         if (e.target.value === 'email') {
             authInfo.style.display = 'block';
             validEmailsContainer.style.display = 'block';
+            if (authRequirementNote) {
+                authRequirementNote.style.display = 'block';
+                
+                // Show appropriate message based on sign-in status
+                if (this.currentUser) {
+                    authSignedInNote.style.display = 'block';
+                    authNotSignedInNote.style.display = 'none';
+                } else {
+                    authSignedInNote.style.display = 'none';
+                    authNotSignedInNote.style.display = 'block';
+                }
+            }
         } else {
             authInfo.style.display = 'none';
             validEmailsContainer.style.display = 'none';
+            if (authRequirementNote) {
+                authRequirementNote.style.display = 'none';
+            }
+        }
+    }
+
+    handleTemplateChange(e) {
+        const templateValue = e.target.value;
+        
+        if (templateValue === 'custom') {
+            return; // Don't change anything for custom
+        }
+
+        const templates = {
+            'yes-no': ['Yes', 'No'],
+            'approve-disapprove': ['Approve', 'Disapprove', 'Abstain'],
+            'agree-disagree': ['Agree', 'Disagree', 'Neutral'],
+            'satisfaction': ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied']
+        };
+
+        const options = templates[templateValue];
+        if (options) {
+            this.populateOptionsFromTemplate(options);
+        }
+    }
+
+    populateOptionsFromTemplate(options) {
+        const optionsList = document.getElementById('options-list');
+        
+        // Clear existing options
+        optionsList.innerHTML = '';
+        
+        // Add new options from template
+        options.forEach((option, index) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option-input';
+            optionDiv.innerHTML = `
+                <input type="text" name="option" placeholder="Option ${index + 1}" value="${option}" required>
+                <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
+            `;
+            optionsList.appendChild(optionDiv);
+        });
+        
+        // Ensure minimum 2 options
+        while (optionsList.children.length < 2) {
+            this.addOption();
+        }
+    }
+
+    switchToCustomTemplate() {
+        const customRadio = document.querySelector('input[name="template"][value="custom"]');
+        if (customRadio && !customRadio.checked) {
+            customRadio.checked = true;
         }
     }
 
@@ -182,12 +262,14 @@ class MyVoteEmailApp {
         `;
         
         optionsList.appendChild(optionDiv);
+        this.switchToCustomTemplate();
     }
 
     removeOption(button) {
         const optionsList = document.getElementById('options-list');
         if (optionsList.children.length > 2) {
             button.parentElement.remove();
+            this.switchToCustomTemplate();
         } else {
             alert('You must have at least 2 options.');
         }
@@ -199,6 +281,21 @@ class MyVoteEmailApp {
         const formData = new FormData(e.target);
         const authMode = formData.get('auth-mode');
         const validEmails = formData.get('validEmails');
+        
+        // If creating an authenticated poll, the creator must be signed in
+        if (authMode === 'email' && !this.currentUser) {
+            // Instead of alert, show a more user-friendly message
+            const emailAuthRadio = document.querySelector('input[name="auth-mode"][value="email"]');
+            if (emailAuthRadio) {
+                // Switch back to anonymous
+                document.querySelector('input[name="auth-mode"][value="anonymous"]').checked = true;
+                this.handleAuthModeChange({ target: { value: 'anonymous' } });
+                
+                // Show modal with explanation
+                this.showSignInForPollCreation();
+                return;
+            }
+        }
         
         const pollData = {
             id: this.generateId(),
@@ -240,6 +337,7 @@ class MyVoteEmailApp {
 
         document.getElementById('voting-link').value = votingLink;
         document.getElementById('results-link').value = resultsLink;
+        document.getElementById('poll-id-value').textContent = this.pollData.id;
 
         // Show auth info if required
         const authInfo = document.getElementById('auth-info');
@@ -385,6 +483,29 @@ class MyVoteEmailApp {
             `;
         }
     }
+    
+    showSignInForPollCreation() {
+        // Update modal content for poll creation context
+        const modalHeader = document.querySelector('#email-auth-modal .modal-header h3');
+        const modalBody = document.querySelector('#email-auth-modal .modal-body p');
+        
+        const originalHeader = modalHeader.textContent;
+        const originalBody = modalBody.textContent;
+        
+        modalHeader.textContent = '🔐 Sign In Required for Poll Creation';
+        modalBody.textContent = 'To create an authenticated poll, you must sign in first. This ensures only you can view the poll results.';
+        
+        this.showEmailAuthModal();
+        
+        // Reset the modal content when it's hidden
+        const originalHideModal = this.hideEmailModal.bind(this);
+        this.hideEmailModal = () => {
+            originalHideModal();
+            modalHeader.textContent = originalHeader;
+            modalBody.textContent = originalBody;
+            this.hideEmailModal = originalHideModal; // Restore original method
+        };
+    }
 
     handleEmailAuth(e) {
         e.preventDefault();
@@ -458,6 +579,14 @@ class MyVoteEmailApp {
 
     showAlreadyVotedMessage() {
         const container = document.getElementById('vote-content');
+        let resultsButton = '';
+        
+        // Only show View Results button to poll creator
+        if (this.pollData.createdBy === 'anonymous' || 
+            (this.currentUser && this.currentUser.email === this.pollData.createdBy)) {
+            resultsButton = `<button onclick="location.href='?mode=results&${this.createPollParams(this.pollData)}'" class="btn btn-primary">View Results</button>`;
+        }
+        
         container.innerHTML = `
             <div class="vote-container">
                 <h2>${this.pollData.title}</h2>
@@ -465,7 +594,7 @@ class MyVoteEmailApp {
                     <h3>✅ You've Already Voted</h3>
                     <p>Thank you for participating! You can only vote once in this poll with your email address (${this.currentUser.email}).</p>
                     <div class="form-actions">
-                        <button onclick="location.href='?mode=results&${this.createPollParams(this.pollData)}'" class="btn btn-primary">View Results</button>
+                        ${resultsButton}
                         <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
                     </div>
                 </div>
@@ -685,6 +814,29 @@ class MyVoteEmailApp {
             return;
         }
 
+        // Check if user is authorized to view results
+        if (this.pollData.createdBy && this.pollData.createdBy !== 'anonymous') {
+            // For authenticated polls, only the creator can view results
+            if (!this.currentUser || this.currentUser.email !== this.pollData.createdBy) {
+                container.innerHTML = `
+                    <div class="results-container">
+                        <h2>Access Restricted</h2>
+                        <p>Only the poll creator can view the results for this authenticated poll.</p>
+                        <p>Poll created by: ${this.pollData.createdBy}</p>
+                        ${this.currentUser ? 
+                            `<p>You are signed in as: ${this.currentUser.email}</p>` : 
+                            `<p>You are not currently signed in.</p>`
+                        }
+                        <div class="form-actions">
+                            <button onclick="app.showEmailAuthModal()" class="btn btn-primary">${this.currentUser ? 'Sign In as Different User' : 'Sign In'}</button>
+                            <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+        }
+
         const totalVotes = Object.keys(this.votes).length;
         const authInfo = this.pollData.requireAuth ? '📧 Email Authenticated Poll' : '📊 Anonymous Poll';
         
@@ -721,8 +873,15 @@ class MyVoteEmailApp {
 
         content += `
                 <div class="form-actions">
-                    <button onclick="location.reload()" class="btn btn-primary">Refresh Results</button>
-                    <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+                    <button onclick="location.reload()" class="btn btn-primary">Refresh Results</button>`;
+        
+        // Only show Close Poll button to the poll creator
+        if (this.pollData.createdBy === 'anonymous' || 
+            (this.currentUser && this.currentUser.email === this.pollData.createdBy)) {
+            content += `<button onclick="app.closePoll()" class="btn btn-danger">Close Poll</button>`;
+        }
+        
+        content += `<button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
                 </div>
             </div>
         `;
@@ -887,6 +1046,26 @@ class MyVoteEmailApp {
         } else {
             userInfo.style.display = 'none';
         }
+        
+        // Update auth requirement notes if visible
+        this.updateAuthRequirementNotes();
+    }
+    
+    updateAuthRequirementNotes() {
+        const authRequirementNote = document.getElementById('auth-requirement-note');
+        const authSignedInNote = document.getElementById('auth-signed-in-note');
+        const authNotSignedInNote = document.getElementById('auth-not-signed-in-note');
+        
+        // Only update if the notes are currently visible
+        if (authRequirementNote && authRequirementNote.style.display !== 'none') {
+            if (this.currentUser) {
+                if (authSignedInNote) authSignedInNote.style.display = 'block';
+                if (authNotSignedInNote) authNotSignedInNote.style.display = 'none';
+            } else {
+                if (authSignedInNote) authSignedInNote.style.display = 'none';
+                if (authNotSignedInNote) authNotSignedInNote.style.display = 'block';
+            }
+        }
     }
 
     signOut() {
@@ -902,10 +1081,32 @@ class MyVoteEmailApp {
             this.renderVotePage();
         }
     }
+
+    closePoll() {
+        if (!this.pollData) {
+            alert('No poll data found.');
+            return;
+        }
+
+        const confirmMessage = `Are you sure you want to close and permanently delete the poll "${this.pollData.title}"?\n\nThis will:\n• Delete all poll data\n• Delete all votes\n• Make the poll inaccessible\n\nThis action cannot be undone.`;
+        
+        if (confirm(confirmMessage)) {
+            // Remove poll data from localStorage
+            const pollKey = `poll_${this.pollData.id}`;
+            const votesKey = `votes_${this.pollData.id}`;
+            
+            localStorage.removeItem(pollKey);
+            localStorage.removeItem(votesKey);
+            
+            // Show confirmation and redirect
+            alert(`Poll "${this.pollData.title}" has been permanently closed and deleted.`);
+            location.href = './';
+        }
+    }
 }
 
 // Initialize the app when the page loads
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new MyVoteEmailApp();
+    app = new QuickPollEmailApp();
 });

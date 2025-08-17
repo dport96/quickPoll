@@ -1,6 +1,6 @@
-# Email Authentication Setup Guide for MyVote
+# Email Authentication Setup Guide for QuickPoll
 
-This guide explains how to use email-based authentication for the MyVote application to ensure one vote per person using simple email verification.
+This guide explains how to use email-based authentication for the QuickPoll application to ensure one vote per person using simple email verification.
 
 ## 🎯 Email Authentication vs Google Authentication
 
@@ -25,11 +25,9 @@ This guide explains how to use email-based authentication for the MyVote applica
 
 ```text
 quickPoll/
-├── index.html                  # Original (anonymous voting)
-├── index-email-auth.html       # Email authentication version
+├── index.html                  # Main application with email auth
 ├── styles.css                  # Base styles
 ├── email-auth-styles.css       # Email auth styles
-├── script.js                   # Original JavaScript
 ├── email-auth-script.js        # Email auth JavaScript
 ├── demo.html                   # Demo page
 └── README.md                   # Documentation

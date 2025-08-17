@@ -111,6 +111,60 @@
     font-weight: 600;
 }
 
+/* Template Options */
+.template-options {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.template-label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.template-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.template-option {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.template-option:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.template-option input[type="radio"]:checked + span {
+    color: #667eea;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .template-buttons {
+        flex-direction: column;
+    }
+    
+    .template-option {
+        width: 100%;
+    }
+}
+
 /* Valid emails container */
 #valid-emails-container textarea {
     font-family: 'Courier New', monospace;
