@@ -3,27 +3,15 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     constructor() {
         super();
         
-        // GitHub configuration
-        this.githubToken = null; // Will be set by user
+        // GitHub configuration - token is hardcoded
+        this.githubToken = 'ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
         
-        // Storage mode: 'gist' or 'localStorage' (fallback)
-        this.storageMode = 'localStorage';
+        // Storage mode: always use GitHub Gist
+        this.storageMode = 'gist';
         
-        this.initGitHubIntegration();
-    }
-
-    initGitHubIntegration() {
-        // Check if GitHub token is available
-        const savedToken = localStorage.getItem('github_token');
-        if (savedToken) {
-            this.githubToken = savedToken;
-            this.storageMode = 'gist';
-            console.log('GitHub Gist storage enabled');
-        } else {
-            console.log('Using localStorage fallback - GitHub token not configured');
-        }
+        console.log('GitHub Gist storage enabled with hardcoded token');
     }
 
     // Override the poll creation method
@@ -67,20 +55,18 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         }
 
         try {
-            // Try to store on GitHub Gist first
+            // Store on GitHub Gist only
             const success = await this.storePollOnGitHub(pollData);
             
             if (success) {
                 console.log('Poll stored on GitHub Gist successfully');
             } else {
-                console.log('GitHub storage failed, using localStorage fallback');
-                // Fallback to localStorage
-                this.storePollLocally(pollData);
+                throw new Error('Failed to store poll on GitHub Gist');
             }
         } catch (error) {
             console.error('Error storing poll:', error);
-            // Fallback to localStorage
-            this.storePollLocally(pollData);
+            alert('Failed to create poll. Please check your internet connection and try again.');
+            return;
         }
 
         this.pollData = pollData;
@@ -145,31 +131,19 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         }
     }
 
-    storePollLocally(pollData) {
-        // Fallback to original localStorage method
-        const pollsKey = 'polls';
-        const polls = JSON.parse(localStorage.getItem(pollsKey) || '{}');
-        polls[pollData.id] = pollData;
-        localStorage.setItem(pollsKey, JSON.stringify(polls));
-        
-        const votesKey = `votes_${pollData.id}`;
-        localStorage.setItem(votesKey, JSON.stringify({}));
-    }
-
     // Override vote submission
     async submitVote(voteData) {
         try {
-            // Try GitHub first
+            // Store vote on GitHub only
             const success = await this.submitVoteToGitHub(voteData);
             
             if (!success) {
-                // Fallback to localStorage
-                this.submitVoteLocally(voteData);
+                throw new Error('Failed to submit vote to GitHub');
             }
         } catch (error) {
             console.error('Error submitting vote:', error);
-            // Fallback to localStorage
-            this.submitVoteLocally(voteData);
+            alert('Failed to submit vote. Please check your internet connection and try again.');
+            return;
         }
 
         this.showPage('vote');
@@ -233,7 +207,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
 
             if (updateResponse.ok) {
                 this.votes = currentVotes;
-                // Also update localStorage for offline access
+                // Keep local cache for faster UI updates
                 localStorage.setItem(`votes_${this.pollData.id}`, JSON.stringify(currentVotes));
                 return true;
             } else {
@@ -243,25 +217,6 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             console.error('Error submitting vote to GitHub:', error);
             return false;
         }
-    }
-
-    submitVoteLocally(voteData) {
-        // Original localStorage vote submission
-        const voteKey = this.pollData.requireAuth && this.currentUser 
-            ? this.currentUser.email 
-            : `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-        this.votes[voteKey] = {
-            ...voteData,
-            timestamp: new Date().toISOString(),
-            voter: this.pollData.requireAuth && this.currentUser 
-                ? { email: this.currentUser.email, name: this.currentUser.name }
-                : 'anonymous'
-        };
-
-        // Save to localStorage
-        const votesKey = `votes_${this.pollData.id}`;
-        localStorage.setItem(votesKey, JSON.stringify(this.votes));
     }
 
     // Override poll loading from parameters
@@ -324,78 +279,11 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         }
     }
 
-    // GitHub token management
-    showGitHubSetup() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.style.display = 'flex';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>🔗 GitHub Integration Setup</h3>
-                    <button id="close-github-modal" class="close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>Enable server-side storage using GitHub Gists for persistent vote data.</p>
-                    <div class="form-group">
-                        <label for="github-token">GitHub Personal Access Token:</label>
-                        <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx" 
-                               value="${this.githubToken || ''}">
-                        <small class="help-text">
-                            <strong>How to get a token:</strong><br>
-                            1. Go to GitHub → Settings → Developer settings → Personal access tokens<br>
-                            2. Generate new token with "gist" scope<br>
-                            3. Paste the token here
-                        </small>
-                    </div>
-                    <div class="form-actions">
-                        <button id="save-github-token" class="btn btn-primary">Save & Enable</button>
-                        <button id="remove-github-token" class="btn btn-danger">Disable GitHub Storage</button>
-                        <button id="cancel-github-setup" class="btn btn-secondary">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        // Event listeners
-        document.getElementById('close-github-modal').addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
-
-        document.getElementById('cancel-github-setup').addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
-
-        document.getElementById('save-github-token').addEventListener('click', () => {
-            const token = document.getElementById('github-token').value.trim();
-            if (token) {
-                this.githubToken = token;
-                localStorage.setItem('github_token', token);
-                this.storageMode = 'gist';
-                alert('GitHub integration enabled! New polls will be stored as GitHub Gists.');
-            } else {
-                alert('Please enter a valid GitHub token.');
-                return;
-            }
-            document.body.removeChild(modal);
-        });
-
-        document.getElementById('remove-github-token').addEventListener('click', () => {
-            this.githubToken = null;
-            localStorage.removeItem('github_token');
-            this.storageMode = 'localStorage';
-            alert('GitHub integration disabled. Polls will be stored locally.');
-            document.body.removeChild(modal);
-        });
-    }
-
     // Add GitHub setup to navigation
     updateUserInterface() {
         super.updateUserInterface();
         
-        // Add GitHub status indicator
+        // Add GitHub status indicator - always connected
         const nav = document.querySelector('.nav');
         let githubIndicator = document.getElementById('github-indicator');
         
@@ -406,19 +294,11 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             nav.appendChild(githubIndicator);
         }
 
-        if (this.storageMode === 'gist') {
-            githubIndicator.innerHTML = `
-                <span class="github-status connected" onclick="app.showGitHubSetup()" title="Click to manage GitHub integration">
-                    🔗 GitHub Connected
-                </span>
-            `;
-        } else {
-            githubIndicator.innerHTML = `
-                <span class="github-status disconnected" onclick="app.showGitHubSetup()" title="Click to enable GitHub storage">
-                    📁 Local Storage
-                </span>
-            `;
-        }
+        githubIndicator.innerHTML = `
+            <span class="github-status connected" title="GitHub storage enabled">
+                🔗 GitHub Connected
+            </span>
+        `;
     }
 }
 
