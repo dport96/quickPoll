@@ -3,7 +3,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     constructor() {
         super();
         
-        // GitHub configuration - token is hardcoded
+        // GitHub configuration - replace with your actual token
         this.githubToken = 'ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
@@ -11,7 +11,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         // Storage mode: always use GitHub Gist
         this.storageMode = 'gist';
         
-        console.log('GitHub Gist storage enabled with hardcoded token');
+        console.log('GitHub Gist storage enabled with example token - replace with your actual token');
     }
 
     // Override the poll creation method
