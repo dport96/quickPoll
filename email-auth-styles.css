@@ -435,6 +435,129 @@
     }
 }
 
+/* GitHub Integration Styles */
+.github-indicator {
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.github-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.github-status.connected {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border-color: #28a745;
+}
+
+.github-status.connected:hover {
+    background: rgba(40, 167, 69, 0.2);
+}
+
+.github-status.disconnected {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border-color: #ffc107;
+}
+
+.github-status.disconnected:hover {
+    background: rgba(255, 193, 7, 0.2);
+}
+
+/* GitHub setup modal specific styles */
+#github-token {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.help-text strong {
+    color: #495057;
+}
+
+/* GitHub gist indicator in poll created page */
+.gist-info {
+    background: rgba(40, 167, 69, 0.1);
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.gist-info h4 {
+    color: #28a745;
+    margin-bottom: 0.5rem;
+}
+
+.gist-info p {
+    color: #155724;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.gist-link {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.gist-link:hover {
+    text-decoration: underline;
+}
+
+/* Storage mode indicator */
+.storage-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+.storage-indicator.github {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.storage-indicator.local {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
+/* Mobile responsiveness for GitHub features */
+@media (max-width: 768px) {
+    .github-indicator {
+        margin-left: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .github-status {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .gist-info {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+    }
+    
+    .storage-indicator {
+        display: block;
+        margin: 0.5rem 0 0 0;
+        text-align: center;
+    }
+}
+
 /* Form validation states */
 .form-group input.valid {
     border-color: #28a745;

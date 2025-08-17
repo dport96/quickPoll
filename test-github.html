@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickPoll GitHub Test</title>
+    <link rel="stylesheet" href="email-auth-styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .test-step {
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-result {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 QuickPoll GitHub Integration Test</h1>
+        <p>Use this page to test the GitHub Gist storage functionality before deploying.</p>
+        
+        <div class="test-step">
+            <h3>Step 1: GitHub Token Setup</h3>
+            <p>Enter your GitHub Personal Access Token (needs 'gist' scope):</p>
+            <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width: 300px; padding: 8px;">
+            <button class="test-button" onclick="testToken()">Test Token</button>
+            <div id="tokenResult" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-step">
+            <h3>Step 2: Create Test Gist</h3>
+            <button class="test-button" onclick="createTestGist()">Create Test Gist</button>
+            <div id="gistResult" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-step">
+            <h3>Step 3: Update Test Gist</h3>
+            <button class="test-button" onclick="updateTestGist()">Update Test Gist</button>
+            <div id="updateResult" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-step">
+            <h3>Step 4: Load Test Poll</h3>
+            <button class="test-button" onclick="loadTestApp()">Load QuickPoll App</button>
+            <div id="appResult" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-step">
+            <h3>Results Summary</h3>
+            <div id="summary" class="test-result">
+                Ready to test! Click the buttons above in order.
+            </div>
+        </div>
+    </div>
+
+    <script src="email-auth-script.js"></script>
+    <script src="github-gist-script.js"></script>
+    <script>
+        let testToken = '';
+        let testGistId = '';
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : (type === 'success' ? 'success' : '');
+            return `<span class="${className}">[${timestamp}] ${message}</span><br>`;
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            summary.innerHTML = testResults.join('');
+        }
+
+        async function testToken() {
+            const token = document.getElementById('tokenInput').value.trim();
+            const result = document.getElementById('tokenResult');
+            result.style.display = 'block';
+            result.innerHTML = log('Testing GitHub token...');
+
+            if (!token) {
+                result.innerHTML += log('❌ No token provided', 'error');
+                testResults.push(log('❌ Token test failed - no token', 'error'));
+                updateSummary();
+                return;
+            }
+
+            testToken = token;
+
+            try {
+                const response = await fetch('https://api.github.com/user', {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    result.innerHTML += log(`✅ Token valid! Connected as: ${user.login}`, 'success');
+                    testResults.push(log(`✅ Token test passed - user: ${user.login}`, 'success'));
+                } else {
+                    result.innerHTML += log(`❌ Token invalid: ${response.status} ${response.statusText}`, 'error');
+                    testResults.push(log(`❌ Token test failed - ${response.status}`, 'error'));
+                }
+            } catch (error) {
+                result.innerHTML += log(`❌ Error testing token: ${error.message}`, 'error');
+                testResults.push(log(`❌ Token test error: ${error.message}`, 'error'));
+            }
+
+            updateSummary();
+        }
+
+        async function createTestGist() {
+            if (!testToken) {
+                alert('Please test your token first!');
+                return;
+            }
+
+            const result = document.getElementById('gistResult');
+            result.style.display = 'block';
+            result.innerHTML = log('Creating test gist...');
+
+            const testData = {
+                'test-poll.json': {
+                    content: JSON.stringify({
+                        id: 'test-poll-' + Date.now(),
+                        title: 'Test Poll for GitHub Integration',
+                        options: ['Option A', 'Option B', 'Option C'],
+                        created: new Date().toISOString()
+                    }, null, 2)
+                },
+                'test-votes.json': {
+                    content: JSON.stringify({}, null, 2)
+                }
+            };
+
+            try {
+                const response = await fetch('https://api.github.com/gists', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${testToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        description: 'QuickPoll Test Gist - Safe to delete',
+                        public: false,
+                        files: testData
+                    })
+                });
+
+                if (response.ok) {
+                    const gist = await response.json();
+                    testGistId = gist.id;
+                    result.innerHTML += log(`✅ Test gist created! ID: ${gist.id}`, 'success');
+                    result.innerHTML += log(`🔗 URL: ${gist.html_url}`, 'info');
+                    testResults.push(log(`✅ Gist creation passed - ID: ${gist.id}`, 'success'));
+                } else {
+                    result.innerHTML += log(`❌ Failed to create gist: ${response.status} ${response.statusText}`, 'error');
+                    testResults.push(log(`❌ Gist creation failed - ${response.status}`, 'error'));
+                }
+            } catch (error) {
+                result.innerHTML += log(`❌ Error creating gist: ${error.message}`, 'error');
+                testResults.push(log(`❌ Gist creation error: ${error.message}`, 'error'));
+            }
+
+            updateSummary();
+        }
+
+        async function updateTestGist() {
+            if (!testGistId) {
+                alert('Please create a test gist first!');
+                return;
+            }
+
+            const result = document.getElementById('updateResult');
+            result.style.display = 'block';
+            result.innerHTML = log('Updating test gist...');
+
+            const updateData = {
+                'test-votes.json': {
+                    content: JSON.stringify({
+                        'test@example.com': {
+                            vote: 'Option A',
+                            timestamp: new Date().toISOString()
+                        }
+                    }, null, 2)
+                }
+            };
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${testGistId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${testToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        files: updateData
+                    })
+                });
+
+                if (response.ok) {
+                    result.innerHTML += log(`✅ Test gist updated successfully!`, 'success');
+                    testResults.push(log(`✅ Gist update passed`, 'success'));
+                } else {
+                    result.innerHTML += log(`❌ Failed to update gist: ${response.status} ${response.statusText}`, 'error');
+                    testResults.push(log(`❌ Gist update failed - ${response.status}`, 'error'));
+                }
+            } catch (error) {
+                result.innerHTML += log(`❌ Error updating gist: ${error.message}`, 'error');
+                testResults.push(log(`❌ Gist update error: ${error.message}`, 'error'));
+            }
+
+            updateSummary();
+        }
+
+        function loadTestApp() {
+            if (!testToken) {
+                alert('Please test your token first!');
+                return;
+            }
+
+            const result = document.getElementById('appResult');
+            result.style.display = 'block';
+            result.innerHTML = log('Loading QuickPoll with GitHub integration...');
+
+            try {
+                // Store the token temporarily for the app
+                localStorage.setItem('quickpoll_github_token', testToken);
+                
+                result.innerHTML += log('✅ Token stored in localStorage', 'success');
+                result.innerHTML += log('🔗 You can now open index-github.html', 'info');
+                result.innerHTML += log('📝 The app should show "GitHub Connected" status', 'info');
+                
+                testResults.push(log(`✅ App integration ready`, 'success'));
+                
+                // Provide a link to the main app
+                result.innerHTML += '<br><a href="index-github.html" target="_blank" style="color: #007bff; text-decoration: none;">🚀 Open QuickPoll GitHub Version</a>';
+            } catch (error) {
+                result.innerHTML += log(`❌ Error preparing app: ${error.message}`, 'error');
+                testResults.push(log(`❌ App preparation error: ${error.message}`, 'error'));
+            }
+
+            updateSummary();
+        }
+
+        // Auto-fill token if already stored
+        window.onload = function() {
+            const storedToken = localStorage.getItem('quickpoll_github_token');
+            if (storedToken) {
+                document.getElementById('tokenInput').value = storedToken;
+                testResults.push(log('ℹ️ Found existing token in localStorage', 'info'));
+                updateSummary();
+            }
+        };
+    </script>
+</body>
+</html>
