@@ -36,11 +36,12 @@
                 </div>
                 <div class="modal-body">
                     <p>This poll requires email verification to ensure one vote per person.</p>
-                    <form id="email-auth-form">
+                    <form id="email-auth-form" novalidate>
                         <div class="form-group">
                             <label for="voter-email">Your Email Address:</label>
-                            <input type="email" id="voter-email" name="email" required 
-                                   placeholder="Enter your email address">
+                            <input type="email" id="voter-email" name="email" 
+                                   placeholder="Enter your email address" 
+                                   novalidate>
                         </div>
                         <div class="form-group">
                             <label for="voter-name">Your Name (Optional):</label>
@@ -50,6 +51,7 @@
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Sign In</button>
                             <button type="button" id="cancel-auth" class="btn btn-secondary">Cancel</button>
+                            <button type="button" id="test-email" class="btn btn-secondary" onclick="testEmail()">Test Email</button>
                         </div>
                     </form>
                 </div>
@@ -268,5 +270,17 @@
     <!-- Scripts -->
     <script src="email-auth-script.js"></script>
     <script src="github-gist-script.js"></script>
+    <script>
+        function testEmail() {
+            const email = document.getElementById('voter-email').value;
+            console.log('Testing email:', email);
+            if (window.app && window.app.isValidEmail) {
+                const result = window.app.isValidEmail(email);
+                alert(`Email "${email}" is ${result ? 'VALID' : 'INVALID'}`);
+            } else {
+                alert('App not loaded or isValidEmail method not found');
+            }
+        }
+    </script>
 </body>
 </html>

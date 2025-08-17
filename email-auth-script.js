@@ -529,15 +529,38 @@ class QuickPollEmailApp {
     }
 
     handleEmailAuth(e) {
+        console.log('handleEmailAuth called');
         e.preventDefault();
         
-        const formData = new FormData(e.target);
-        const email = formData.get('email').trim().toLowerCase();
-        const name = formData.get('name').trim() || email.split('@')[0];
-        
-        // Basic email validation
-        if (!this.isValidEmail(email)) {
-            alert('Please enter a valid email address.');
+        try {
+            const formData = new FormData(e.target);
+            const rawEmail = formData.get('email');
+            const rawName = formData.get('name');
+            
+            console.log('Form data received:', { rawEmail, rawName });
+            
+            if (!rawEmail) {
+                alert('Email field is empty. Please enter an email address.');
+                return;
+            }
+            
+            const email = rawEmail.trim().toLowerCase();
+            const name = rawName ? rawName.trim() : email.split('@')[0];
+            
+            console.log('Processed email data:', { email, name });
+            
+            // Basic email validation
+            console.log('About to validate email:', email);
+            const isValid = this.isValidEmail(email);
+            console.log('Validation result:', isValid);
+            
+            if (!isValid) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+        } catch (error) {
+            console.error('Error in handleEmailAuth:', error);
+            alert('An error occurred during email validation. Please try again.');
             return;
         }
         
@@ -570,8 +593,27 @@ class QuickPollEmailApp {
     }
 
     isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        // More comprehensive email validation
+        if (!email || typeof email !== 'string') {
+            console.log('Email validation failed: empty or not a string', email);
+            return false;
+        }
+        
+        // Trim whitespace
+        email = email.trim();
+        
+        if (email.length === 0) {
+            console.log('Email validation failed: empty after trim');
+            return false;
+        }
+        
+        // Enhanced email regex pattern
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        
+        const isValid = emailRegex.test(email);
+        console.log('Email validation result:', email, '-> Valid:', isValid);
+        
+        return isValid;
     }
 
     showAccessDeniedMessage() {
