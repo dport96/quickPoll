@@ -30,7 +30,7 @@ class QuickPollEmailApp {
         document.getElementById('sign-out-btn').addEventListener('click', () => this.signOut());
         document.getElementById('email-auth-form').addEventListener('submit', (e) => this.handleEmailAuth(e));
         document.getElementById('close-modal').addEventListener('click', () => this.hideEmailModal());
-        document.getElementById('cancel-auth').addEventListener('click', () => this.hideEmailModal());
+        document.getElementById('cancel-auth').addEventListener('click', () => this.cancelEmailAuth());
 
         // Form events
         document.getElementById('poll-form').addEventListener('submit', (e) => this.handleCreatePoll(e));
@@ -482,12 +482,18 @@ class QuickPollEmailApp {
         }, 100);
     }
 
+    cancelEmailAuth() {
+        // Clear form when user cancels
+        document.getElementById('email-auth-form').reset();
+        this.hideEmailModal();
+    }
+
     hideEmailModal() {
         const modal = document.getElementById('email-auth-modal');
         modal.style.display = 'none';
         
-        // Clear form
-        document.getElementById('email-auth-form').reset();
+        // Don't automatically clear form - let caller decide
+        // Form will be cleared only on cancel or explicit request
         
         // If user cancelled and is on vote page, show access required message
         if (this.currentPage === 'vote' && this.pollData && this.pollData.requireAuth && !this.currentUser) {
@@ -529,38 +535,41 @@ class QuickPollEmailApp {
     }
 
     handleEmailAuth(e) {
-        console.log('handleEmailAuth called');
         e.preventDefault();
+        e.stopPropagation(); // Prevent event bubbling
+        
+        // Prevent double submission
+        if (this._submitting) {
+            return;
+        }
+        this._submitting = true;
+        
+        let email, name;
         
         try {
             const formData = new FormData(e.target);
             const rawEmail = formData.get('email');
             const rawName = formData.get('name');
             
-            console.log('Form data received:', { rawEmail, rawName });
-            
-            if (!rawEmail) {
+            if (!rawEmail || rawEmail.trim() === '') {
                 alert('Email field is empty. Please enter an email address.');
+                this._submitting = false;
                 return;
             }
             
-            const email = rawEmail.trim().toLowerCase();
-            const name = rawName ? rawName.trim() : email.split('@')[0];
-            
-            console.log('Processed email data:', { email, name });
+            email = rawEmail.trim().toLowerCase();
+            name = rawName ? rawName.trim() : email.split('@')[0];
             
             // Basic email validation
-            console.log('About to validate email:', email);
-            const isValid = this.isValidEmail(email);
-            console.log('Validation result:', isValid);
-            
-            if (!isValid) {
+            if (!this.isValidEmail(email)) {
                 alert('Please enter a valid email address.');
+                this._submitting = false;
                 return;
             }
         } catch (error) {
             console.error('Error in handleEmailAuth:', error);
             alert('An error occurred during email validation. Please try again.');
+            this._submitting = false;
             return;
         }
         
@@ -568,6 +577,7 @@ class QuickPollEmailApp {
         if (this.pollData && this.pollData.requireAuth && this.pollData.validEmails.length > 0 && 
             !this.pollData.validEmails.includes(email)) {
             alert('Your email address is not authorized to vote in this poll.');
+            this._submitting = false; // Reset flag
             return;
         }
         
@@ -584,18 +594,26 @@ class QuickPollEmailApp {
         
         // Update UI
         this.updateUserInterface();
-        this.hideEmailModal();
+        
+        // Hide modal after a short delay to prevent double submission
+        setTimeout(() => {
+            this.hideEmailModal();
+            // Clear form after modal is hidden
+            document.getElementById('email-auth-form').reset();
+        }, 100);
         
         // If on voting page, refresh the content
         if (this.currentPage === 'vote') {
             this.renderVotePage();
         }
+        
+        // Reset submitting flag
+        this._submitting = false;
     }
 
     isValidEmail(email) {
         // More comprehensive email validation
         if (!email || typeof email !== 'string') {
-            console.log('Email validation failed: empty or not a string', email);
             return false;
         }
         
@@ -603,17 +621,13 @@ class QuickPollEmailApp {
         email = email.trim();
         
         if (email.length === 0) {
-            console.log('Email validation failed: empty after trim');
             return false;
         }
         
         // Enhanced email regex pattern
         const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         
-        const isValid = emailRegex.test(email);
-        console.log('Email validation result:', email, '-> Valid:', isValid);
-        
-        return isValid;
+        return emailRegex.test(email);
     }
 
     showAccessDeniedMessage() {

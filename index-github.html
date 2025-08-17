@@ -51,7 +51,6 @@
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Sign In</button>
                             <button type="button" id="cancel-auth" class="btn btn-secondary">Cancel</button>
-                            <button type="button" id="test-email" class="btn btn-secondary" onclick="testEmail()">Test Email</button>
                         </div>
                     </form>
                 </div>
@@ -270,17 +269,5 @@
     <!-- Scripts -->
     <script src="email-auth-script.js"></script>
     <script src="github-gist-script.js"></script>
-    <script>
-        function testEmail() {
-            const email = document.getElementById('voter-email').value;
-            console.log('Testing email:', email);
-            if (window.app && window.app.isValidEmail) {
-                const result = window.app.isValidEmail(email);
-                alert(`Email "${email}" is ${result ? 'VALID' : 'INVALID'}`);
-            } else {
-                alert('App not loaded or isValidEmail method not found');
-            }
-        }
-    </script>
 </body>
 </html>

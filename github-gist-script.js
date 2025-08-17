@@ -10,8 +10,6 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         
         // Storage mode: always use GitHub Gist
         this.storageMode = 'gist';
-        
-        console.log('GitHub Gist storage enabled with example token - replace with your actual token');
     }
 
     // Override the poll creation method
