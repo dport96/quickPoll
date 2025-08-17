@@ -217,6 +217,44 @@
     font-weight: 600;
 }
 
+.auth-indicator.authenticated {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.auth-indicator .auth-icon {
+    font-size: 1.2rem;
+}
+
+.auth-indicator .auth-text {
+    color: #155724;
+    font-weight: 600;
+}
+
+.auth-indicator .auth-note {
+    color: #28a745;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+/* Authentication required notice */
+.auth-required-notice {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(0, 123, 255, 0.1);
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    margin: 2rem 0;
+}
+
+.auth-required-notice h3 {
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
 /* Already voted message */
 .already-voted {
     text-align: center;

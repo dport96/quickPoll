@@ -407,7 +407,22 @@ class QuickPollEmailApp {
 
         // Check if authentication is required
         if (this.pollData.requireAuth && !this.currentUser) {
-            this.showEmailAuthModal();
+            // Show a more informative message before the modal
+            const container = document.getElementById('vote-content');
+            container.innerHTML = `
+                <div class="vote-container">
+                    <h2>${this.pollData.title}</h2>
+                    <div class="auth-required-notice">
+                        <h3>📧 Email Authentication Required</h3>
+                        <p>This poll requires email verification to ensure one vote per person.</p>
+                        <p>Please sign in to participate in this poll.</p>
+                        <div class="form-actions">
+                            <button onclick="app.showEmailAuthModal()" class="btn btn-primary">Sign In to Vote</button>
+                            <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+                        </div>
+                    </div>
+                </div>
+            `;
             return;
         }
 
@@ -428,7 +443,13 @@ class QuickPollEmailApp {
             <div class="vote-container">
                 <h2>${this.pollData.title}</h2>
                 ${this.pollData.description ? `<p>${this.pollData.description}</p>` : ''}
-                ${this.pollData.requireAuth ? `<div class="auth-indicator">📧 Voting as ${this.currentUser.email}</div>` : ''}
+                ${this.pollData.requireAuth ? `
+                    <div class="auth-indicator authenticated">
+                        <span class="auth-icon">✅</span>
+                        <span class="auth-text">Authenticated as <strong>${this.currentUser.email}</strong></span>
+                        <span class="auth-note">• Ready to vote</span>
+                    </div>
+                ` : ''}
         `;
 
         if (this.pollData.type === 'simple') {
