@@ -4,7 +4,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         super();
         
         // GitHub configuration - replace with your actual token
-        this.githubToken = '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';
+        this.githubToken = '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';
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
         

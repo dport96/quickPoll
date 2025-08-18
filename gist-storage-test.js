@@ -54,6 +54,8 @@ class GistStorageTest {
         // Check if we have a valid token (not the example tokens)
         const isExampleToken = !window.app.githubToken || 
             window.app.githubToken === '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' ||
+            window.app.githubToken === 'ghp_EXAMPLE_TOKEN_REPLACE_WITH_YOUR_ACTUAL_GITHUB_TOKEN_HERE_1234567890abcdef' ||
+            window.app.githubToken.includes('EXAMPLE') ||
             window.app.githubToken.includes('example') ||
             window.app.githubToken.length < 20;
 
@@ -442,6 +444,8 @@ function quickGistTest() {
         
         // Check for example/placeholder tokens
         const isExampleToken = window.app.githubToken === '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' ||
+            window.app.githubToken === 'ghp_EXAMPLE_TOKEN_REPLACE_WITH_YOUR_ACTUAL_GITHUB_TOKEN_HERE_1234567890abcdef' ||
+            window.app.githubToken.includes('EXAMPLE') ||
             window.app.githubToken.includes('example') ||
             window.app.githubToken.length < 20;
             
