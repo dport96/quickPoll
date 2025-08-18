@@ -57,6 +57,78 @@
             </div>
         </div>
 
+        <!-- GitHub Token Setup Modal -->
+        <div id="github-token-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🔗 GitHub Access Token Required</h3>
+                    <button id="close-token-modal" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="token-setup-intro">
+                        <p>To store polls on GitHub Gist, you need to provide a GitHub Personal Access Token.</p>
+                        <p><strong>Why is this needed?</strong></p>
+                        <ul>
+                            <li>📁 Stores your polls securely on GitHub</li>
+                            <li>🔄 Enables real-time vote synchronization</li>
+                            <li>🌐 Allows easy sharing with automatically generated URLs</li>
+                            <li>🔒 Your polls remain private in your GitHub account</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="token-setup-steps">
+                        <h4>📝 Quick Setup Steps:</h4>
+                        <ol>
+                            <li>Go to <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">GitHub Settings → Personal Access Tokens</a></li>
+                            <li>Choose your token type:
+                                <ul>
+                                    <li><strong>Classic Token:</strong> Click "Generate new token (classic)" - starts with "ghp_"</li>
+                                    <li><strong>Fine-grained Token:</strong> Click "Generate new token (beta)" - starts with "github_pat_"</li>
+                                </ul>
+                            </li>
+                            <li>Give it a name like "<strong>QuickPoll Access</strong>"</li>
+                            <li>Select the "<strong>gist</strong>" scope (required for storing polls)</li>
+                            <li>Click "<strong>Generate token</strong>" and copy it</li>
+                            <li>Paste the token below</li>
+                        </ol>
+                    </div>
+
+                    <form id="github-token-form">
+                        <div class="form-group">
+                            <label for="github-token-input">GitHub Personal Access Token:</label>
+                            <input type="password" id="github-token-input" name="token" 
+                                   placeholder="ghp_... or github_pat_..."
+                                   title="GitHub classic tokens start with 'ghp_' or fine-grained tokens start with 'github_pat_'">
+                            <small class="form-help">
+                                Your token should start with "ghp_" (classic) or "github_pat_" (fine-grained).
+                                <button type="button" id="toggle-token-visibility" class="btn-link">👁️ Show/Hide</button>
+                            </small>
+                        </div>
+                        
+                        <div class="token-security-note">
+                            <p><strong>🔒 Security Notes:</strong></p>
+                            <ul>
+                                <li>Your token is stored securely in your browser session only</li>
+                                <li>It's never sent to our servers or stored permanently</li>
+                                <li>Only the "gist" permission is needed (minimal access)</li>
+                                <li>You can revoke the token anytime on GitHub</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="save-token-btn">
+                                <span class="btn-text">Save Token & Continue</span>
+                                <span class="btn-loading" style="display: none;">⏳ Validating...</span>
+                            </button>
+                            <button type="button" id="cancel-token-setup" class="btn btn-secondary">Skip for Now</button>
+                        </div>
+                    </form>
+
+                    <div id="token-validation-result" class="validation-result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <main class="main">
             <!-- Landing Page -->

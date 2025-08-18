@@ -417,20 +417,41 @@ function quickGistTest() {
     console.log(`   GitHub token set: ${!!window.app.githubToken}`);
     console.log(`   Token valid: ${window.app.isTokenValid ? window.app.isTokenValid() : 'method not available'}`);
     
+    // Check for token in URL
+    const urlToken = window.app.loadTokenFromURL ? window.app.loadTokenFromURL() : null;
+    if (urlToken) {
+        console.log('✅ Token found in URL - will be loaded automatically');
+        console.log(`   URL Token preview: ${urlToken.substring(0, 15)}... (length: ${urlToken.length})`);
+    }
+    
     if (window.app.githubToken) {
-        const tokenPreview = window.app.githubToken.substring(0, 10) + '...';
+        const tokenPreview = window.app.githubToken.substring(0, 15) + '...';
         console.log(`   Token preview: ${tokenPreview} (length: ${window.app.githubToken.length})`);
+        
+        // Detect token type
+        if (window.app.githubToken.startsWith('ghp_')) {
+            console.log(`   Token type: Classic (ghp_)`);
+        } else if (window.app.githubToken.startsWith('github_pat_')) {
+            console.log(`   Token type: Fine-grained (github_pat_)`);
+        } else {
+            console.log(`   Token type: Unknown format`);
+        }
         
         if (window.app.githubToken === 'GITHUB_TOKEN_NOT_SET') {
             console.log('⚠️  Token not configured - use app.setGitHubToken("your_token")');
             console.log('   📝 Instructions:');
             console.log('   1. Go to GitHub → Settings → Developer Settings → Personal Access Tokens');
-            console.log('   2. Generate a new token with "gist" scope');
+            console.log('   2. Generate a new token (classic or fine-grained) with "gist" scope');
             console.log('   3. Run: app.setGitHubToken("your_token_here")');
+            console.log('   💡 Or include token in URL: ?token=your_token_here');
         } else if (window.app.isTokenValid && window.app.isTokenValid()) {
             console.log('✅ Token is valid and ready for use');
+            console.log('✅ Poll URLs will include token for seamless sharing');
         } else {
             console.log('⚠️  Token format may be invalid - use app.setGitHubToken("your_token")');
+            console.log('   📝 Supported formats:');
+            console.log('   - Classic: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+            console.log('   - Fine-grained: github_pat_11XXXXXXXXX_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
         }
     }
     

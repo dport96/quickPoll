@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Token Format Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .test-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .test-input { width: 100%; padding: 8px; margin: 5px 0; font-family: monospace; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>GitHub Token Format Validation Test</h1>
+    
+    <div class="test-section">
+        <h2>🧪 Token Format Testing</h2>
+        <p>Test the new token validation that supports both classic and fine-grained GitHub tokens.</p>
+        
+        <h3>Test Token Input:</h3>
+        <input type="text" id="test-token-input" class="test-input" placeholder="Enter a GitHub token to test...">
+        <br>
+        <button onclick="testTokenFormat()">Test Token Format</button>
+        <button onclick="testWithApp()">Test with App (if loaded)</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Token Format Examples</h2>
+        
+        <h3>Classic Tokens (ghp_):</h3>
+        <div class="test-result">
+            <strong>Valid:</strong> ghp_1234567890123456789012345678901234567890<br>
+            <strong>Length:</strong> 40 characters total<br>
+            <strong>Format:</strong> ghp_ + 36 alphanumeric characters
+        </div>
+        
+        <h3>Fine-grained Tokens (github_pat_):</h3>
+        <div class="test-result">
+            <strong>Valid:</strong> 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<br>
+            <strong>Length:</strong> 93+ characters<br>
+            <strong>Format:</strong> github_pat_ + user_id + _ + token_data
+        </div>
+        
+        <button onclick="testExampleTokens()">Test Example Formats</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Quick Tests</h2>
+        <button onclick="testInvalidTokens()">Test Invalid Tokens</button>
+        <button onclick="testEdgeCases()">Test Edge Cases</button>
+    </div>
+
+    <script>
+        function validateTokenFormat(token) {
+            if (!token) {
+                return { valid: false, type: 'none', message: 'No token provided' };
+            }
+            
+            // Check for both classic and fine-grained token formats
+            const isClassicToken = token.startsWith('ghp_') && token.length >= 36;
+            const isFineGrainedToken = token.startsWith('github_pat_') && token.length >= 50;
+            
+            if (isClassicToken) {
+                return { 
+                    valid: true, 
+                    type: 'classic', 
+                    message: `Valid classic token (${token.length} chars)` 
+                };
+            } else if (isFineGrainedToken) {
+                return { 
+                    valid: true, 
+                    type: 'fine-grained', 
+                    message: `Valid fine-grained token (${token.length} chars)` 
+                };
+            } else {
+                let message = 'Invalid token format. ';
+                if (token.startsWith('ghp_')) {
+                    message += `Classic token too short (${token.length} chars, need 40+)`;
+                } else if (token.startsWith('github_pat_')) {
+                    message += `Fine-grained token too short (${token.length} chars, need 93+)`;
+                } else {
+                    message += 'Token should start with "ghp_" (classic) or "github_pat_" (fine-grained)';
+                }
+                return { valid: false, type: 'invalid', message };
+            }
+        }
+        
+        function displayResult(result, token) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultClass = result.valid ? 'success' : 'error';
+            const preview = token.length > 20 ? token.substring(0, 20) + '...' : token;
+            
+            resultsDiv.innerHTML += `
+                <div class="test-result ${resultClass}">
+                    <strong>Token:</strong> ${preview}<br>
+                    <strong>Type:</strong> ${result.type}<br>
+                    <strong>Result:</strong> ${result.message}
+                </div>
+            `;
+        }
+        
+        function testTokenFormat() {
+            const token = document.getElementById('test-token-input').value.trim();
+            const result = validateTokenFormat(token);
+            displayResult(result, token);
+        }
+        
+        function testWithApp() {
+            const token = document.getElementById('test-token-input').value.trim();
+            
+            if (typeof window.app !== 'undefined' && window.app.isTokenValid) {
+                // Temporarily set the token to test validation
+                const originalToken = window.app.githubToken;
+                window.app.githubToken = token;
+                
+                const isValid = window.app.isTokenValid();
+                const result = {
+                    valid: isValid,
+                    type: 'app-validation',
+                    message: isValid ? 'App validates token as valid' : 'App validates token as invalid'
+                };
+                
+                displayResult(result, token);
+                
+                // Restore original token
+                window.app.githubToken = originalToken;
+            } else {
+                displayResult({
+                    valid: false,
+                    type: 'app-not-available',
+                    message: 'App not loaded - open this from QuickPoll main page'
+                }, token);
+            }
+        }
+        
+        function testExampleTokens() {
+            const examples = [
+                'ghp_1234567890123456789012345678901234567890', // Valid classic
+                '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', // Valid fine-grained
+                'ghp_short', // Invalid classic (too short)
+                'github_pat_short', // Invalid fine-grained (too short)
+                'invalid_token_format' // Invalid format
+            ];
+            
+            clearResults();
+            examples.forEach(token => {
+                const result = validateTokenFormat(token);
+                displayResult(result, token);
+            });
+        }
+        
+        function testInvalidTokens() {
+            const invalidTokens = [
+                '', // Empty
+                'ghp_', // Just prefix
+                'github_pat_', // Just prefix
+                'gho_1234567890123456789012345678901234567890', // Wrong prefix
+                'random_string_that_is_long_enough_but_wrong_format'
+            ];
+            
+            clearResults();
+            invalidTokens.forEach(token => {
+                const result = validateTokenFormat(token);
+                displayResult(result, token);
+            });
+        }
+        
+        function testEdgeCases() {
+            const edgeCases = [
+                'ghp_' + 'x'.repeat(36), // Minimum valid classic
+                'ghp_' + 'x'.repeat(35), // Just under minimum classic
+                'github_pat_' + 'x'.repeat(50), // Minimum fine-grained
+                'github_pat_' + 'x'.repeat(49) // Just under minimum fine-grained
+            ];
+            
+            clearResults();
+            edgeCases.forEach(token => {
+                const result = validateTokenFormat(token);
+                displayResult(result, token);
+            });
+        }
+        
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '<h3>Test Results:</h3>';
+        }
+        
+        // Initialize
+        clearResults();
+    </script>
+</body>
+</html>

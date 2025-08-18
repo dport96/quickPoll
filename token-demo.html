@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Token Modal Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .demo-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .demo-button { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .demo-button.primary { background: #667eea; color: white; }
+        .demo-button.secondary { background: #6c757d; color: white; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <h1>GitHub Token Setup Interface Demo</h1>
+    
+    <div class="demo-section">
+        <h2>🎯 Interface Testing</h2>
+        <p>This demo shows how the GitHub token setup interface works when users try to create polls without a valid token.</p>
+        
+        <h3>Current Token Status:</h3>
+        <div id="token-status" class="status warning">⏳ Checking...</div>
+        
+        <h3>Test Actions:</h3>
+        <button class="demo-button primary" onclick="testCreatePoll()">
+            📝 Try to Create Poll (will show modal if no token)
+        </button>
+        <button class="demo-button secondary" onclick="showTokenModal()">
+            🔧 Show Token Setup Modal
+        </button>
+        <button class="demo-button secondary" onclick="clearToken()">
+            🗑️ Clear Token (for testing)
+        </button>
+        <button class="demo-button secondary" onclick="checkStatus()">
+            🔍 Refresh Status
+        </button>
+    </div>
+
+    <div class="demo-section">
+        <h2>📋 Expected Behavior</h2>
+        <ol>
+            <li><strong>No Token Set:</strong> Creating a poll shows the GitHub token setup modal</li>
+            <li><strong>Valid Token:</strong> Poll creation proceeds normally</li>
+            <li><strong>Invalid Token:</strong> Modal shows validation errors with helpful messages</li>
+            <li><strong>Setup Complete:</strong> Token is saved securely and user can create polls</li>
+        </ol>
+    </div>
+
+    <div class="demo-section">
+        <h2>🛠️ Test Token Setup Process</h2>
+        <p><strong>To test the complete flow:</strong></p>
+        <ol>
+            <li>Click "Clear Token" to simulate a new user</li>
+            <li>Click "Try to Create Poll" - should show the setup modal</li>
+            <li>Follow the instructions in the modal to get a GitHub token</li>
+            <li>Enter your token and submit - should validate and save it</li>
+            <li>Try creating a poll again - should work normally</li>
+        </ol>
+        
+        <p><strong>Note:</strong> For testing, you can use a real GitHub token with "gist" scope to see the full validation process.</p>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const statusDiv = document.getElementById('token-status');
+            
+            if (typeof window.app === 'undefined') {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ App not loaded - make sure you\'re on the main QuickPoll page';
+                return;
+            }
+            
+            const hasToken = window.app.githubToken && window.app.githubToken !== 'GITHUB_TOKEN_NOT_SET';
+            const isValid = window.app.isTokenValid && window.app.isTokenValid();
+            
+            if (isValid) {
+                statusDiv.className = 'status success';
+                const preview = window.app.githubToken.substring(0, 10) + '...';
+                statusDiv.textContent = `✅ Valid GitHub token configured (${preview})`;
+            } else if (hasToken) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Token set but invalid format';
+            } else {
+                statusDiv.className = 'status warning';
+                statusDiv.textContent = '⚠️ No GitHub token configured';
+            }
+        }
+        
+        function testCreatePoll() {
+            if (window.app && window.app.showCreatePage) {
+                window.app.showCreatePage();
+            } else {
+                alert('App not available - please run this from the main QuickPoll page');
+            }
+        }
+        
+        function showTokenModal() {
+            if (window.app && window.app.showTokenSetupModal) {
+                window.app.showTokenSetupModal();
+            } else {
+                alert('App not available - please run this from the main QuickPoll page');
+            }
+        }
+        
+        function clearToken() {
+            if (window.app && window.app.clearGitHubToken) {
+                window.app.clearGitHubToken();
+                setTimeout(checkStatus, 100);
+            } else {
+                alert('App not available - please run this from the main QuickPoll page');
+            }
+        }
+        
+        // Check status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkStatus, 1000);
+        });
+        
+        // If this page is loaded as part of the main app, setup works automatically
+        // If opened separately, show instructions
+        setTimeout(() => {
+            if (typeof window.app === 'undefined') {
+                document.body.innerHTML += `
+                    <div class="demo-section" style="background: #f8d7da; border: 1px solid #f5c6cb;">
+                        <h3>⚠️ Demo Mode</h3>
+                        <p>This page is meant to be used as part of the main QuickPoll application.</p>
+                        <p><strong>To test the token interface:</strong></p>
+                        <ol>
+                            <li>Go to <a href="/">QuickPoll Homepage</a></li>
+                            <li>Open browser console (F12)</li>
+                            <li>Run: <code>window.open('/token-demo.html')</code></li>
+                            <li>Use the buttons above to test the interface</li>
+                        </ol>
+                    </div>
+                `;
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

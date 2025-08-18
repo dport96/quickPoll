@@ -6,12 +6,18 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         // GitHub configuration - DO NOT commit actual tokens to repository!
         // For development: Set token via browser console: app.setGitHubToken('your_token_here')
         // For production: Use environment variables or secure token management
-        this.githubToken = this.loadTokenFromStorage() || 'GITHUB_TOKEN_NOT_SET';
+        this.githubToken = this.loadTokenFromStorage() || this.loadTokenFromURL() || 'GITHUB_TOKEN_NOT_SET';
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
         
         // Storage mode: always use GitHub Gist
         this.storageMode = 'gist';
+        
+        // If token was loaded from URL, store it securely and clean URL
+        if (this.loadTokenFromURL()) {
+            this.setGitHubToken(this.loadTokenFromURL());
+            this.cleanTokenFromURL();
+        }
     }
 
     // Token management methods (secure handling)
@@ -20,9 +26,32 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         return sessionStorage.getItem('github_token') || localStorage.getItem('github_token');
     }
 
+    loadTokenFromURL() {
+        // Load token from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('token') || urlParams.get('github_token');
+    }
+
+    cleanTokenFromURL() {
+        // Remove token from URL for security
+        const url = new URL(window.location);
+        url.searchParams.delete('token');
+        url.searchParams.delete('github_token');
+        window.history.replaceState({}, document.title, url.toString());
+    }
+
     setGitHubToken(token) {
         if (!token || token.length < 20) {
             console.error('Invalid GitHub token provided');
+            return false;
+        }
+        
+        // Validate token format
+        const isClassicToken = token.startsWith('ghp_') && token.length >= 36;
+        const isFineGrainedToken = token.startsWith('github_pat_') && token.length >= 50;
+        
+        if (!isClassicToken && !isFineGrainedToken) {
+            console.error('Invalid GitHub token format. Tokens should start with "ghp_" (classic) or "github_pat_" (fine-grained)');
             return false;
         }
         
@@ -30,8 +59,9 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         sessionStorage.setItem('github_token', token);
         this.githubToken = token;
         
-        console.log('✅ GitHub token set successfully');
-        console.log('Token preview:', token.substring(0, 10) + '...');
+        const tokenType = isClassicToken ? 'Classic' : 'Fine-grained';
+        console.log(`✅ GitHub ${tokenType} token set successfully`);
+        console.log('Token preview:', token.substring(0, 15) + '...');
         
         // Update UI to show connection status
         this.updateUserInterface();
@@ -48,15 +78,28 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     }
 
     isTokenValid() {
-        return this.githubToken && 
-               this.githubToken !== 'GITHUB_TOKEN_NOT_SET' && 
-               this.githubToken.length > 20 &&
-               !this.githubToken.includes('EXAMPLE');
+        if (!this.githubToken || 
+            this.githubToken === 'GITHUB_TOKEN_NOT_SET' || 
+            this.githubToken.includes('EXAMPLE')) {
+            return false;
+        }
+        
+        // Support both classic and fine-grained tokens
+        const isClassicToken = this.githubToken.startsWith('ghp_') && this.githubToken.length >= 36;
+        const isFineGrainedToken = this.githubToken.startsWith('github_pat_') && this.githubToken.length >= 50;
+        
+        return isClassicToken || isFineGrainedToken;
     }
 
     // Override the poll creation method
     async handleCreatePoll(e) {
         e.preventDefault();
+        
+        // Check if GitHub token is valid before allowing poll creation
+        if (!this.isTokenValid()) {
+            this.showTokenSetupModal();
+            return;
+        }
         
         const formData = new FormData(e.target);
         const authMode = formData.get('auth-mode');
@@ -112,6 +155,52 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         this.pollData = pollData;
         this.votes = {};
         this.showPollCreatedPage();
+    }
+
+    // Override showPollCreatedPage to include GitHub token in URLs
+    showPollCreatedPage() {
+        const baseUrl = window.location.origin + window.location.pathname;
+        
+        // For GitHub Gist storage, we use the gist ID as the poll identifier
+        const pollParams = new URLSearchParams();
+        pollParams.set('id', this.pollData.gistId); // Use gist ID instead of poll ID
+        
+        // Include the GitHub token in URLs for seamless sharing
+        if (this.isTokenValid()) {
+            pollParams.set('token', this.githubToken);
+        }
+        
+        const votingLink = `${baseUrl}?mode=vote&${pollParams}`;
+        const resultsLink = `${baseUrl}?mode=results&${pollParams}`;
+
+        document.getElementById('voting-link').value = votingLink;
+        document.getElementById('results-link').value = resultsLink;
+        document.getElementById('poll-id-value').textContent = this.pollData.gistId || this.pollData.id;
+
+        // Show auth info if required
+        const authInfo = document.getElementById('auth-info');
+        const emailRestrictionInfo = document.getElementById('email-restriction-info');
+        
+        if (this.pollData.requireAuth) {
+            authInfo.style.display = 'block';
+            if (this.pollData.validEmails.length > 0) {
+                emailRestrictionInfo.style.display = 'list-item';
+            }
+        }
+
+        this.showPage('poll-created');
+    }
+
+    // Override showCreatePage to check for GitHub token
+    showCreatePage(type = 'simple') {
+        // Check if GitHub token is valid before showing create page
+        if (!this.isTokenValid()) {
+            this.showTokenSetupModal();
+            return;
+        }
+        
+        // Call parent method if token is valid
+        super.showCreatePage(type);
     }
 
     async storePollOnGitHub(pollData) {
@@ -260,14 +349,19 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     // Override poll loading from parameters
     async loadPollFromParams(params) {
         try {
-            // First try to load from GitHub
+            // Extract poll ID (which is now a gist ID for GitHub storage)
             const pollId = params.get('id');
-            const success = await this.loadPollFromGitHub(pollId);
             
-            if (!success) {
-                // Fallback to original URL parameter loading
-                super.loadPollFromParams(params);
+            if (pollId) {
+                const success = await this.loadPollFromGitHub(pollId);
+                
+                if (success) {
+                    return; // Successfully loaded from GitHub
+                }
             }
+            
+            // Fallback to original URL parameter loading if GitHub fails
+            super.loadPollFromParams(params);
         } catch (error) {
             console.error('Error loading poll from GitHub:', error);
             // Fallback to original method
@@ -293,11 +387,12 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
                             <h3>Quick Setup:</h3>
                             <ol>
                                 <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens</a></li>
-                                <li>Generate a new token with "gist" scope</li>
+                                <li>Generate a new token (classic or fine-grained) with "gist" scope</li>
                                 <li>Open browser console (F12) and run:<br>
                                     <code>app.setGitHubToken("your_token_here")</code></li>
                                 <li>Refresh this page</li>
                             </ol>
+                            <p><small>Supported formats: ghp_xxx (classic) or github_pat_xxx (fine-grained)</small></p>
                         </div>
                         <p><small>Your token will be stored securely in your browser session only.</small></p>
                     </div>
@@ -350,8 +445,13 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             this.pollData = JSON.parse(gist.files['poll-data.json'].content);
             this.votes = JSON.parse(gist.files['votes.json'].content);
             
+            // Store the gist ID in pollData for future operations
+            this.pollData.gistId = gistId;
+            this.pollData.gistUrl = gist.html_url;
+            
             console.log('✅ Poll loaded successfully from GitHub Gist');
             console.log(`   Poll: ${this.pollData.title}`);
+            console.log(`   Gist ID: ${gistId}`);
             console.log(`   Votes: ${Object.keys(this.votes).length}`);
             
             return true;
@@ -391,9 +491,9 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             `;
         } else {
             githubIndicator.innerHTML = `
-                <span class="github-status disconnected" title="GitHub token not configured" 
-                      onclick="app.showTokenSetupHelp()" style="cursor: pointer;">
-                    ⚠️ GitHub Token Required
+                <span class="github-status disconnected" title="Click to configure GitHub token" 
+                      onclick="app.showTokenSetupModal()" style="cursor: pointer;">
+                    ⚠️ Setup GitHub Token
                 </span>
             `;
         }
@@ -412,6 +512,9 @@ Steps:
    app.setGitHubToken("your_token_here")
 
 The token will be stored securely in your browser session.
+
+Note: When you create polls, the generated URLs will include your token
+for seamless sharing. Recipients can view and vote without setting up tokens.
         `;
         
         alert(helpMessage);
@@ -419,10 +522,221 @@ The token will be stored securely in your browser session.
         console.log('1. Go to: https://github.com/settings/tokens');
         console.log('2. Generate a new token with "gist" scope');
         console.log('3. Run: app.setGitHubToken("your_token_here")');
+        console.log('4. Generated poll URLs will include the token for easy sharing');
+    }
+
+    // GitHub Token Setup Modal
+    showTokenSetupModal() {
+        const modal = document.getElementById('github-token-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            
+            // Focus on the token input
+            setTimeout(() => {
+                const tokenInput = document.getElementById('github-token-input');
+                if (tokenInput) tokenInput.focus();
+            }, 100);
+        }
+    }
+
+    hideTokenSetupModal() {
+        const modal = document.getElementById('github-token-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            // Clear any validation messages
+            const validationResult = document.getElementById('token-validation-result');
+            if (validationResult) {
+                validationResult.style.display = 'none';
+            }
+        }
+    }
+
+    async validateAndSaveToken(token) {
+        const validationResult = document.getElementById('token-validation-result');
+        const saveButton = document.getElementById('save-token-btn');
+        const buttonText = saveButton.querySelector('.btn-text');
+        const buttonLoading = saveButton.querySelector('.btn-loading');
+        
+        // Show loading state
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline-flex';
+        saveButton.disabled = true;
+        
+        // Validate token format first
+        if (!token) {
+            this.showValidationResult('error', '❌ Please enter a GitHub token.');
+            this.resetButtonState();
+            return false;
+        }
+        
+        // Check for both classic and fine-grained token formats
+        const isClassicToken = token.startsWith('ghp_') && token.length >= 36;
+        const isFineGrainedToken = token.startsWith('github_pat_') && token.length >= 50;
+        
+        if (!isClassicToken && !isFineGrainedToken) {
+            this.showValidationResult('error', '❌ Invalid token format. GitHub tokens should start with "ghp_" (classic) or "github_pat_" (fine-grained).');
+            this.resetButtonState();
+            return false;
+        }
+        
+        try {
+            // Test the token by making a simple API call
+            const response = await fetch('https://api.github.com/user', {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                
+                // Check if token has gist scope by trying to list gists
+                const gistResponse = await fetch('https://api.github.com/gists', {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (gistResponse.ok) {
+                    // Token is valid and has gist scope
+                    this.setGitHubToken(token);
+                    this.showValidationResult('success', `✅ Token validated successfully! Authenticated as ${userData.login}.`);
+                    
+                    // Close modal after a brief delay
+                    setTimeout(() => {
+                        this.hideTokenSetupModal();
+                        
+                        // Show success message in main UI
+                        const githubIndicator = document.getElementById('github-indicator');
+                        if (githubIndicator) {
+                            githubIndicator.innerHTML = `
+                                <span class="github-status connected" title="GitHub storage enabled - Token configured">
+                                    ✅ Connected as ${userData.login}
+                                </span>
+                            `;
+                        }
+                    }, 2000);
+                    
+                    return true;
+                } else {
+                    this.showValidationResult('error', '❌ Token does not have "gist" scope. Please create a new token with gist permissions.');
+                    this.resetButtonState();
+                    return false;
+                }
+            } else {
+                if (response.status === 401) {
+                    this.showValidationResult('error', '❌ Invalid or expired token. Please check your token and try again.');
+                } else {
+                    this.showValidationResult('error', `❌ Failed to validate token (${response.status}). Please try again.`);
+                }
+                this.resetButtonState();
+                return false;
+            }
+        } catch (error) {
+            this.showValidationResult('error', '❌ Network error while validating token. Please check your internet connection and try again.');
+            this.resetButtonState();
+            return false;
+        }
+    }
+
+    showValidationResult(type, message) {
+        const validationResult = document.getElementById('token-validation-result');
+        if (validationResult) {
+            validationResult.className = `validation-result ${type}`;
+            validationResult.textContent = message;
+            validationResult.style.display = 'block';
+        }
+    }
+
+    resetButtonState() {
+        const saveButton = document.getElementById('save-token-btn');
+        const buttonText = saveButton.querySelector('.btn-text');
+        const buttonLoading = saveButton.querySelector('.btn-loading');
+        
+        buttonText.style.display = 'inline';
+        buttonLoading.style.display = 'none';
+        saveButton.disabled = false;
+    }
+
+    setupTokenModalEventListeners() {
+        // Close modal events
+        const closeBtn = document.getElementById('close-token-modal');
+        const cancelBtn = document.getElementById('cancel-token-setup');
+        const modal = document.getElementById('github-token-modal');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hideTokenSetupModal());
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.hideTokenSetupModal());
+        }
+        
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideTokenSetupModal();
+                }
+            });
+        }
+        
+        // Token form submission
+        const tokenForm = document.getElementById('github-token-form');
+        if (tokenForm) {
+            tokenForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const token = document.getElementById('github-token-input').value.trim();
+                await this.validateAndSaveToken(token);
+            });
+        }
+        
+        // Toggle token visibility
+        const toggleBtn = document.getElementById('toggle-token-visibility');
+        const tokenInput = document.getElementById('github-token-input');
+        if (toggleBtn && tokenInput) {
+            toggleBtn.addEventListener('click', () => {
+                if (tokenInput.type === 'password') {
+                    tokenInput.type = 'text';
+                    toggleBtn.textContent = '🙈 Hide';
+                } else {
+                    tokenInput.type = 'password';
+                    toggleBtn.textContent = '👁️ Show';
+                }
+            });
+        }
+        
+        // GitHub status indicator click
+        const updateGitHubStatusClick = () => {
+            const githubIndicator = document.getElementById('github-indicator');
+            if (githubIndicator) {
+                const statusElement = githubIndicator.querySelector('.github-status.disconnected');
+                if (statusElement) {
+                    statusElement.removeEventListener('click', this.showTokenSetupModal.bind(this));
+                    statusElement.addEventListener('click', this.showTokenSetupModal.bind(this));
+                }
+            }
+        };
+        
+        // Initial setup and update when UI changes
+        updateGitHubStatusClick();
+        
+        // Override updateUserInterface to ensure click handlers are always attached
+        const originalUpdateUI = this.updateUserInterface.bind(this);
+        this.updateUserInterface = () => {
+            originalUpdateUI();
+            setTimeout(updateGitHubStatusClick, 100);
+        };
     }
 }
 
 // Initialize the app with GitHub integration
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new QuickPollGitHubApp();
+    
+    // Setup token modal event listeners
+    if (window.app.setupTokenModalEventListeners) {
+        window.app.setupTokenModalEventListeners();
+    }
 });
