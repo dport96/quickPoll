@@ -1,6 +1,7 @@
 // QuickPoll Application with GitHub Gist Storage
 class QuickPollGitHubApp extends QuickPollEmailApp {
     constructor() {
+        // Call super constructor first
         super();
         
         // GitHub configuration - DO NOT commit actual tokens to repository!
@@ -17,6 +18,32 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         if (this.loadTokenFromURL()) {
             this.setGitHubToken(this.loadTokenFromURL());
             this.cleanTokenFromURL();
+        }
+    }
+
+    // Override parent's init method to use async initialization
+    init() {
+        this.initializeAsync();
+    }
+
+    async initializeAsync() {
+        // Call parent methods manually to maintain control
+        this.bindEvents();
+        
+        // Check for existing auth first
+        this.checkExistingAuth();
+        
+        // Handle URL parameters with async loading
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        const pollId = params.get('id');
+
+        if (mode && pollId) {
+            // We have a poll to load
+            await this.parseQueryString();
+        } else {
+            // No poll to load, show default page
+            this.showPage(this.currentPage);
         }
     }
 
@@ -203,6 +230,20 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         super.showCreatePage(type);
     }
 
+    // Override showResultsPage to handle GitHub Gist IDs
+    showResultsPage() {
+        if (!this.isTokenValid()) {
+            // Show token setup modal if no valid token
+            this.showTokenSetupModal();
+            return;
+        }
+
+        const gistId = prompt('Enter Poll ID (Gist ID) to view results:');
+        if (gistId) {
+            window.location.href = `?mode=results&id=${gistId}&token=${this.githubToken}`;
+        }
+    }
+
     async storePollOnGitHub(pollData) {
         if (!this.isTokenValid()) {
             console.error('GitHub token not set or invalid. Use app.setGitHubToken("your_token") in console.');
@@ -348,58 +389,255 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
 
     // Override poll loading from parameters
     async loadPollFromParams(params) {
-        try {
-            // Extract poll ID (which is now a gist ID for GitHub storage)
-            const pollId = params.get('id');
+        // Extract poll ID (which is now a gist ID for GitHub storage)
+        const pollId = params.get('id');
+        
+        if (!pollId) {
+            throw new Error('No poll ID provided');
+        }
+        
+        const success = await this.loadPollFromGitHub(pollId);
+        
+        if (!success) {
+            throw new Error(`Failed to load poll from GitHub Gist: ${pollId}`);
+        }
+    }
+
+    // Override parseQueryString to handle async poll loading
+    async parseQueryString() {
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        const pollId = params.get('id');
+
+        if (mode && pollId) {
+            console.log(`Loading poll from GitHub: mode=${mode}, id=${pollId}`);
             
-            if (pollId) {
-                const success = await this.loadPollFromGitHub(pollId);
+            // Show loading state
+            this.showLoadingState(mode);
+            
+            try {
+                await this.loadPollFromParams(params);
                 
-                if (success) {
-                    return; // Successfully loaded from GitHub
+                // Set the current page after successful loading
+                if (mode === 'vote') {
+                    this.currentPage = 'vote';
+                } else if (mode === 'results') {
+                    this.currentPage = 'results';
+                    // For results page, always refresh vote data from GitHub
+                    console.log('Refreshing votes for results page...');
+                    const refreshSuccess = await this.refreshVotesFromGitHub();
+                    if (!refreshSuccess) {
+                        console.warn('Failed to refresh votes, using loaded vote data');
+                    }
                 }
+                
+                // Now show the page with loaded data
+                this.showPage(this.currentPage);
+                
+            } catch (error) {
+                console.error('Error loading poll:', error);
+                this.showPollLoadError(mode, pollId, error.message);
+            }
+        }
+    }
+
+    // Method to refresh votes from GitHub Gist
+    async refreshVotesFromGitHub() {
+        if (!this.pollData?.gistId || !this.isTokenValid()) {
+            console.warn('Cannot refresh votes: missing gist ID or invalid token');
+            return false;
+        }
+
+        try {
+            console.log(`🔄 Refreshing votes from GitHub Gist: ${this.pollData.gistId}`);
+            const response = await fetch(`https://api.github.com/gists/${this.pollData.gistId}`, {
+                headers: {
+                    'Authorization': `token ${this.githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (response.ok) {
+                const gist = await response.json();
+                if (gist.files['votes.json']) {
+                    const newVotes = JSON.parse(gist.files['votes.json'].content);
+                    this.votes = newVotes;
+                    console.log(`✅ Votes refreshed from GitHub: ${Object.keys(this.votes).length} votes found`);
+                    return true;
+                } else {
+                    console.warn('⚠️ votes.json file not found in Gist');
+                    return false;
+                }
+            } else {
+                console.warn('Failed to refresh votes from GitHub:', response.status, response.statusText);
+                return false;
+            }
+        } catch (error) {
+            console.warn('Error refreshing votes from GitHub:', error);
+            return false;
+        }
+    }
+
+    // Override renderResultsPage to ensure we're using GitHub data
+    renderResultsPage() {
+        console.log('🔍 Rendering results page with GitHub data...');
+        console.log('   Poll data:', this.pollData ? this.pollData.title : 'null');
+        console.log('   Votes data:', this.votes ? Object.keys(this.votes).length : 'null', 'votes');
+        console.log('   Storage mode:', this.storageMode);
+        
+        // Ensure we're not using any localStorage data for GitHub polls
+        if (this.storageMode === 'gist' && this.pollData) {
+            // Clear any localStorage votes that might interfere
+            const votesKey = `votes_${this.pollData.id}`;
+            if (localStorage.getItem(votesKey)) {
+                console.log('   Clearing localStorage votes (GitHub mode)');
+                localStorage.removeItem(votesKey);
+            }
+        }
+        
+        // Call parent method with our GitHub-loaded data
+        super.renderResultsPage();
+        
+        // For GitHub storage, replace the refresh button to use our method
+        this.replaceRefreshButton();
+    }
+
+    replaceRefreshButton() {
+        // Find the refresh button and replace its onclick handler
+        const refreshButton = document.querySelector('button[onclick="location.reload()"]');
+        if (refreshButton) {
+            refreshButton.onclick = () => this.refreshResults();
+            refreshButton.innerHTML = '🔄 Refresh from GitHub';
+            refreshButton.title = 'Refresh vote data from GitHub Gist';
+        }
+    }
+
+    async refreshResults() {
+        const refreshButton = document.querySelector('button[onclick="location.reload()"]') || 
+                            document.querySelector('.btn[title="Refresh vote data from GitHub Gist"]');
+        if (refreshButton) {
+            const originalText = refreshButton.innerHTML;
+            refreshButton.innerHTML = '⏳ Refreshing...';
+            refreshButton.disabled = true;
+        }
+
+        try {
+            await this.refreshVotesFromGitHub();
+            this.renderResultsPage();
+        } catch (error) {
+            console.error('Error refreshing results:', error);
+            alert('Failed to refresh results from GitHub. Please try again.');
+        } finally {
+            if (refreshButton) {
+                refreshButton.innerHTML = '🔄 Refresh from GitHub';
+                refreshButton.disabled = false;
+            }
+        }
+    }
+
+    showLoadingState(mode) {
+        const pageId = mode === 'vote' ? 'vote' : 'results';
+        const container = document.getElementById(`${pageId}-content`);
+        
+        if (container) {
+            container.innerHTML = `
+                <div class="${pageId}-container">
+                    <div class="loading-state">
+                        <h2>⏳ Loading Poll...</h2>
+                        <p>Fetching poll data from GitHub Gist...</p>
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    showPollLoadError(mode, pollId, errorMessage = null) {
+        const pageId = mode === 'vote' ? 'vote' : 'results';
+        const container = document.getElementById(`${pageId}-content`);
+        
+        if (container) {
+            // Determine specific error message
+            let specificError = 'The requested poll could not be found.';
+            let troubleshooting = [];
+            
+            if (!this.isTokenValid()) {
+                specificError = 'GitHub token is not configured or invalid.';
+                troubleshooting = [
+                    'Set up your GitHub Personal Access Token',
+                    'Go to GitHub Settings → Personal Access Tokens',
+                    'Generate a token with "gist" scope',
+                    'Set token using: app.setGitHubToken("your_token")'
+                ];
+            } else if (errorMessage && errorMessage.includes('404')) {
+                specificError = 'Poll not found - the Gist ID may be incorrect or the poll may have been deleted.';
+                troubleshooting = [
+                    'Check if the poll URL is correct',
+                    'Verify the poll creator shared the right link',
+                    'The poll may have been deleted by its creator'
+                ];
+            } else if (errorMessage && errorMessage.includes('401')) {
+                specificError = 'Access denied - your GitHub token may not have permission to access this poll.';
+                troubleshooting = [
+                    'Check if your GitHub token is valid',
+                    'Ensure the token has "gist" scope',
+                    'The poll may be private and not accessible to you'
+                ];
+            } else if (errorMessage && errorMessage.includes('network')) {
+                specificError = 'Network error - unable to connect to GitHub.';
+                troubleshooting = [
+                    'Check your internet connection',
+                    'GitHub may be temporarily unavailable',
+                    'Try refreshing the page'
+                ];
+            } else {
+                troubleshooting = [
+                    'Check if your GitHub token is valid',
+                    'Verify the poll URL is correct',
+                    'Try refreshing the page',
+                    'Contact the poll creator if the issue persists'
+                ];
             }
             
-            // Fallback to original URL parameter loading if GitHub fails
-            super.loadPollFromParams(params);
-        } catch (error) {
-            console.error('Error loading poll from GitHub:', error);
-            // Fallback to original method
-            super.loadPollFromParams(params);
+            container.innerHTML = `
+                <div class="${pageId}-container">
+                    <div class="error-message">
+                        <h2>❌ Poll Not Found</h2>
+                        <p class="error-description">${specificError}</p>
+                        ${pollId ? `<p><strong>Poll ID:</strong> ${pollId}</p>` : ''}
+                        
+                        ${troubleshooting.length > 0 ? `
+                        <div class="error-details">
+                            <p><strong>What you can try:</strong></p>
+                            <ul>
+                                ${troubleshooting.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="error-actions">
+                            <button onclick="window.location.reload()" class="btn btn-primary">
+                                🔄 Retry Loading
+                            </button>
+                            ${!this.isTokenValid() ? `
+                            <button onclick="app.showTokenSetupModal()" class="btn btn-secondary">
+                                🔧 Set Up GitHub Token
+                            </button>
+                            ` : ''}
+                            <button onclick="location.href='./'" class="btn btn-secondary">
+                                🏠 Go Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
     }
 
     async loadPollFromGitHub(pollId) {
         if (!this.isTokenValid()) {
             console.error('GitHub token not set or invalid for poll loading');
-            console.log('To view polls stored on GitHub Gist:');
-            console.log('1. Set your token: app.setGitHubToken("your_token")');
-            console.log('2. Or create a token at: https://github.com/settings/tokens');
-            
-            // Show user-friendly message
-            const pollNotFoundDiv = document.getElementById('vote-content') || document.getElementById('results-content');
-            if (pollNotFoundDiv) {
-                pollNotFoundDiv.innerHTML = `
-                    <div class="error-message">
-                        <h2>⚠️ GitHub Token Required</h2>
-                        <p>To view polls stored on GitHub Gist, you need to set your GitHub Personal Access Token.</p>
-                        <div class="setup-instructions">
-                            <h3>Quick Setup:</h3>
-                            <ol>
-                                <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens</a></li>
-                                <li>Generate a new token (classic or fine-grained) with "gist" scope</li>
-                                <li>Open browser console (F12) and run:<br>
-                                    <code>app.setGitHubToken("your_token_here")</code></li>
-                                <li>Refresh this page</li>
-                            </ol>
-                            <p><small>Supported formats: ghp_xxx (classic) or github_pat_xxx (fine-grained)</small></p>
-                        </div>
-                        <p><small>Your token will be stored securely in your browser session only.</small></p>
-                    </div>
-                `;
-            }
-            
-            return false;
+            throw new Error('GitHub token not configured or invalid. Please set up your GitHub Personal Access Token.');
         }
 
         // Note: Polls are loaded directly by gist ID
@@ -409,8 +647,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         const gistId = pollId; // Assuming pollId is now the gist ID
 
         if (!gistId) {
-            console.error('No gist ID provided for poll loading');
-            return false;
+            throw new Error('No Gist ID provided for poll loading');
         }
 
         console.log(`Attempting to load poll from GitHub Gist: ${gistId}`);
@@ -424,26 +661,34 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             });
 
             if (!response.ok) {
-                console.error(`Failed to load gist: ${response.status} ${response.statusText}`);
+                const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                console.error(`Failed to load gist: ${errorMessage}`);
+                
                 if (response.status === 404) {
-                    console.error('Gist not found - check if the poll ID is correct');
+                    throw new Error('404: Poll not found. The Gist ID may be incorrect or the poll may have been deleted.');
                 } else if (response.status === 401) {
-                    console.error('Unauthorized - check if your GitHub token is valid');
+                    throw new Error('401: Access denied. Check if your GitHub token is valid and has the correct permissions.');
+                } else if (response.status === 403) {
+                    throw new Error('403: Forbidden. Your GitHub token may not have access to this poll.');
+                } else {
+                    throw new Error(`GitHub API error: ${errorMessage}`);
                 }
-                return false;
             }
 
             const gist = await response.json();
             
             // Verify this is a QuickPoll gist
             if (!gist.files['poll-data.json'] || !gist.files['votes.json']) {
-                console.error('Invalid gist format - missing required poll files');
-                return false;
+                throw new Error('Invalid poll format: This Gist is not a valid QuickPoll.');
             }
             
             // Parse poll data and votes
-            this.pollData = JSON.parse(gist.files['poll-data.json'].content);
-            this.votes = JSON.parse(gist.files['votes.json'].content);
+            try {
+                this.pollData = JSON.parse(gist.files['poll-data.json'].content);
+                this.votes = JSON.parse(gist.files['votes.json'].content);
+            } catch (parseError) {
+                throw new Error('Invalid poll data: Unable to parse poll content from Gist.');
+            }
             
             // Store the gist ID in pollData for future operations
             this.pollData.gistId = gistId;
@@ -456,15 +701,18 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             
             return true;
         } catch (error) {
-            console.error('Error loading poll from GitHub:', error);
-            
-            if (error.message.includes('JSON')) {
-                console.error('Invalid poll data format in gist');
-            } else if (error.message.includes('network') || error.message.includes('fetch')) {
-                console.error('Network error - check your internet connection');
+            // Re-throw our custom errors
+            if (error.message.includes('404:') || error.message.includes('401:') || error.message.includes('403:') || error.message.includes('Invalid poll')) {
+                throw error;
             }
             
-            return false;
+            // Handle network and other errors
+            if (error.name === 'TypeError' || error.message.includes('fetch')) {
+                throw new Error('network: Unable to connect to GitHub. Check your internet connection.');
+            }
+            
+            // Generic error
+            throw new Error(`Unexpected error loading poll: ${error.message}`);
         }
     }
 

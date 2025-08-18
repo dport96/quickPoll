@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constructor Fix Test - QuickPoll</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; background: #f8f9fa; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .fix-status { background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .error-status { background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .test-section { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .code-snippet { background: #f1f3f4; border-left: 4px solid #667eea; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; }
+        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .status-indicator { padding: 5px 10px; border-radius: 3px; font-weight: bold; margin: 5px 0; display: inline-block; }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Constructor Fix Test</h1>
+        
+        <div id="constructor-status" class="fix-status">
+            <h2>✅ Constructor Issue Fixed</h2>
+            <p><strong>Problem:</strong> "Must call super constructor in derived class before accessing 'this'" error</p>
+            <p><strong>Solution:</strong> Moved `super()` call to the beginning of constructor before accessing `this`</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 What Was Fixed</h3>
+            
+            <h4>Before (Broken):</h4>
+            <div class="code-snippet">
+constructor() {<br>
+&nbsp;&nbsp;// Don't call super() yet - WRONG!<br>
+&nbsp;&nbsp;this.currentPage = 'landing'; // ❌ Error: accessing 'this' before super()<br>
+&nbsp;&nbsp;this.pollData = null;<br>
+&nbsp;&nbsp;// ... more 'this' access<br>
+}
+            </div>
+
+            <h4>After (Fixed):</h4>
+            <div class="code-snippet">
+constructor() {<br>
+&nbsp;&nbsp;super(); // ✅ Call super() first<br>
+&nbsp;&nbsp;this.githubToken = this.loadTokenFromStorage(); // ✅ Now 'this' is available<br>
+&nbsp;&nbsp;// ... rest of initialization<br>
+}
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 App Status Check</h3>
+            <div id="app-status">
+                <div class="status-indicator status-warning">⏳ Checking app initialization...</div>
+            </div>
+            <div id="app-details" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Testing Instructions</h3>
+            <ol>
+                <li><strong>Check Console:</strong> Open browser console (F12) - there should be no constructor errors</li>
+                <li><strong>Create Poll:</strong> Try creating a poll to test the full initialization flow</li>
+                <li><strong>Vote Test:</strong> Submit votes to verify the vote saving functionality works</li>
+                <li><strong>View Results:</strong> Check if results display correctly with vote data from GitHub</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 Quick Actions</h3>
+            <a href="/" class="btn btn-primary">🏠 Go to Main App</a>
+            <button onclick="testCreatePoll()" class="btn btn-success">🧪 Test Poll Creation</button>
+            <button onclick="checkConsoleErrors()" class="btn btn-danger">📋 Check Console</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Expected Behavior</h3>
+            <ul>
+                <li>✅ No constructor errors in console</li>
+                <li>✅ App initializes successfully</li>
+                <li>✅ GitHub token loading works</li>
+                <li>✅ Voting functionality operational</li>
+                <li>✅ Vote data saves to GitHub Gist</li>
+                <li>✅ Results page displays votes correctly</li>
+            </ul>
+        </div>
+
+        <div id="test-results" class="test-section" style="display: none;">
+            <h3>🧪 Test Results</h3>
+            <div id="test-output"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check app status
+        function checkAppStatus() {
+            const statusDiv = document.getElementById('app-status');
+            const detailsDiv = document.getElementById('app-details');
+            
+            if (typeof window.app === 'undefined') {
+                statusDiv.innerHTML = '<div class="status-indicator status-error">❌ App not found - may not be loaded yet</div>';
+                detailsDiv.innerHTML = '<p>App should be loaded from main page. Try opening <a href="/">main app</a> first.</p>';
+                return;
+            }
+
+            // Check for constructor errors
+            let hasErrors = false;
+            let details = [];
+
+            try {
+                // Test basic properties
+                details.push(`App Type: ${window.app.constructor.name}`);
+                details.push(`Storage Mode: ${window.app.storageMode || 'unknown'}`);
+                details.push(`Current Page: ${window.app.currentPage || 'unknown'}`);
+                
+                // Test GitHub properties
+                const hasToken = window.app.githubToken && window.app.githubToken !== 'GITHUB_TOKEN_NOT_SET';
+                details.push(`GitHub Token: ${hasToken ? 'Configured' : 'Not set'}`);
+                
+                if (window.app.isTokenValid) {
+                    details.push(`Token Valid: ${window.app.isTokenValid() ? 'Yes' : 'No'}`);
+                }
+
+                // Test methods exist
+                const methods = ['loadTokenFromStorage', 'setGitHubToken', 'submitVote', 'refreshVotesFromGitHub'];
+                methods.forEach(method => {
+                    details.push(`${method}: ${typeof window.app[method] === 'function' ? '✅ Available' : '❌ Missing'}`);
+                });
+
+                statusDiv.innerHTML = '<div class="status-indicator status-success">✅ App initialized successfully</div>';
+                
+            } catch (error) {
+                hasErrors = true;
+                statusDiv.innerHTML = '<div class="status-indicator status-error">❌ App has errors</div>';
+                details.push(`Error: ${error.message}`);
+            }
+
+            detailsDiv.innerHTML = `
+                <h4>App Details:</h4>
+                <ul>
+                    ${details.map(detail => `<li>${detail}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        function testCreatePoll() {
+            if (typeof window.app === 'undefined') {
+                alert('App not loaded. Please open the main app first.');
+                return;
+            }
+
+            try {
+                // Try to access create poll functionality
+                if (typeof window.app.showCreatePage === 'function') {
+                    alert('✅ Create poll functionality appears to be working. Try creating a real poll in the main app.');
+                } else {
+                    alert('❌ Create poll method not found. There may be an initialization issue.');
+                }
+            } catch (error) {
+                alert(`❌ Error testing create poll: ${error.message}`);
+            }
+        }
+
+        function checkConsoleErrors() {
+            const testResultsDiv = document.getElementById('test-results');
+            const testOutputDiv = document.getElementById('test-output');
+            
+            testResultsDiv.style.display = 'block';
+            testOutputDiv.innerHTML = `
+                <p><strong>Console Check Instructions:</strong></p>
+                <ol>
+                    <li>Open browser console (F12)</li>
+                    <li>Look for any red error messages</li>
+                    <li>Specifically check for "ReferenceError: Must call super constructor" errors</li>
+                    <li>If no errors appear, the constructor fix was successful!</li>
+                </ol>
+                <p><strong>Common errors to look for:</strong></p>
+                <ul>
+                    <li>❌ "Must call super constructor in derived class before accessing 'this'"</li>
+                    <li>❌ "Cannot access 'this' before super()"</li>
+                    <li>❌ Any JavaScript reference errors</li>
+                </ul>
+                <p><strong>Good signs:</strong></p>
+                <ul>
+                    <li>✅ No red error messages in console</li>
+                    <li>✅ App initialization logs appear</li>
+                    <li>✅ GitHub token loading messages (if token configured)</li>
+                </ul>
+            `;
+        }
+
+        // Auto-check status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkAppStatus, 1000);
+            
+            // Periodically recheck
+            setInterval(checkAppStatus, 5000);
+        });
+
+        // Listen for errors
+        window.addEventListener('error', function(e) {
+            console.error('Page error detected:', e.error);
+            const statusDiv = document.getElementById('app-status');
+            if (e.error.message.includes('super constructor')) {
+                statusDiv.innerHTML = '<div class="status-indicator status-error">❌ Constructor error still present!</div>';
+            }
+        });
+    </script>
+</body>
+</html>
