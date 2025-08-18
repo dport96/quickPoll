@@ -4,40 +4,94 @@
 
 Before using QuickPoll, you need to replace the example token with your actual GitHub Personal Access Token.
 
-### 1. Get Your GitHub Token
+# QuickPoll GitHub Token Setup
 
-1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
-2. Click "Generate new token (classic)"
-3. Give it a name like "QuickPoll Storage" 
-4. Select the **"gist"** scope only
-5. Click "Generate token"
-6. **Copy the token immediately** (you won't see it again)
+**IMPORTANT: Never commit actual GitHub tokens to your repository!**
 
-### 2. Update the Code
+## Why This Approach?
 
-In `github-gist-script.js`, replace the example token:
+GitHub automatically revokes Personal Access Tokens when they detect them in public repositories. This is a security feature to prevent token leaks.
+
+## How to Set Up Your Token
+
+### Method 1: Browser Console (Recommended for Development)
+
+1. **Generate a GitHub Token:**
+   - Go to: https://github.com/settings/tokens
+   - Click "Generate new token (classic)"
+   - Add note: "QuickPoll Gist Access"
+   - Select scope: **"gist"** (only this permission needed)
+   - Click "Generate token"
+   - **Copy the token immediately** (you won't see it again!)
+
+2. **Set Token in Browser:**
+   - Open your QuickPoll page
+   - Open browser console (F12)
+   - Run: `app.setGitHubToken("your_actual_token_here")`
+   - You should see: "✅ GitHub token set successfully"
+
+3. **Verify Setup:**
+   - Run: `quickGistTest()` in console
+   - Should show "✅ Token format looks valid"
+   - Run: `testGistStorage()` for full testing
+
+### Method 2: Environment Variables (For Production)
+
+For production deployments, use environment variables or secure token management systems instead of hardcoding tokens.
+
+## Token Storage
+
+- **SessionStorage**: Token stored in browser session (cleared when browser closes)
+- **No Repository Storage**: Token never committed to git
+- **Secure**: Only stored locally in your browser
+
+## Available Commands
+
+In browser console:
 
 ```javascript
-// REPLACE THIS LINE:
-this.githubToken = 'ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+// Set your token
+app.setGitHubToken("your_token_here")
 
-// WITH YOUR ACTUAL TOKEN:
-this.githubToken = 'ghp_your_actual_token_here';
+// Check token status
+app.isTokenValid()
+
+// Clear token
+app.clearGitHubToken()
+
+// Quick test
+quickGistTest()
+
+// Full test
+testGistStorage()
 ```
 
-### 3. Security Note
+## Troubleshooting
 
-⚠️ **Important**: Never commit your actual token to a public repository. 
+### Token Expired/Revoked
+- GitHub automatically revokes tokens found in repositories
+- Generate a new token and set it again
+- Never commit actual tokens to git
 
-For production use, consider:
-- Using environment variables
-- Implementing user token input via UI
-- Using GitHub Apps instead of personal tokens
+### 401 Unauthorized
+- Token not set: `app.setGitHubToken("your_token")`
+- Token invalid: Generate new token with "gist" scope
+- Token expired: Generate new token
 
-## ✅ Verification
+### UI Shows "GitHub Token Required"
+- Click the warning to see setup instructions
+- Set token using console commands above
 
-After setting your token, QuickPoll will:
-- Create private GitHub Gists for each poll
-- Store all vote data persistently 
-- Enable real-time vote sharing across devices
-- Show "🔗 GitHub Connected" in the interface
+## Security Best Practices
+
+1. **Never commit tokens** to version control
+2. **Use minimal scopes** (only "gist" for QuickPoll)
+3. **Regenerate tokens** if compromised
+4. **Use sessionStorage** for temporary storage
+5. **Consider token expiration** and renewal
+
+## File Structure
+
+- `github-gist-script.js` - Safe to commit (no actual tokens)
+- `TOKEN_SETUP.md` - Setup instructions (safe to commit)
+- Your actual tokens - **NEVER commit these!**

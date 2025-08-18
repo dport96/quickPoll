@@ -3,13 +3,55 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     constructor() {
         super();
         
-        // GitHub configuration - replace with your actual token
-        this.githubToken = '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';
+        // GitHub configuration - DO NOT commit actual tokens to repository!
+        // For development: Set token via browser console: app.setGitHubToken('your_token_here')
+        // For production: Use environment variables or secure token management
+        this.githubToken = this.loadTokenFromStorage() || 'GITHUB_TOKEN_NOT_SET';
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
         
         // Storage mode: always use GitHub Gist
         this.storageMode = 'gist';
+    }
+
+    // Token management methods (secure handling)
+    loadTokenFromStorage() {
+        // Load token from sessionStorage (not committed to repo)
+        return sessionStorage.getItem('github_token') || localStorage.getItem('github_token');
+    }
+
+    setGitHubToken(token) {
+        if (!token || token.length < 20) {
+            console.error('Invalid GitHub token provided');
+            return false;
+        }
+        
+        // Store in sessionStorage (cleared when browser closes)
+        sessionStorage.setItem('github_token', token);
+        this.githubToken = token;
+        
+        console.log('✅ GitHub token set successfully');
+        console.log('Token preview:', token.substring(0, 10) + '...');
+        
+        // Update UI to show connection status
+        this.updateUserInterface();
+        
+        return true;
+    }
+
+    clearGitHubToken() {
+        sessionStorage.removeItem('github_token');
+        localStorage.removeItem('github_token');
+        this.githubToken = 'GITHUB_TOKEN_NOT_SET';
+        console.log('GitHub token cleared');
+        this.updateUserInterface();
+    }
+
+    isTokenValid() {
+        return this.githubToken && 
+               this.githubToken !== 'GITHUB_TOKEN_NOT_SET' && 
+               this.githubToken.length > 20 &&
+               !this.githubToken.includes('EXAMPLE');
     }
 
     // Override the poll creation method
@@ -73,7 +115,9 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     }
 
     async storePollOnGitHub(pollData) {
-        if (!this.githubToken) {
+        if (!this.isTokenValid()) {
+            console.error('GitHub token not set or invalid. Use app.setGitHubToken("your_token") in console.');
+            alert('GitHub token not configured. Please set your GitHub token first.\n\nIn browser console, run:\napp.setGitHubToken("your_github_token_here")');
             return false;
         }
 
@@ -144,7 +188,10 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     }
 
     async submitVoteToGitHub(voteData) {
-        if (!this.githubToken || !this.pollData.gistId) {
+        if (!this.isTokenValid() || !this.pollData.gistId) {
+            if (!this.isTokenValid()) {
+                console.error('GitHub token not set or invalid');
+            }
             return false;
         }
 
@@ -229,7 +276,8 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     }
 
     async loadPollFromGitHub(pollId) {
-        if (!this.githubToken) {
+        if (!this.isTokenValid()) {
+            console.error('GitHub token not set or invalid');
             return false;
         }
 
@@ -272,7 +320,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     updateUserInterface() {
         super.updateUserInterface();
         
-        // Add GitHub status indicator - always connected
+        // Add GitHub status indicator
         const nav = document.querySelector('.nav');
         let githubIndicator = document.getElementById('github-indicator');
         
@@ -283,11 +331,42 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             nav.appendChild(githubIndicator);
         }
 
-        githubIndicator.innerHTML = `
-            <span class="github-status connected" title="GitHub storage enabled">
-                🔗 GitHub Connected
-            </span>
+        if (this.isTokenValid()) {
+            githubIndicator.innerHTML = `
+                <span class="github-status connected" title="GitHub storage enabled - Token configured">
+                    🔗 GitHub Connected
+                </span>
+            `;
+        } else {
+            githubIndicator.innerHTML = `
+                <span class="github-status disconnected" title="GitHub token not configured" 
+                      onclick="app.showTokenSetupHelp()" style="cursor: pointer;">
+                    ⚠️ GitHub Token Required
+                </span>
+            `;
+        }
+    }
+
+    showTokenSetupHelp() {
+        const helpMessage = `
+GitHub Token Setup Required
+
+To use GitHub Gist storage, you need to set your Personal Access Token.
+
+Steps:
+1. Go to: https://github.com/settings/tokens
+2. Generate a new token with "gist" scope
+3. In this browser console, run:
+   app.setGitHubToken("your_token_here")
+
+The token will be stored securely in your browser session.
         `;
+        
+        alert(helpMessage);
+        console.log('📝 GitHub Token Setup Instructions:');
+        console.log('1. Go to: https://github.com/settings/tokens');
+        console.log('2. Generate a new token with "gist" scope');
+        console.log('3. Run: app.setGitHubToken("your_token_here")');
     }
 }
 
