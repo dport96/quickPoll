@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Debug Test - QuickPoll</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .debug-section { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .code-snippet { background: #f1f3f4; border-left: 4px solid #667eea; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; }
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 4px; }
+        .success { color: #155724; background: #d4edda; padding: 10px; border-radius: 4px; }
+        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; background: #667eea; color: white; }
+    </style>
+    <!-- Include the app scripts to test -->
+    <script src="email-auth-script.js"></script>
+    <script src="github-gist-script.js"></script>
+</head>
+<body>
+    <h1>🔍 Token Debug Test</h1>
+    
+    <div class="debug-section">
+        <h3>Current App Status</h3>
+        <div id="app-status"></div>
+        <button onclick="refreshStatus()" class="btn">🔄 Refresh Status</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Token Validation Test</h3>
+        <div id="token-validation"></div>
+        <button onclick="testTokenValidation()" class="btn">🧪 Test Token</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Manual Poll Load Test</h3>
+        <div id="poll-load-test"></div>
+        <button onclick="testPollLoad()" class="btn">📡 Test Poll Load</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Console Output</h3>
+        <div id="console-output" style="background: #000; color: #0f0; padding: 15px; font-family: monospace; max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        // Override console.log to capture output
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const consoleOutput = document.getElementById('console-output');
+        
+        function addToConsoleOutput(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : '#0f0';
+            consoleOutput.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            addToConsoleOutput(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            addToConsoleOutput(args.join(' '), 'error');
+        };
+
+        function refreshStatus() {
+            const statusDiv = document.getElementById('app-status');
+            
+            if (typeof window.app === 'undefined') {
+                statusDiv.innerHTML = '<div class="error">❌ App not initialized</div>';
+                return;
+            }
+
+            try {
+                const status = {
+                    appType: window.app.constructor.name,
+                    tokenSet: window.app.githubToken !== 'GITHUB_TOKEN_NOT_SET',
+                    tokenValid: window.app.isTokenValid(),
+                    tokenLength: window.app.githubToken ? window.app.githubToken.length : 0,
+                    tokenStart: window.app.githubToken ? window.app.githubToken.substring(0, 20) : 'null',
+                    storageMode: window.app.storageMode
+                };
+
+                statusDiv.innerHTML = `
+                    <div class="success">✅ App initialized</div>
+                    <div class="code-snippet">
+                        App Type: ${status.appType}<br>
+                        Token Set: ${status.tokenSet}<br>
+                        Token Valid: ${status.tokenValid}<br>
+                        Token Length: ${status.tokenLength}<br>
+                        Token Start: ${status.tokenStart}...<br>
+                        Storage Mode: ${status.storageMode}
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function testTokenValidation() {
+            const validationDiv = document.getElementById('token-validation');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenFromURL = urlParams.get('token');
+            
+            if (!tokenFromURL) {
+                validationDiv.innerHTML = '<div class="error">❌ No token in URL</div>';
+                return;
+            }
+
+            // Test validation logic
+            const isClassicToken = tokenFromURL.startsWith('ghp_') && tokenFromURL.length >= 36;
+            const isFineGrainedToken = tokenFromURL.startsWith('github_pat_') && tokenFromURL.length >= 50;
+            const isValid = isClassicToken || isFineGrainedToken;
+
+            validationDiv.innerHTML = `
+                <div class="code-snippet">
+                    Token from URL: ${tokenFromURL.substring(0, 20)}...<br>
+                    Length: ${tokenFromURL.length}<br>
+                    Starts with ghp_: ${tokenFromURL.startsWith('ghp_')}<br>
+                    Starts with github_pat_: ${tokenFromURL.startsWith('github_pat_')}<br>
+                    Classic valid: ${isClassicToken}<br>
+                    Fine-grained valid: ${isFineGrainedToken}<br>
+                    Overall valid: ${isValid}
+                </div>
+                <div class="${isValid ? 'success' : 'error'}">
+                    ${isValid ? '✅ Token format is valid' : '❌ Token format is invalid'}
+                </div>
+            `;
+        }
+
+        function testPollLoad() {
+            const testDiv = document.getElementById('poll-load-test');
+            
+            if (typeof window.app === 'undefined') {
+                testDiv.innerHTML = '<div class="error">❌ App not available</div>';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const pollId = urlParams.get('id');
+            
+            if (!pollId) {
+                testDiv.innerHTML = '<div class="error">❌ No poll ID in URL</div>';
+                return;
+            }
+
+            testDiv.innerHTML = '<div>⏳ Testing poll load...</div>';
+
+            // Try to load the poll
+            window.app.loadPollFromGitHub(pollId)
+                .then(() => {
+                    testDiv.innerHTML = '<div class="success">✅ Poll loaded successfully</div>';
+                })
+                .catch(error => {
+                    testDiv.innerHTML = `<div class="error">❌ Poll load failed: ${error.message}</div>`;
+                });
+        }
+
+        // Auto-refresh status when page loads
+        setTimeout(() => {
+            refreshStatus();
+            testTokenValidation();
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -7,23 +7,46 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         // GitHub configuration - DO NOT commit actual tokens to repository!
         // For development: Set token via browser console: app.setGitHubToken('your_token_here')
         // For production: Use environment variables or secure token management
-        this.githubToken = this.loadTokenFromStorage() || this.loadTokenFromURL() || 'GITHUB_TOKEN_NOT_SET';
+        
+        this.githubToken = null;
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
         
         // Storage mode: always use GitHub Gist
         this.storageMode = 'gist';
+    }
+
+    // Initialize GitHub integration (token loading, etc.)
+    async initializeGitHubIntegration() {
+        // Load token from URL first, then storage
+        const tokenFromURL = this.loadTokenFromURL();
+        const tokenFromStorage = this.loadTokenFromStorage();
         
-        // If token was loaded from URL, store it securely and clean URL
-        if (this.loadTokenFromURL()) {
-            this.setGitHubToken(this.loadTokenFromURL());
+        if (tokenFromURL) {
+            console.log('🔗 Loading GitHub token from URL');
+            // Store token securely for future use
+            this.setGitHubToken(tokenFromURL);
+            // Clean token from URL after storing
             this.cleanTokenFromURL();
+        } else if (tokenFromStorage) {
+            console.log('🔗 Loading GitHub token from storage');
+            // Use setGitHubToken to properly validate and set the token
+            this.setGitHubToken(tokenFromStorage);
+        } else {
+            this.githubToken = 'GITHUB_TOKEN_NOT_SET';
         }
+        
+        console.log(`🔧 GitHub integration initialized - Token: ${this.isTokenValid() ? 'Valid' : 'Invalid/Missing'}`);
     }
 
     // Override parent's init method to use async initialization
     init() {
         this.initializeAsync();
+    }
+
+    // Override parent's synchronous parseQueryString to prevent interference
+    parseQueryString() {
+        // Do nothing - we handle this asynchronously in initializeAsync
     }
 
     async initializeAsync() {
@@ -33,14 +56,17 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         // Check for existing auth first
         this.checkExistingAuth();
         
+        // IMPORTANT: Initialize GitHub integration FIRST before loading polls
+        await this.initializeGitHubIntegration();
+        
         // Handle URL parameters with async loading
         const params = new URLSearchParams(window.location.search);
         const mode = params.get('mode');
         const pollId = params.get('id');
 
         if (mode && pollId) {
-            // We have a poll to load
-            await this.parseQueryString();
+            // We have a poll to load (GitHub integration is now ready)
+            await this.parseQueryStringAsync();
         } else {
             // No poll to load, show default page
             this.showPage(this.currentPage);
@@ -404,7 +430,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     }
 
     // Override parseQueryString to handle async poll loading
-    async parseQueryString() {
+    async parseQueryStringAsync() {
         const params = new URLSearchParams(window.location.search);
         const mode = params.get('mode');
         const pollId = params.get('id');
@@ -439,9 +465,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
                 this.showPollLoadError(mode, pollId, error.message);
             }
         }
-    }
-
-    // Method to refresh votes from GitHub Gist
+    }    // Method to refresh votes from GitHub Gist
     async refreshVotesFromGitHub() {
         if (!this.pollData?.gistId || !this.isTokenValid()) {
             console.warn('Cannot refresh votes: missing gist ID or invalid token');
@@ -635,8 +659,17 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
     }
 
     async loadPollFromGitHub(pollId) {
+        console.log(`🔍 loadPollFromGitHub called with pollId: ${pollId}`);
+        console.log(`🔑 Current token: ${this.githubToken ? this.githubToken.substring(0, 20) + '...' : 'null'}`);
+        console.log(`✅ Token valid: ${this.isTokenValid()}`);
+        
         if (!this.isTokenValid()) {
             console.error('GitHub token not set or invalid for poll loading');
+            console.error('Token details:', {
+                token: this.githubToken,
+                length: this.githubToken ? this.githubToken.length : 0,
+                starts_with: this.githubToken ? this.githubToken.substring(0, 12) : 'null'
+            });
             throw new Error('GitHub token not configured or invalid. Please set up your GitHub Personal Access Token.');
         }
 
@@ -650,7 +683,8 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             throw new Error('No Gist ID provided for poll loading');
         }
 
-        console.log(`Attempting to load poll from GitHub Gist: ${gistId}`);
+        console.log(`🔄 Attempting to load poll from GitHub Gist: ${gistId}`);
+        console.log(`🔑 Using token: ${this.githubToken.substring(0, 20)}...`);
 
         try {
             const response = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -659,6 +693,8 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
+
+            console.log(`📡 GitHub API response: ${response.status} ${response.statusText}`);
 
             if (!response.ok) {
                 const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
