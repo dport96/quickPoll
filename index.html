@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickPoll - Real-time Voting</title>
+    <title>QuickPoll - Real-time Voting with GitHub Storage</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="email-auth-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -22,6 +22,7 @@
                     </div>
                     <button id="create-poll-btn" class="btn btn-primary">Create Poll</button>
                     <button id="view-results-btn" class="btn btn-secondary">View Results</button>
+                    <!-- GitHub indicator will be added here by JavaScript -->
                 </nav>
             </div>
         </header>
@@ -35,11 +36,12 @@
                 </div>
                 <div class="modal-body">
                     <p>This poll requires email verification to ensure one vote per person.</p>
-                    <form id="email-auth-form">
+                    <form id="email-auth-form" novalidate>
                         <div class="form-group">
                             <label for="voter-email">Your Email Address:</label>
-                            <input type="email" id="voter-email" name="email" required 
-                                   placeholder="Enter your email address">
+                            <input type="email" id="voter-email" name="email" 
+                                   placeholder="Enter your email address" 
+                                   novalidate>
                         </div>
                         <div class="form-group">
                             <label for="voter-name">Your Name (Optional):</label>
@@ -63,6 +65,10 @@
                     <div class="hero">
                         <h2>Create Real-time Voting Contests</h2>
                         <p>Enable your audience to participate in ranking, rating, and poll voting contests from any device.</p>
+                        <div class="storage-info">
+                            <p>🔗 <strong>GitHub Storage Available:</strong> Enable persistent vote storage using GitHub Gists. 
+                            <span id="storage-status">Click the storage indicator above to configure.</span></p>
+                        </div>
                         <div class="hero-buttons">
                             <button id="create-ranking-btn" class="btn btn-large btn-primary">Create Ranking Poll</button>
                             <button id="create-rating-btn" class="btn btn-large btn-primary">Create Rating Poll</button>
@@ -75,7 +81,7 @@
             <!-- Create Poll Page -->
             <div id="create-page" class="page">
                 <div class="container">
-                    <h2>Create Your Poll</h2>
+                    <h2>Create Your Poll <span id="create-storage-indicator" class="storage-indicator github">GitHub Gist</span></h2>
                     <form id="poll-form" class="poll-form">
                         <div class="form-group">
                             <label for="poll-title">Poll Title</label>
@@ -206,6 +212,13 @@
                             <label>Poll ID:</label>
                             <span id="poll-id-value" class="poll-id"></span>
                         </div>
+                        
+                        <!-- GitHub Gist Info -->
+                        <div id="gist-info" class="gist-info" style="display: none;">
+                            <h4>🔗 Stored on GitHub</h4>
+                            <p>This poll is stored as a private GitHub Gist: <a id="gist-link" href="#" target="_blank" class="gist-link">View Gist</a></p>
+                        </div>
+                        
                         <p>Share these links with your audience:</p>
                         <div class="link-container">
                             <div class="link-group">
@@ -248,11 +261,14 @@
         <footer class="footer">
             <div class="container">
                 <p>&copy; 2025 QuickPoll. Real-time voting made simple and secure.</p>
+                <p><small>All poll data is securely stored using GitHub Gists for persistent, real-time vote sharing.</small></p>
             </div>
         </footer>
     </div>
 
     <!-- Scripts -->
     <script src="email-auth-script.js"></script>
+    <script src="github-gist-script.js"></script>
+    <script src="gist-storage-test.js"></script>
 </body>
 </html>
