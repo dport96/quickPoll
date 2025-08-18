@@ -15,7 +15,7 @@ QuickPoll now supports both **Classic** and **Fine-grained** GitHub Personal Acc
 
 ### 🎯 Fine-grained Tokens (github_pat_)
 - **Format**: `github_pat_` + user_id + `_` + token_data
-- **Example**: `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`
+- **Example**: `github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 - **Total Length**: 93+ characters
 - **Scope**: More granular permissions per repository
 - **Use Case**: Enhanced security, specific repository access
