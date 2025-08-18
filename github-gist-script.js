@@ -4,7 +4,7 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         super();
         
         // GitHub configuration - replace with your actual token
-        this.githubToken = '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';
+        this.githubToken = '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';
         this.githubOwner = 'dport96'; // Your GitHub username
         this.githubRepo = 'quickPoll'; // Your repository name
         
@@ -113,11 +113,6 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
                 pollData.gistId = gist.id;
                 pollData.gistUrl = gist.html_url;
                 
-                // Store gist ID mapping locally for quick access
-                const gistMapping = JSON.parse(localStorage.getItem('poll_gist_mapping') || '{}');
-                gistMapping[pollData.id] = gist.id;
-                localStorage.setItem('poll_gist_mapping', JSON.stringify(gistMapping));
-                
                 return true;
             } else {
                 console.error('GitHub API error:', response.status, response.statusText);
@@ -205,8 +200,6 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
 
             if (updateResponse.ok) {
                 this.votes = currentVotes;
-                // Keep local cache for faster UI updates
-                localStorage.setItem(`votes_${this.pollData.id}`, JSON.stringify(currentVotes));
                 return true;
             } else {
                 return false;
@@ -240,9 +233,11 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             return false;
         }
 
-        // Check if we have the gist ID for this poll
-        const gistMapping = JSON.parse(localStorage.getItem('poll_gist_mapping') || '{}');
-        const gistId = gistMapping[pollId];
+        // Note: Polls are loaded directly by gist ID
+        // No local mapping needed with GitHub storage
+        
+        // Extract gist ID from URL or receive it directly
+        const gistId = pollId; // Assuming pollId is now the gist ID
 
         if (!gistId) {
             return false;
@@ -265,10 +260,6 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             // Parse poll data and votes
             this.pollData = JSON.parse(gist.files['poll-data.json'].content);
             this.votes = JSON.parse(gist.files['votes.json'].content);
-            
-            // Store locally for offline access
-            localStorage.setItem(`poll_${pollId}`, JSON.stringify(this.pollData));
-            localStorage.setItem(`votes_${pollId}`, JSON.stringify(this.votes));
             
             return true;
         } catch (error) {
