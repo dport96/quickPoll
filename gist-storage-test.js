@@ -51,9 +51,13 @@ class GistStorageTest {
             }
         };
 
-        // Check if we have a valid token (not the example token)
-        if (window.app && window.app.githubToken && 
-            window.app.githubToken !== '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') {
+        // Check if we have a valid token (not the example tokens)
+        const isExampleToken = !window.app.githubToken || 
+            window.app.githubToken === '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' ||
+            window.app.githubToken.includes('example') ||
+            window.app.githubToken.length < 20;
+
+        if (window.app && window.app.githubToken && !isExampleToken) {
             
             try {
                 const response = await fetch('https://api.github.com/gists', {
@@ -76,6 +80,13 @@ class GistStorageTest {
                     this.log(`❌ Failed to create gist: ${response.status} ${response.statusText}`, 'error');
                     const errorText = await response.text();
                     this.log(`   Error details: ${errorText}`, 'error');
+                    
+                    if (response.status === 401) {
+                        this.log(`   💡 This is likely due to an invalid or expired GitHub token`, 'warn');
+                        this.log(`   Current token: ${window.app.githubToken.substring(0, 10)}...`, 'info');
+                        this.log(`   Please ensure you have a valid GitHub Personal Access Token`, 'warn');
+                    }
+                    
                     return false;
                 }
             } catch (error) {
@@ -84,7 +95,23 @@ class GistStorageTest {
             }
         } else {
             this.log('⚠️  Cannot test actual GitHub API - no valid token found', 'warn');
-            this.log('   Please ensure app.githubToken is set to a valid GitHub token', 'warn');
+            this.log('   Please ensure app.githubToken is set to a valid GitHub Personal Access Token', 'warn');
+            
+            if (window.app && window.app.githubToken) {
+                this.log(`   Current token: ${window.app.githubToken.substring(0, 10)}... (length: ${window.app.githubToken.length})`, 'info');
+                
+                if (window.app.githubToken.includes('example') || window.app.githubToken.length < 20) {
+                    this.log(`   This appears to be an example/placeholder token`, 'warn');
+                }
+            } else {
+                this.log(`   No token configured`, 'info');
+            }
+            
+            this.log('   To get a valid token:', 'info');
+            this.log('   1. Go to GitHub → Settings → Developer Settings → Personal Access Tokens', 'info');
+            this.log('   2. Generate a new token with "gist" scope', 'info');
+            this.log('   3. Replace the token in github-gist-script.js', 'info');
+            
             return false;
         }
     }
@@ -97,8 +124,12 @@ class GistStorageTest {
             return false;
         }
 
-        if (window.app && window.app.githubToken && 
-            window.app.githubToken !== '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') {
+        const isExampleToken = !window.app.githubToken || 
+            window.app.githubToken === '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' ||
+            window.app.githubToken.includes('example') ||
+            window.app.githubToken.length < 20;
+
+        if (window.app && window.app.githubToken && !isExampleToken) {
             
             try {
                 const response = await fetch(`https://api.github.com/gists/${this.testGistId}`, {
@@ -162,8 +193,12 @@ class GistStorageTest {
             return false;
         }
 
-        if (window.app && window.app.githubToken && 
-            window.app.githubToken !== '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') {
+        const isExampleToken = !window.app.githubToken || 
+            window.app.githubToken === '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' ||
+            window.app.githubToken.includes('example') ||
+            window.app.githubToken.length < 20;
+
+        if (window.app && window.app.githubToken && !isExampleToken) {
             
             try {
                 // First get current gist
@@ -282,8 +317,12 @@ class GistStorageTest {
             return true;
         }
 
-        if (window.app && window.app.githubToken && 
-            window.app.githubToken !== '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') {
+        const isExampleToken = !window.app.githubToken || 
+            window.app.githubToken === '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' ||
+            window.app.githubToken.includes('example') ||
+            window.app.githubToken.length < 20;
+
+        if (window.app && window.app.githubToken && !isExampleToken) {
             
             try {
                 const response = await fetch(`https://api.github.com/gists/${this.testGistId}`, {
@@ -396,7 +435,28 @@ function quickGistTest() {
     console.log('✅ App instance found');
     console.log(`   Storage mode: ${window.app.storageMode}`);
     console.log(`   GitHub token set: ${!!window.app.githubToken}`);
-    console.log(`   Token is example: ${window.app.githubToken === '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'}`);
+    
+    if (window.app.githubToken) {
+        const tokenPreview = window.app.githubToken.substring(0, 10) + '...';
+        console.log(`   Token preview: ${tokenPreview} (length: ${window.app.githubToken.length})`);
+        
+        // Check for example/placeholder tokens
+        const isExampleToken = window.app.githubToken === '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' ||
+            window.app.githubToken.includes('example') ||
+            window.app.githubToken.length < 20;
+            
+        if (isExampleToken) {
+            console.log('⚠️  Using example/placeholder token - replace with your actual GitHub Personal Access Token');
+            console.log('   📝 Instructions:');
+            console.log('   1. Go to GitHub → Settings → Developer Settings → Personal Access Tokens');
+            console.log('   2. Generate a new token with "gist" scope');
+            console.log('   3. Replace the token in github-gist-script.js');
+        } else if (window.app.githubToken.startsWith('ghp_') || window.app.githubToken.startsWith('github_pat_')) {
+            console.log('✅ Token format looks valid (classic or fine-grained)');
+        } else {
+            console.log('⚠️  Token format may be invalid - should start with "ghp_" or "github_pat_"');
+        }
+    }
     
     const requiredMethods = ['storePollOnGitHub', 'loadPollFromGitHub', 'submitVoteToGitHub'];
     const availableMethods = requiredMethods.filter(method => 
@@ -404,10 +464,6 @@ function quickGistTest() {
     );
     
     console.log(`   Available GitHub methods: ${availableMethods.length}/${requiredMethods.length}`);
-    
-    if (window.app.githubToken === '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') {
-        console.log('⚠️  Using example token - replace with your actual GitHub token for full testing');
-    }
     
     console.log('\n💡 Run testGistStorage() for comprehensive testing');
 }
