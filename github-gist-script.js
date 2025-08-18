@@ -277,7 +277,33 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
 
     async loadPollFromGitHub(pollId) {
         if (!this.isTokenValid()) {
-            console.error('GitHub token not set or invalid');
+            console.error('GitHub token not set or invalid for poll loading');
+            console.log('To view polls stored on GitHub Gist:');
+            console.log('1. Set your token: app.setGitHubToken("your_token")');
+            console.log('2. Or create a token at: https://github.com/settings/tokens');
+            
+            // Show user-friendly message
+            const pollNotFoundDiv = document.getElementById('vote-content') || document.getElementById('results-content');
+            if (pollNotFoundDiv) {
+                pollNotFoundDiv.innerHTML = `
+                    <div class="error-message">
+                        <h2>⚠️ GitHub Token Required</h2>
+                        <p>To view polls stored on GitHub Gist, you need to set your GitHub Personal Access Token.</p>
+                        <div class="setup-instructions">
+                            <h3>Quick Setup:</h3>
+                            <ol>
+                                <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens</a></li>
+                                <li>Generate a new token with "gist" scope</li>
+                                <li>Open browser console (F12) and run:<br>
+                                    <code>app.setGitHubToken("your_token_here")</code></li>
+                                <li>Refresh this page</li>
+                            </ol>
+                        </div>
+                        <p><small>Your token will be stored securely in your browser session only.</small></p>
+                    </div>
+                `;
+            }
+            
             return false;
         }
 
@@ -288,8 +314,11 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
         const gistId = pollId; // Assuming pollId is now the gist ID
 
         if (!gistId) {
+            console.error('No gist ID provided for poll loading');
             return false;
         }
+
+        console.log(`Attempting to load poll from GitHub Gist: ${gistId}`);
 
         try {
             const response = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -300,18 +329,41 @@ class QuickPollGitHubApp extends QuickPollEmailApp {
             });
 
             if (!response.ok) {
+                console.error(`Failed to load gist: ${response.status} ${response.statusText}`);
+                if (response.status === 404) {
+                    console.error('Gist not found - check if the poll ID is correct');
+                } else if (response.status === 401) {
+                    console.error('Unauthorized - check if your GitHub token is valid');
+                }
                 return false;
             }
 
             const gist = await response.json();
             
+            // Verify this is a QuickPoll gist
+            if (!gist.files['poll-data.json'] || !gist.files['votes.json']) {
+                console.error('Invalid gist format - missing required poll files');
+                return false;
+            }
+            
             // Parse poll data and votes
             this.pollData = JSON.parse(gist.files['poll-data.json'].content);
             this.votes = JSON.parse(gist.files['votes.json'].content);
             
+            console.log('✅ Poll loaded successfully from GitHub Gist');
+            console.log(`   Poll: ${this.pollData.title}`);
+            console.log(`   Votes: ${Object.keys(this.votes).length}`);
+            
             return true;
         } catch (error) {
             console.error('Error loading poll from GitHub:', error);
+            
+            if (error.message.includes('JSON')) {
+                console.error('Invalid poll data format in gist');
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                console.error('Network error - check your internet connection');
+            }
+            
             return false;
         }
     }
