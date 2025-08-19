@@ -1,0 +1,381 @@
+const express = require('express');
+const { body, param, validationResult } = require('express-validator');
+const { v4: uuidv4 } = require('uuid');
+
+const router = express.Router();
+
+// Validation middleware
+const validateVote = [
+  body('pollId').isUUID().withMessage('Invalid poll ID'),
+  body('voteData').isObject().withMessage('Vote data must be an object'),
+  body('voterIdentifier').optional().isString().withMessage('Voter identifier must be a string'),
+];
+
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      details: errors.array()
+    });
+  }
+  next();
+};
+
+// POST /api/votes - Submit a vote
+router.post('/', validateVote, handleValidationErrors, async (req, res) => {
+  try {
+    const {
+      pollId,
+      voteData,
+      voterIdentifier,
+      voterInfo = {}
+    } = req.body;
+
+    const memoryStore = req.memoryStore;
+    const sessionId = req.sessionID;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.get('User-Agent') || '';
+
+    // Check if poll exists and is active
+    const poll = await memoryStore.getPoll(pollId);
+    if (!poll || !poll.isActive) {
+      return res.status(404).json({ error: 'Poll not found or inactive' });
+    }
+
+    // Check if poll has expired
+    if (poll.expiresAt && new Date(poll.expiresAt) < new Date()) {
+      return res.status(410).json({ error: 'Poll has expired' });
+    }
+
+    // Validate vote data based on poll type
+    const validationResult = validateVoteData(voteData, poll);
+    if (!validationResult.valid) {
+      return res.status(400).json({ error: validationResult.error });
+    }
+
+    // Check for duplicate votes (by session, IP, or email)
+    const identifier = voterIdentifier || sessionId || ipAddress;
+    const existingVote = await memoryStore.hasVoted(pollId, identifier);
+
+    if (existingVote) {
+      return res.status(409).json({
+        error: 'Vote already submitted',
+        existingVote: {
+          id: existingVote.id,
+          submittedAt: existingVote.createdAt
+        }
+      });
+    }
+
+    // Submit the vote
+    const vote = await memoryStore.submitVote({
+      pollId,
+      voteData,
+      voterIdentifier: voterIdentifier || '',
+      voterInfo,
+      ipAddress,
+      userAgent,
+      sessionId
+    });
+
+    // Get updated vote counts
+    const allVotes = await memoryStore.getVotesForPoll(pollId);
+    const totalVotes = allVotes.length;
+
+    // Emit real-time update to all clients watching this poll
+    req.io.to(`poll_${pollId}`).emit('voteSubmitted', {
+      pollId,
+      voteId: vote.id,
+      totalVotes,
+      timestamp: vote.createdAt
+    });
+
+    // Calculate and emit updated results
+    const results = calculateResults(allVotes, poll);
+    req.io.to(`poll_${pollId}`).emit('resultsUpdated', {
+      pollId,
+      results,
+      totalVotes,
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(201).json({
+      success: true,
+      vote: {
+        id: vote.id,
+        pollId: vote.pollId,
+        submittedAt: vote.createdAt
+      },
+      poll: {
+        id: poll.id,
+        title: poll.title,
+        totalVotes
+      }
+    });
+
+  } catch (error) {
+    console.error('Error submitting vote:', error);
+    res.status(500).json({ error: 'Failed to submit vote' });
+  }
+});
+
+// GET /api/votes/:pollId - Get votes for a poll (for poll creators)
+router.get('/:pollId', async (req, res) => {
+  try {
+    const { pollId } = req.params;
+    const memoryStore = req.memoryStore;
+    const sessionId = req.sessionID;
+
+    const poll = await memoryStore.getPoll(pollId);
+    if (!poll) {
+      return res.status(404).json({ error: 'Poll not found' });
+    }
+
+    // Only allow poll creator to see individual votes
+    if (poll.sessionId !== sessionId) {
+      return res.status(403).json({ error: 'Not authorized to view vote details' });
+    }
+
+    const votes = await memoryStore.getVotesForPoll(pollId);
+
+    // Return anonymized vote data
+    const anonymizedVotes = votes.map(vote => ({
+      id: vote.id,
+      voteData: vote.voteData,
+      submittedAt: vote.createdAt,
+      voterInfo: {
+        // Only include non-identifying information
+        timestamp: vote.createdAt,
+        userAgent: vote.userAgent ? vote.userAgent.split(' ')[0] : '', // Browser only
+      }
+    }));
+
+    res.json({
+      success: true,
+      pollId,
+      votes: anonymizedVotes,
+      totalVotes: votes.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching votes:', error);
+    res.status(500).json({ error: 'Failed to fetch votes' });
+  }
+});
+
+// DELETE /api/votes/:voteId - Delete a vote (for poll creators or vote owners)
+router.delete('/:voteId', async (req, res) => {
+  try {
+    const { voteId } = req.params;
+    const memoryStore = req.memoryStore;
+    const sessionId = req.sessionID;
+
+    // Find the vote first
+    let vote = null;
+    let pollId = null;
+
+    // Search through all votes to find the one with this ID
+    for (const [key, v] of memoryStore.votes.entries()) {
+      if (v.id === voteId) {
+        vote = v;
+        pollId = v.pollId;
+        break;
+      }
+    }
+
+    if (!vote) {
+      return res.status(404).json({ error: 'Vote not found' });
+    }
+
+    const poll = await memoryStore.getPoll(pollId);
+    if (!poll) {
+      return res.status(404).json({ error: 'Poll not found' });
+    }
+
+    // Check authorization (poll creator or vote owner)
+    if (poll.sessionId !== sessionId && vote.sessionId !== sessionId) {
+      return res.status(403).json({ error: 'Not authorized to delete this vote' });
+    }
+
+    const deleted = await memoryStore.deleteVote(voteId);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Vote not found' });
+    }
+
+    // Get updated vote counts
+    const allVotes = await memoryStore.getVotesForPoll(pollId);
+    const totalVotes = allVotes.length;
+
+    // Emit real-time update
+    req.io.to(`poll_${pollId}`).emit('voteDeleted', {
+      pollId,
+      voteId,
+      totalVotes,
+      timestamp: new Date().toISOString()
+    });
+
+    // Calculate and emit updated results
+    const results = calculateResults(allVotes, poll);
+    req.io.to(`poll_${pollId}`).emit('resultsUpdated', {
+      pollId,
+      results,
+      totalVotes,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      message: 'Vote deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting vote:', error);
+    res.status(500).json({ error: 'Failed to delete vote' });
+  }
+});
+
+// Helper function to validate vote data based on poll type
+function validateVoteData(voteData, poll) {
+  switch (poll.type) {
+    case 'simple':
+      if (voteData.option === undefined || voteData.option < 0 || voteData.option >= poll.options.length) {
+        return { valid: false, error: 'Invalid option selected' };
+      }
+      break;
+
+    case 'rating':
+      if (!voteData.ratings || !Array.isArray(voteData.ratings)) {
+        return { valid: false, error: 'Ratings must be an array' };
+      }
+      if (voteData.ratings.length !== poll.options.length) {
+        return { valid: false, error: 'Must rate all options' };
+      }
+      for (const rating of voteData.ratings) {
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+          return { valid: false, error: 'All ratings must be integers between 1 and 5' };
+        }
+      }
+      break;
+
+    case 'ranking':
+      if (!voteData.rankings || !Array.isArray(voteData.rankings)) {
+        return { valid: false, error: 'Rankings must be an array' };
+      }
+      if (voteData.rankings.length !== poll.options.length) {
+        return { valid: false, error: 'Must rank all options' };
+      }
+      // Check if rankings are a valid permutation
+      const sortedRankings = [...voteData.rankings].sort((a, b) => a - b);
+      for (let i = 0; i < sortedRankings.length; i++) {
+        if (sortedRankings[i] !== i) {
+          return { valid: false, error: 'Rankings must be a valid permutation (0 to n-1)' };
+        }
+      }
+      break;
+
+    default:
+      return { valid: false, error: 'Unknown poll type' };
+  }
+
+  return { valid: true };
+}
+
+// Helper function to calculate results
+function calculateResults(votes, poll) {
+  switch (poll.type) {
+    case 'simple':
+      return calculateSimpleResults(votes, poll.options);
+    case 'rating':
+      return calculateRatingResults(votes, poll.options);
+    case 'ranking':
+      return calculateRankingResults(votes, poll.options);
+    default:
+      return { error: 'Unknown poll type' };
+  }
+}
+
+function calculateSimpleResults(votes, options) {
+  const results = options.map((option, index) => ({
+    option,
+    votes: 0,
+    percentage: 0
+  }));
+
+  votes.forEach(vote => {
+    if (vote.voteData.option !== undefined) {
+      const optionIndex = vote.voteData.option;
+      if (optionIndex >= 0 && optionIndex < results.length) {
+        results[optionIndex].votes++;
+      }
+    }
+  });
+
+  const totalVotes = votes.length;
+  results.forEach(result => {
+    result.percentage = totalVotes > 0 ? (result.votes / totalVotes) * 100 : 0;
+  });
+
+  return { options: results };
+}
+
+function calculateRatingResults(votes, options) {
+  const results = options.map((option, index) => ({
+    option,
+    totalRating: 0,
+    voteCount: 0,
+    averageRating: 0,
+    ratings: [0, 0, 0, 0, 0] // Count of 1-5 star ratings
+  }));
+
+  votes.forEach(vote => {
+    if (vote.voteData.ratings) {
+      vote.voteData.ratings.forEach((rating, index) => {
+        if (index < results.length && rating >= 1 && rating <= 5) {
+          results[index].totalRating += rating;
+          results[index].voteCount++;
+          results[index].ratings[rating - 1]++;
+        }
+      });
+    }
+  });
+
+  results.forEach(result => {
+    result.averageRating = result.voteCount > 0 ? result.totalRating / result.voteCount : 0;
+  });
+
+  return { options: results };
+}
+
+function calculateRankingResults(votes, options) {
+  const results = options.map((option, index) => ({
+    option,
+    totalScore: 0,
+    averagePosition: 0,
+    votes: 0
+  }));
+
+  votes.forEach(vote => {
+    if (vote.voteData.rankings) {
+      vote.voteData.rankings.forEach((position, index) => {
+        if (index < results.length) {
+          // Higher positions get more points (inverted ranking)
+          const points = options.length - position;
+          results[index].totalScore += points;
+          results[index].votes++;
+        }
+      });
+    }
+  });
+
+  results.forEach(result => {
+    result.averagePosition = result.votes > 0 ? result.totalScore / result.votes : 0;
+  });
+
+  // Sort by average position (higher is better)
+  results.sort((a, b) => b.averagePosition - a.averagePosition);
+
+  return { options: results };
+}
+
+module.exports = router;

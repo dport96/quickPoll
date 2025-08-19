@@ -240,7 +240,7 @@ class QuickPollEmailApp {
     showResultsPage() {
         const pollId = prompt('Enter Poll ID to view results:');
         if (pollId) {
-            window.location.href = `?mode=results&id=${pollId}`;
+            window.location.href = `/results/${pollId}`;
         }
     }
 
@@ -329,11 +329,10 @@ class QuickPollEmailApp {
     }
 
     showPollCreatedPage() {
-        const baseUrl = window.location.origin + window.location.pathname.replace('index-email-auth.html', 'index-email-auth.html');
-        const pollParams = this.createPollParams(this.pollData);
+        const baseUrl = window.location.origin;
         
-        const votingLink = `${baseUrl}?mode=vote&${pollParams}`;
-        const resultsLink = `${baseUrl}?mode=results&${pollParams}`;
+        const votingLink = `${baseUrl}/vote/${this.pollData.id}`;
+        const resultsLink = `${baseUrl}/results/${this.pollData.id}`;
 
         document.getElementById('voting-link').value = votingLink;
         document.getElementById('results-link').value = resultsLink;
@@ -351,22 +350,6 @@ class QuickPollEmailApp {
         }
 
         this.showPage('poll-created');
-    }
-
-    createPollParams(pollData) {
-        const params = new URLSearchParams();
-        params.set('id', pollData.id);
-        params.set('title', pollData.title);
-        if (pollData.description) params.set('desc', pollData.description);
-        params.set('type', pollData.type);
-        if (pollData.requireAuth) params.set('auth', 'true');
-        if (pollData.validEmails.length > 0) params.set('emails', pollData.validEmails.join(','));
-        
-        pollData.options.forEach((option, index) => {
-            params.set(`opt${index}`, option);
-        });
-
-        return params.toString();
     }
 
     copyToClipboard(inputId) {
@@ -661,7 +644,7 @@ class QuickPollEmailApp {
         // Only show View Results button to poll creator
         if (this.pollData.createdBy === 'anonymous' || 
             (this.currentUser && this.currentUser.email === this.pollData.createdBy)) {
-            resultsButton = `<button onclick="location.href='?mode=results&${this.createPollParams(this.pollData)}'" class="btn btn-primary">View Results</button>`;
+            resultsButton = `<button onclick="location.href='/results/${this.pollData.id}'" class="btn btn-primary">View Results</button>`;
         }
         
         container.innerHTML = `
@@ -871,9 +854,7 @@ class QuickPollEmailApp {
         alert('Your vote has been submitted!');
         
         // Redirect to results page
-        const baseUrl = window.location.origin + window.location.pathname;
-        const pollParams = this.createPollParams(this.pollData);
-        const resultsLink = `${baseUrl}?mode=results&${pollParams}`;
+        const resultsLink = `/results/${this.pollData.id}`;
         window.location.href = resultsLink;
     }
 

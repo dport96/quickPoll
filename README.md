@@ -1,161 +1,283 @@
-# QuickPoll - Real-time Voting Application
+# QuickPoll - Professional Real-time Voting Application 🚀
 
-QuickPoll is a web-based application that enables you to create ranking, rating, and poll voting contests and view the results in real time. Your audience can participate live on their mobile phones, tablets, and desktops. There is nothing to download or install.
+QuickPoll is a professional web-based application that enables you to create ranking, rating, and poll voting contests with real-time results. Your audience can participate live on their mobile phones, tablets, and desktops with instant vote updates across all devices.
 
-## Features
+## 🎯 Key Features
 
 - **Three Types of Polls:**
   - **Simple Polls**: Multiple choice or Yes/No questions
   - **Rating Polls**: Rate items on a 1-5 star scale
   - **Ranking Polls**: Drag and drop to rank items in order of preference
 
-- **Real-time Results**: View live results as votes come in
-- **Mobile Responsive**: Works on all devices
-- **No Server Required**: Runs entirely in the browser using localStorage
-- **Easy Sharing**: Generate shareable links for voting and viewing results
-- **Query String Communication**: All data is passed via URL parameters
+- **🔥 Real-time Everything**: Live vote updates, instant notifications, synchronized results
+- **📱 Mobile Optimized**: Touch-friendly interface, responsive design
+- **🛡️ Professional Grade**: Server-side storage, data validation, rate limiting
+- **⚡ Zero Setup**: No databases, no installation, just start the server
+- **🌐 Session-Based**: In-memory storage with automatic cleanup
 
-## How to Use
+## 🚀 Quick Start
+
+### Server Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/dport96/quickPoll.git
+cd quickPoll
+
+# Install dependencies
+cd server
+npm install
+
+# Start the server
+npm run dev
+```
+
+The application will be available at `http://localhost:3001`
+
+## ⚙️ Configuration for External Access
+
+### Local Network Access
+
+To allow others on your local network to access the polls, you can either use the automated script or configure manually:
+
+#### Option 1: Automated Configuration (Recommended)
+
+```bash
+# Run the configuration script
+./configure-external-access.sh
+```
+
+This script will automatically:
+- Detect your IP address
+- Update server configuration files
+- Provide the shareable URL
+
+#### Option 2: Manual Configuration
+
+1. **Find your IP address**:
+   ```bash
+   # On Windows
+   ipconfig
+   
+   # On macOS/Linux
+   ifconfig | grep "inet " | grep -v 127.0.0.1
+   ```
+
+2. **Update environment configuration**:
+   ```bash
+   # Edit server/.env file
+   PORT=3001
+   NODE_ENV=development
+   CORS_ORIGIN=http://YOUR_IP_ADDRESS:3001  # e.g., http://192.168.1.100:3001
+   ```
+
+3. **Update frontend API URL**:
+   ```javascript
+   // Edit server-client-script.js line 7
+   this.apiUrl = 'http://YOUR_IP_ADDRESS:3001/api';  // e.g., http://192.168.1.100:3001/api
+   
+   // Edit server-client-script.js line 38
+   this.socket = io('http://YOUR_IP_ADDRESS:3001');  // e.g., http://192.168.1.100:3001
+   ```
+
+4. **Restart the server**:
+   ```bash
+   cd server
+   npm start
+   ```
+
+5. **Share the URL**: `http://YOUR_IP_ADDRESS:3001`
+
+### Production Deployment
+
+For internet-wide access, deploy to a cloud service and update configuration:
+
+```bash
+# Example for production deployment
+PORT=80
+NODE_ENV=production
+CORS_ORIGIN=https://your-domain.com
+```
+
+Then update the frontend URLs to match your domain:
+```javascript
+this.apiUrl = 'https://your-domain.com/api';
+this.socket = io('https://your-domain.com');
+```
+
+### Security Considerations
+
+- **Rate Limiting**: Configured by default (15 requests per minute)
+- **CORS**: Update `CORS_ORIGIN` to match your domain
+- **HTTPS**: Recommended for production deployments
+- **Firewall**: Ensure port 3001 (or your chosen port) is accessible
 
 ### Creating a Poll
 
-1. Open `index.html` in your web browser
-2. Click on one of the "Create Poll" buttons on the homepage
-3. Fill in your poll details:
-   - Poll title (required)
-   - Description (optional)
-   - Poll type (Simple, Rating, or Ranking)
+1. Open the application in your web browser
+2. Click "Create New Poll" on the homepage
+3. Configure your poll:
+   - Enter poll title and description
+   - Choose poll type (Simple, Rating, or Ranking)
    - Add your options (minimum 2 required)
 4. Click "Create Poll"
-5. Copy the generated voting and results links to share with your audience
+5. Share the generated voting link with your audience
+6. Monitor results in real-time on the results page
 
-### Voting
+### Voting Experience
 
-1. Use the voting link shared by the poll creator
-2. Select your choice(s) based on the poll type:
-   - **Simple Poll**: Click on your preferred option
-   - **Rating Poll**: Click stars to rate each option (1-5 stars)
-   - **Ranking Poll**: Drag options to reorder them by preference
-3. Click "Submit Vote"
-4. You'll be redirected to see the current results
+1. Open the voting link on any device
+2. Cast your vote:
+   - **Simple Poll**: Select your preferred option(s)
+   - **Rating Poll**: Rate each option with 1-5 stars
+   - **Ranking Poll**: Drag to reorder options by preference
+3. Submit your vote
+4. See real-time results immediately
 
-### Viewing Results
+## 🏗️ Architecture
 
-1. Use the results link or enter the Poll ID when prompted
-2. Results update in real-time as new votes are submitted
-3. Click "Refresh Results" to see the latest data
-4. Use "Close Poll" button to permanently delete the poll and all its data
+```text
+Frontend ↔ REST API ↔ In-Memory Storage ↔ Socket.IO Real-time
+```
 
-### Managing Polls
+### Technology Stack
 
-- **Close Poll**: Permanently delete a poll and all its votes from localStorage
-- **Confirmation Required**: Double confirmation prevents accidental deletion
-- **Immediate Effect**: Once closed, the poll becomes completely inaccessible
+- **Backend**: Node.js + Express.js
+- **Storage**: In-memory sessions with automatic cleanup
+- **Real-time**: Socket.IO for live updates
+- **Frontend**: Modern JavaScript with WebSocket integration
+- **Security**: Rate limiting, input validation, session management
 
-## Technical Details
-
-### File Structure
+## 📁 Project Structure
 
 ```text
 quickPoll/
-├── index.html          # Main application file
-├── styles.css          # Styling and responsive design
-├── email-auth-script.js # Application logic and functionality
-├── email-auth-styles.css # Email authentication styles
-└── README.md          # This documentation
+├── server/                  # Server-side application
+│   ├── server.js           # Express.js server
+│   ├── package.json        # Node.js dependencies
+│   ├── storage/            # In-memory data store
+│   └── routes/             # API endpoints
+├── index-server.html       # Main application interface
+├── server-client-script.js # Frontend logic with real-time updates
+├── styles.css             # Application styling
+└── README.md              # Documentation
 ```
 
-### Data Storage
+## 🗄️ Data Management
 
-- **Poll Data**: Stored in localStorage using the key `poll_{pollId}`
-- **Vote Data**: Stored in localStorage using the key `votes_{pollId}`
-- **URL Parameters**: Used for sharing polls and passing data between sessions
+### In-Memory Storage
 
-### URL Parameters
+- **Session-Based**: Data tied to user sessions for poll ownership
+- **Real-time Synchronization**: Socket.IO keeps all clients updated
+- **Data Validation**: Server-side validation prevents invalid votes
+- **Automatic Cleanup**: Old sessions and expired polls removed automatically
 
-The application uses query string parameters for communication:
+### API Endpoints
 
-**Voting URL Format:**
+- `POST /api/polls` - Create new polls
+- `GET /api/polls/:id` - Retrieve poll data
+- `POST /api/polls/:id/vote` - Submit votes
+- `DELETE /api/polls/:id` - Close polls
+- `WebSocket` - Real-time updates
 
-```text
-?mode=vote&id={pollId}&title={title}&type={type}&opt0={option1}&opt1={option2}...
+## 🔧 Development Setup
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- Git
+
+### Manual Setup
+
+```bash
+# Install dependencies
+cd server
+npm install
+
+# Start development server
+npm run dev
 ```
 
-**Results URL Format:**
+### Environment Configuration
 
-```text
-?mode=results&id={pollId}&title={title}&type={type}&opt0={option1}&opt1={option2}...
+Create `server/.env` file:
+
+```bash
+PORT=3001
+NODE_ENV=development
+SESSION_SECRET=your_session_secret
+RATE_LIMIT_MAX=100
 ```
 
-### Browser Compatibility
-
-- Modern browsers (Chrome, Firefox, Safari, Edge)
-- JavaScript ES6+ support required
-- localStorage support required
-
-## Poll Types Explained
+## 📊 Poll Types Explained
 
 ### Simple Polls
 
 - Single or multiple choice questions
-- Results show vote counts and percentages
-- Example: "What's your favorite color?"
+- Real-time vote counts and percentages
+- Example: "What's your favorite programming language?"
 
 ### Rating Polls
 
 - Rate multiple items on a 1-5 star scale
-- Results show average ratings
-- Example: "Rate these movie genres"
+- Live average ratings and distribution
+- Example: "Rate these new features"
 
 ### Ranking Polls
 
 - Drag and drop to rank items in order of preference
-- Results calculated using positional scoring
-- Example: "Rank these features by importance"
+- Weighted scoring with live position tracking
+- Example: "Rank these priorities for our roadmap"
 
-## Key Features
-
-### Responsive Design
-
-- Mobile-first approach
-- Touch-friendly interface
-- Works on phones, tablets, and desktops
+## ✨ Key Features
 
 ### Real-time Updates
 
-- Results update immediately after voting
-- No page refresh required
-- Live vote counting
+- Live vote counting across all connected devices
+- Instant result synchronization
+- Real-time notifications for new votes
 
-### Easy Sharing
+### Professional Interface
 
-- One-click copy buttons for sharing links
-- QR codes can be generated for the URLs
-- No account registration required
+- Mobile-first responsive design
+- Touch-optimized drag and drop
+- Clean, intuitive user experience
 
-## Getting Started
+### Enterprise Ready
 
-1. Download or clone this repository
-2. Open `index.html` in any modern web browser
-3. Start creating polls immediately - no setup required!
+- Scalable in-memory architecture
+- Rate limiting and security features
+- Professional error handling and logging
 
-## Limitations
+## 🚀 Getting Started
 
-- Data is stored locally in the browser
-- Polls are not persistent across different browsers/devices for the creator
-- No authentication system
-- No vote validation (users can vote multiple times from different browsers)
-- No admin controls or poll management
+1. **Clone the repository**
 
-## Future Enhancements
+   ```bash
+   git clone https://github.com/dport96/quickPoll.git
+   cd quickPoll
+   ```
 
-- QR code generation for easy mobile sharing
-- Export results to CSV
-- Poll templates
-- Time-limited polls
-- Anonymous vs. identified voting options
-- Poll password protection
+2. **Install dependencies**
 
-## License
+   ```bash
+   cd server
+   npm install
+   ```
+
+3. **Start the server**
+
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser** to `http://localhost:3001` and start creating polls!
+
+## 🔗 Additional Resources
+
+- **Server Documentation**: See `README_SERVER.md` for detailed server setup and deployment
+- **API Documentation**: Available at `/api/docs` when server is running
+
+## 📄 License
 
 This project is open source and available under the MIT License.

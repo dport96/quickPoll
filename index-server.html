@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickPoll - Real-time Voting with Server Storage</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="email-auth-styles.css">
+    <link rel="stylesheet" href="server-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">QuickPoll <span class="version-badge">Server Edition</span></h1>
+                <nav class="nav">
+                    <div class="server-status" id="server-status">
+                        <span id="connection-indicator">🔄</span>
+                        <span id="connection-text">Connecting...</span>
+                    </div>
+                    <div id="user-info" class="user-info" style="display: none;">
+                        <span class="user-icon">✉️</span>
+                        <span id="user-email"></span>
+                        <button id="sign-out-btn" class="btn btn-small btn-secondary">Sign Out</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Landing Page -->
+            <div id="landing-page" class="page active">
+                <div class="container">
+                    <div class="hero">
+                        <h2>Create Real-time Voting Contests</h2>
+                        <p>Enable your audience to participate in ranking, rating, and poll voting contests from any device with real-time updates.</p>
+                        
+                        <div class="server-features">
+                            <h3>🚀 Server-Powered Features</h3>
+                            <div class="features-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">⚡</div>
+                                    <h4>Real-time Updates</h4>
+                                    <p>See votes come in live without refreshing</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🔒</div>
+                                    <h4>Secure Storage</h4>
+                                    <p>In-memory sessions with automatic cleanup</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📊</div>
+                                    <h4>Advanced Analytics</h4>
+                                    <p>Detailed voting statistics and trends</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🌐</div>
+                                    <h4>No Setup Required</h4>
+                                    <p>Just click and start voting - no tokens needed</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="hero-buttons">
+                            <button id="create-ranking-btn" class="btn btn-large btn-primary">Create Ranking Poll</button>
+                            <button id="create-rating-btn" class="btn btn-large btn-primary">Create Rating Poll</button>
+                            <button id="create-poll-btn-hero" class="btn btn-large btn-primary">Create Simple Poll</button>
+                        </div>
+                        
+                        <div class="hero-actions">
+                            <button id="create-poll-btn" class="btn btn-primary">Create Poll</button>
+                            <button id="view-results-btn" class="btn btn-secondary">View Results</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Poll Page -->
+            <div id="create-page" class="page">
+                <div class="container">
+                    <h2>Create Your Poll 
+                        <span id="create-storage-indicator" class="storage-indicator server">Server Storage</span>
+                    </h2>
+                    
+                    <div class="poll-creation-info">
+                        <div class="info-card">
+                            <h3>✨ Server-Side Benefits</h3>
+                            <ul>
+                                <li>🔄 Real-time vote updates</li>
+                                <li>📱 Works on all devices instantly</li>
+                                <li>🔒 Secure and reliable storage</li>
+                                <li>📊 Professional analytics</li>
+                                <li>⚡ No setup required for voters</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form id="poll-form" class="poll-form">
+                        <div class="form-group">
+                            <label for="poll-title">Poll Title</label>
+                            <input type="text" id="poll-title" name="title" required placeholder="Enter poll title">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="poll-description">Description (Optional)</label>
+                            <textarea id="poll-description" name="description" placeholder="Enter poll description"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="poll-type">Poll Type</label>
+                            <select id="poll-type" name="type" required>
+                                <option value="simple">Simple Poll (Yes/No or Multiple Choice)</option>
+                                <option value="rating">Rating Poll (1-5 stars)</option>
+                                <option value="ranking">Ranking Poll (Drag to rank)</option>
+                            </select>
+                        </div>
+
+                        <!-- Authentication Settings -->
+                        <div class="form-group">
+                            <label for="require-auth">Authentication Settings</label>
+                            <div class="auth-options">
+                                <label class="radio-option">
+                                    <input type="radio" name="auth-mode" value="anonymous" checked>
+                                    <span>Anonymous Voting (Multiple votes allowed)</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="auth-mode" value="email">
+                                    <span>📧 Email Authentication (One vote per email address)</span>
+                                </label>
+                            </div>
+                            <div id="auth-requirement-note" class="help-text" style="display: none; margin-top: 10px;">
+                                <div id="auth-signed-in-note" style="display: none;">
+                                    <strong>✅ Ready!</strong> You are signed in and can create an authenticated poll. Only you will be able to view the results.
+                                </div>
+                                <div id="auth-not-signed-in-note" style="display: none;">
+                                    <strong>⚠️ Sign In Required:</strong> You must be signed in to create an authenticated poll. 
+                                    <button type="button" onclick="app.showEmailAuthModal()" class="btn btn-small btn-primary" style="margin-left: 10px;">Sign In Now</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Valid Email Addresses (for authenticated polls) -->
+                        <div id="valid-emails-container" class="form-group" style="display: none;">
+                            <label for="valid-emails">Valid Email Addresses (Optional)</label>
+                            <textarea id="valid-emails" name="validEmails" rows="4" 
+                                     placeholder="Enter email addresses (one per line)&#10;user1@example.com&#10;user2@example.com&#10;&#10;Leave empty to allow any email address"></textarea>
+                            <small class="help-text">If specified, only these email addresses will be allowed to vote. Leave empty to allow any email.</small>
+                        </div>
+
+                        <div id="options-container" class="form-group">
+                            <label>Options</label>
+                            
+                            <!-- Template Options -->
+                            <div class="template-options">
+                                <label class="template-label">Quick Templates:</label>
+                                <div class="template-buttons">
+                                    <label class="radio-option template-option">
+                                        <input type="radio" name="template" value="custom" checked>
+                                        <span>Custom Options</span>
+                                    </label>
+                                    <label class="radio-option template-option">
+                                        <input type="radio" name="template" value="yesno">
+                                        <span>Yes/No</span>
+                                    </label>
+                                    <label class="radio-option template-option">
+                                        <input type="radio" name="template" value="agreement">
+                                        <span>Agreement Scale</span>
+                                    </label>
+                                    <label class="radio-option template-option">
+                                        <input type="radio" name="template" value="satisfaction">
+                                        <span>Satisfaction</span>
+                                    </label>
+                                    <label class="radio-option template-option">
+                                        <input type="radio" name="template" value="priority">
+                                        <span>Priority Levels</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="options-list">
+                                <div class="option-input">
+                                    <input type="text" name="option" placeholder="Option 1" required>
+                                    <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
+                                </div>
+                                <div class="option-input">
+                                    <input type="text" name="option" placeholder="Option 2" required>
+                                    <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-option-btn" class="btn btn-small btn-secondary">Add Option</button>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="back-to-home" class="btn btn-secondary">Back</button>
+                            <button type="submit" class="btn btn-primary">Create Poll</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Vote Page -->
+            <div id="vote-page" class="page">
+                <div class="container">
+                    <div id="vote-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Page -->
+            <div id="results-page" class="page">
+                <div class="container">
+                    <div id="results-content">
+                        <!-- Dynamic content will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Poll Created Page -->
+            <div id="poll-created-page" class="page">
+                <div class="container">
+                    <div class="success-message">
+                        <h2>🎉 Poll Created Successfully!</h2>
+                        <p>Your poll has been saved securely on our servers and is ready for voting.</p>
+                        
+                        <div class="real-time-features">
+                            <h3>🚀 Real-time Features Enabled</h3>
+                            <ul>
+                                <li>✅ Live vote updates without page refresh</li>
+                                <li>✅ Real-time results for all viewers</li>
+                                <li>✅ Instant notifications when votes come in</li>
+                                <li>✅ Secure server-side storage</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="poll-links">
+                            <div class="link-group">
+                                <label>Voting Link:</label>
+                                <div class="link-display">
+                                    <input type="text" id="voting-link" readonly>
+                                    <button id="copy-voting-link" class="btn btn-small btn-secondary">Copy</button>
+                                </div>
+                            </div>
+                            <div class="link-group">
+                                <label>Results Link:</label>
+                                <div class="link-display">
+                                    <input type="text" id="results-link" readonly>
+                                    <button id="copy-results-link" class="btn btn-small btn-secondary">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="auth-info" class="auth-info" style="display: none;">
+                            <div class="info-box">
+                                <h4>📧 Email Authentication Enabled</h4>
+                                <p>Voters will need to provide their email address to participate. This ensures:</p>
+                                <ul>
+                                    <li>One vote per email address</li>
+                                    <li>Verified voter participation</li>
+                                    <li>Prevention of duplicate voting</li>
+                                    <li id="email-restriction-info" style="display: none;">Only specified email addresses can vote</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="view-results-now" class="btn btn-primary">View Results</button>
+                            <button id="create-another-poll" class="btn btn-secondary">Create Another Poll</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2025 QuickPoll Server Edition. Real-time voting with professional server infrastructure.</p>
+                <p><small>All poll data is securely stored on our servers with real-time synchronization across all devices.</small></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Email Authentication Modal (same as original) -->
+    <div id="email-auth-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📧 Email Authentication</h3>
+                <span class="close" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="email-auth-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email address">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Name (Optional)</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your name">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-auth" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-message">Loading...</div>
+            <div class="loading-details">Please wait while we process your request</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="email-auth-script.js"></script>
+    <script src="server-client-script.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</body>
+</html>
