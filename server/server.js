@@ -7,6 +7,7 @@ const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const os = require('os');
+const QRCode = require('qrcode');
 require('dotenv').config();
 
 const pollRoutes = require('./routes/polls');
@@ -112,6 +113,32 @@ app.get('/api/health', async (req, res) => {
     storage: 'in-memory',
     stats
   });
+});
+
+// QR Code generation endpoint
+app.get('/api/qrcode', async (req, res) => {
+  try {
+    const { url } = req.query;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL parameter is required' });
+    }
+    
+    // Generate QR code as data URL
+    const qrCodeDataURL = await QRCode.toDataURL(url, {
+      width: 150,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    
+    res.json({ qrCode: qrCodeDataURL });
+  } catch (error) {
+    console.error('QR Code generation error:', error);
+    res.status(500).json({ error: 'Failed to generate QR code' });
+  }
 });
 
 // System stats endpoint

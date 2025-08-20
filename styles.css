@@ -374,6 +374,189 @@ body {
     font-size: 0.9rem;
 }
 
+.result-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.result-count {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #2c3e50;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Rating Results */
+.rating-item {
+    border-left: 4px solid #f39c12;
+}
+
+.rating-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.average-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #f39c12;
+}
+
+.rating-stars {
+    color: #f39c12;
+    font-size: 1.2rem;
+}
+
+.vote-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.rating-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.rating-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.star-label {
+    width: 30px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.bar-container {
+    flex: 1;
+    position: relative;
+    background: #e1e5e9;
+    height: 18px;
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    height: 100%;
+    border-radius: 9px;
+    transition: width 0.3s ease;
+}
+
+.bar-count {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Ranking Results */
+.ranking-item {
+    border-left: 4px solid #9b59b6;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ranking-position {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #9b59b6;
+    min-width: 60px;
+    text-align: center;
+}
+
+.result-content {
+    flex: 1;
+}
+
+.ranking-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem 0;
+}
+
+.average-position {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.position-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.position-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #9b59b6;
+}
+
+.score-bar {
+    position: relative;
+    background: #e1e5e9;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.score-fill {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.score-text {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #2c3e50;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ranking-explanation {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    color: #666;
+}
+
 /* Success message */
 .success-message {
     background: rgba(255, 255, 255, 0.95);
@@ -450,6 +633,72 @@ body {
     border-radius: 8px;
     font-size: 0.9rem;
     background: #f8f9fa;
+}
+
+/* QR Code Section */
+.qr-code-section {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.qr-code-section h4 {
+    margin-bottom: 1rem;
+    color: #495057;
+    font-weight: 600;
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px;
+    margin: 1rem 0;
+}
+
+#voting-qr-code {
+    max-width: 150px;
+    height: 150px;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: white;
+    padding: 5px;
+}
+
+.qr-loading {
+    color: #6c757d;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.qr-loading::before {
+    content: '⏳';
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.qr-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* Error state for QR code */
+.qr-error {
+    color: #dc3545;
+    font-style: italic;
 }
 
 /* Footer */

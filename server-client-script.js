@@ -611,13 +611,76 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     renderRatingResults() {
-        // Implementation for rating results
-        return `<div class="results-chart rating-results"><h3>Rating Results</h3><p>Rating results display not yet implemented.</p></div>`;
+        const options = this.results.options || [];
+        const totalVotes = this.results.totalVotes || 0;
+        
+        return `
+            <div class="results-chart rating-results">
+                <h3>Rating Results</h3>
+                ${options.map(option => `
+                    <div class="result-item rating-item">
+                        <div class="result-label">${option.option}</div>
+                        <div class="rating-stats">
+                            <div class="average-rating">
+                                <span class="rating-value">${option.averageRating.toFixed(1)}</span>
+                                <span class="rating-stars">${'★'.repeat(Math.round(option.averageRating))}${'☆'.repeat(5 - Math.round(option.averageRating))}</span>
+                            </div>
+                            <div class="vote-info">
+                                <span class="vote-count">${option.voteCount} votes</span>
+                                <span class="vote-percentage">(${totalVotes > 0 ? ((option.voteCount / totalVotes) * 100).toFixed(1) : 0}%)</span>
+                            </div>
+                        </div>
+                        <div class="rating-breakdown">
+                            ${option.ratings.map((count, index) => `
+                                <div class="rating-bar">
+                                    <span class="star-label">${index + 1}★</span>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: ${option.voteCount > 0 ? (count / option.voteCount) * 100 : 0}%"></div>
+                                        <span class="bar-count">${count}</span>
+                                    </div>
+                                </div>
+                            `).reverse().join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 
     renderRankingResults() {
-        // Implementation for ranking results  
-        return `<div class="results-chart ranking-results"><h3>Ranking Results</h3><p>Ranking results display not yet implemented.</p></div>`;
+        const options = this.results.options || [];
+        const totalVotes = this.results.totalVotes || 0;
+        
+        return `
+            <div class="results-chart ranking-results">
+                <h3>Ranking Results</h3>
+                <div class="ranking-explanation">
+                    <p>Options are ranked by average position (lower numbers = higher ranking)</p>
+                </div>
+                ${options.map((option, index) => `
+                    <div class="result-item ranking-item">
+                        <div class="ranking-position">#${index + 1}</div>
+                        <div class="result-content">
+                            <div class="result-label">${option.option}</div>
+                            <div class="ranking-stats">
+                                <div class="average-position">
+                                    <span class="position-label">Avg Position:</span>
+                                    <span class="position-value">${option.averagePosition.toFixed(1)}</span>
+                                </div>
+                                <div class="vote-info">
+                                    <span class="vote-count">${option.votes} votes</span>
+                                    <span class="vote-percentage">(${totalVotes > 0 ? ((option.votes / totalVotes) * 100).toFixed(1) : 0}%)</span>
+                                </div>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: ${options.length > 0 ? (option.averagePosition / Math.max(...options.map(o => o.averagePosition))) * 100 : 0}%"></div>
+                                <span class="score-text">Score: ${option.totalScore}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 
     // Handle real-time vote updates
@@ -760,7 +823,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Override showPollCreatedPage to use server-provided URLs
-    showPollCreatedPage() {
+    async showPollCreatedPage() {
         if (!this.pollData) return;
 
         // Use URLs provided by the server response
@@ -774,7 +837,45 @@ class QuickPollServerApp extends QuickPollEmailApp {
         // Update the Poll ID display - this was missing!
         document.getElementById('poll-id-value').textContent = this.pollData.id;
 
+        // Generate QR code for voting URL
+        await this.generateQRCode(votingUrl);
+
         this.showPage('poll-created');
+    }
+
+    // Generate QR code for the voting URL
+    async generateQRCode(url) {
+        const qrCodeImg = document.getElementById('voting-qr-code');
+        const qrLoading = document.getElementById('qr-loading');
+        
+        // Show loading state
+        qrCodeImg.style.display = 'none';
+        qrLoading.style.display = 'flex';
+        qrLoading.textContent = 'Generating QR code...';
+        qrLoading.className = 'qr-loading'; // Reset any error classes
+        
+        try {
+            // Use our own API endpoint
+            const response = await fetch(`${this.apiUrl}/qrcode?url=${encodeURIComponent(url)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            // QR code generated successfully
+            qrCodeImg.src = data.qrCode;
+            qrCodeImg.style.display = 'block';
+            qrLoading.style.display = 'none';
+            
+        } catch (error) {
+            console.error('QR code generation failed:', error);
+            
+            // Fallback: show error message
+            qrLoading.textContent = 'QR code unavailable';
+            qrLoading.className = 'qr-loading qr-error';
+        }
     }
 
     // Add connection status to UI
