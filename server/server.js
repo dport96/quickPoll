@@ -6,6 +6,7 @@ const session = require('express-session');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const os = require('os');
 require('dotenv').config();
 
 const pollRoutes = require('./routes/polls');
@@ -13,19 +14,54 @@ const voteRoutes = require('./routes/votes');
 const memoryStore = require('./storage/memoryStore');
 const { setupSocketIO } = require('./socket/socketHandler');
 
+// Function to get server's IP address
+function getServerIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Skip internal and non-IPv4 addresses
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost'; // Fallback to localhost if no external IP found
+}
+
+// Get server configuration
+const PORT = process.env.PORT || 3001;
+const SERVER_IP = getServerIP();
+const CORS_ORIGINS = [
+  `http://localhost:${PORT}`,
+  `http://127.0.0.1:${PORT}`,
+  `http://${SERVER_IP}:${PORT}`,
+  process.env.CORS_ORIGIN
+].filter(Boolean); // Remove any undefined values
+
+console.log(`🌐 Server IP detected: ${SERVER_IP}`);
+console.log(`🔗 CORS origins: ${CORS_ORIGINS.join(', ')}`);
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:3001",
+    origin: CORS_ORIGINS,
     methods: ["GET", "POST"]
   }
 });
 
-// Security middleware
-app.use(helmet());
+// Security middleware - simplified for IP access
+// app.use(helmet()); // Disabled for IP access compatibility
+
+// Add custom headers to prevent HTTPS upgrade
+app.use((req, res, next) => {
+  // Prevent browsers from upgrading HTTP to HTTPS
+  res.setHeader('Strict-Transport-Security', 'max-age=0');
+  res.removeHeader('X-Powered-By');
+  next();
+});
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || "http://localhost:3001",
+  origin: CORS_ORIGINS,
   credentials: true
 }));
 
@@ -123,11 +159,11 @@ async function startServer() {
     setupSocketIO(io);
     console.log('🔌 Socket.IO configured');
     
-    const PORT = process.env.PORT || 3001;
     server.listen(PORT, () => {
       console.log(`🚀 QuickPoll server running on port ${PORT}`);
-      console.log(`📱 Frontend served at: http://localhost:${PORT}`);
-      console.log(`🔗 API endpoint: http://localhost:${PORT}/api`);
+      console.log(`📱 Frontend served at: http://${SERVER_IP}:${PORT}`);
+      console.log(`🔗 API endpoint: http://${SERVER_IP}:${PORT}/api`);
+      console.log(`🏠 Local access: http://localhost:${PORT}`);
       console.log(`💾 Storage: In-Memory Sessions`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     });

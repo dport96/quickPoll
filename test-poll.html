@@ -11,7 +11,9 @@
     <script>
         async function testPoll() {
             const pollId = '00ec78c9-13d0-4b57-b0df-a2086b40c737';
-            const apiUrl = 'http://localhost:3001/api';
+            const currentHost = window.location.hostname;
+            const currentPort = window.location.port || '3001';
+            const apiUrl = `http://${currentHost}:${currentPort}/api`;
             const fullUrl = `${apiUrl}/polls/${pollId}`;
             
             console.log('Testing URL:', fullUrl);

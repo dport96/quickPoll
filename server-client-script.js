@@ -4,10 +4,14 @@ class QuickPollServerApp extends QuickPollEmailApp {
         console.log('🚀 QuickPollServerApp constructor called');
         super();
         
-        // Server configuration
-        this.apiUrl = 'http://localhost:3001/api'; // Change this for production
+        // Server configuration - dynamically use current host
+        const currentHost = window.location.hostname;
+        const currentPort = window.location.port || '3001';
+        this.apiUrl = `http://${currentHost}:${currentPort}/api`;
         this.socket = null;
         this.storageMode = 'server';
+        
+        console.log(`🌐 Using server: ${currentHost}:${currentPort}`);
         
         // Initialize server connection
         this.initializeServerConnection();
@@ -16,7 +20,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
     // Ensure apiUrl is available for any method calls during initialization
     get apiUrl() {
-        return this._apiUrl || 'http://localhost:3001/api';
+        const currentHost = window.location.hostname;
+        const currentPort = window.location.port || '3001';
+        return this._apiUrl || `http://${currentHost}:${currentPort}/api`;
     }
     
     set apiUrl(value) {
@@ -59,7 +65,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
         try {
             // Load Socket.IO from CDN or local file
             if (typeof io !== 'undefined') {
-                this.socket = io('http://localhost:3001');
+                const currentHost = window.location.hostname;
+                const currentPort = window.location.port || '3001';
+                this.socket = io(`http://${currentHost}:${currentPort}`);
                 
                 this.socket.on('connect', () => {
                     console.log('🔌 Real-time connection established');
@@ -110,7 +118,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
     parseQueryString() {
         // Ensure apiUrl is set before parsing
         if (!this.apiUrl) {
-            this.apiUrl = 'http://localhost:3001/api';
+            const currentHost = window.location.hostname;
+            const currentPort = window.location.port || '3001';
+            this.apiUrl = `http://${currentHost}:${currentPort}/api`;
         }
         
         console.log('🔍 parseQueryString called, pathname:', window.location.pathname);
