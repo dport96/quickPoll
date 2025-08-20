@@ -1,12 +1,12 @@
 const express = require('express');
 const { body, param, validationResult } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
+const { nanoid } = require('nanoid');
 
 const router = express.Router();
 
 // Validation middleware
 const validateVote = [
-  body('pollId').isUUID().withMessage('Invalid poll ID'),
+  body('pollId').isAlphanumeric().isLength({ min: 6, max: 12 }).withMessage('Invalid poll ID'),
   body('voteData').isObject().withMessage('Vote data must be an object'),
   body('voterIdentifier').optional().isString().withMessage('Voter identifier must be a string'),
 ];

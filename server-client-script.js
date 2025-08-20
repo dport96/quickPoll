@@ -375,7 +375,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
     getPollIdFromUrl() {
         // First, check for clean URL patterns like /vote/:id or /results/:id
         const path = window.location.pathname;
-        const pathMatch = path.match(/^\/(vote|results)\/([a-f0-9-]{36})$/);
+        const pathMatch = path.match(/^\/(vote|results)\/([A-Za-z0-9_-]{6,12})$/);
         
         if (pathMatch) {
             return pathMatch[2]; // Return the poll ID from the URL path
@@ -455,10 +455,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
             // Join real-time updates for this poll
             this.currentPollId = pollId;
             this.joinPollRoom(pollId);
-
-            console.log(`   Poll: ${this.pollData.title}`);
-            console.log(`   Type: ${this.pollData.type}`);
-            console.log(`   Total votes: ${this.pollData.totalVotes}`);
             
         } catch (error) {
             console.error( error);
@@ -481,8 +477,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
             // Update local data
             this.pollData = data.poll;
             this.results = data.results;
-            
-            console.log(`   Total votes: ${data.results.totalVotes || 0}`);
             
             return data;
         } catch (error) {
@@ -580,8 +574,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
     // Handle real-time vote updates
     async handleRealTimeVoteUpdate(data) {
         if (this.pollData && this.pollData.id === data.pollId && this.currentPage === 'results') {
-            console.log('🔄 Real-time vote update received:', data);
-            
             try {
                 // Reload the poll results to get updated data
                 await this.loadPollResults(data.pollId);
@@ -600,8 +592,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
     // Handle real-time results updates
     async handleRealTimeResultsUpdate(data) {
         if (this.pollData && this.pollData.id === data.pollId && this.currentPage === 'results') {
-            console.log('🔄 Real-time results update received:', data);
-            
             try {
                 // Update results data directly from the event
                 this.results = data.results;
@@ -648,7 +638,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
     async parseQueryStringAsync() {
         // First, check for clean URL patterns like /vote/:id or /results/:id
         const path = window.location.pathname;
-        const pathMatch = path.match(/^\/(vote|results)\/([a-f0-9-]{36})$/);
+        const pathMatch = path.match(/^\/(vote|results)\/([A-Za-z0-9_-]{6,12})$/);
         
         let mode, pollId;
         
@@ -707,6 +697,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
         // Update URL fields
         document.getElementById('voting-link').value = votingUrl;
         document.getElementById('results-link').value = resultsUrl;
+        
+        // Update the Poll ID display - this was missing!
+        document.getElementById('poll-id-value').textContent = this.pollData.id;
 
         this.showPage('poll-created');
     }

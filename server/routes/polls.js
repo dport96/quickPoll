@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, param, validationResult } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
+const { nanoid } = require('nanoid');
 
 const router = express.Router();
 
@@ -34,7 +34,7 @@ const validatePoll = [
 ];
 
 const validatePollId = [
-  param('id').isUUID().withMessage('Invalid poll ID format')
+  param('id').isAlphanumeric().isLength({ min: 6, max: 12 }).withMessage('Invalid poll ID format')
 ];
 
 // Error handler for validation

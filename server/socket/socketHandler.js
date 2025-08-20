@@ -5,7 +5,7 @@ function setupSocketIO(io) {
 
     // Join poll room for real-time updates
     socket.on('joinPoll', (pollId) => {
-      if (pollId && pollId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
+      if (pollId && pollId.match(/^[A-Za-z0-9_-]{6,12}$/)) {
         socket.join(`poll_${pollId}`);
         console.log(`📊 Client ${socket.id} joined poll room: poll_${pollId}`);
         

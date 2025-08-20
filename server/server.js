@@ -124,13 +124,13 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Clean URL routes for voting and results - but only for valid UUIDs
-app.get('/vote/:pollId([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', (req, res) => {
+// Clean URL routes for voting and results - for Nano ID format (6-12 alphanumeric chars)
+app.get('/vote/:pollId([A-Za-z0-9_-]{6,12})', (req, res) => {
   // Serve the main HTML file - the frontend will handle the routing
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-app.get('/results/:pollId([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', (req, res) => {
+app.get('/results/:pollId([A-Za-z0-9_-]{6,12})', (req, res) => {
   // Serve the main HTML file - the frontend will handle the routing
   res.sendFile(path.join(__dirname, '../index.html'));
 });

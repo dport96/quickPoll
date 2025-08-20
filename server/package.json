@@ -16,6 +16,7 @@
     "express-session": "^1.18.2",
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
+    "nanoid": "^3.3.11",
     "socket.io": "^4.7.2",
     "uuid": "^9.0.0"
   },

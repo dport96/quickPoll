@@ -3,7 +3,7 @@
  * Replaces PostgreSQL database with session-based storage
  */
 
-const { v4: uuidv4 } = require('uuid');
+const { nanoid } = require('nanoid');
 
 class MemoryStore {
   constructor() {
@@ -17,7 +17,7 @@ class MemoryStore {
 
   // Poll Management
   async createPoll(pollData) {
-    const pollId = uuidv4();
+    const pollId = nanoid(8); // Generate 8-character short ID
     const now = new Date();
     
     const poll = {
@@ -98,7 +98,7 @@ class MemoryStore {
 
   // Vote Management
   async submitVote(voteData) {
-    const voteId = uuidv4();
+    const voteId = nanoid(8);
     const now = new Date();
     
     const vote = {
@@ -155,7 +155,7 @@ class MemoryStore {
 
   // Session Management
   async createSession(sessionData) {
-    const sessionId = sessionData.sessionId || uuidv4();
+    const sessionId = sessionData.sessionId || nanoid(8);
     const now = new Date();
 
     const session = {
