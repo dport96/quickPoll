@@ -6,8 +6,8 @@ function setupSocketIO(io) {
     // Join poll room for real-time updates
     socket.on('joinPoll', (pollId) => {
       if (pollId && pollId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
-        socket.join(`poll-${pollId}`);
-        console.log(`📊 Client ${socket.id} joined poll room: ${pollId}`);
+        socket.join(`poll_${pollId}`);
+        console.log(`📊 Client ${socket.id} joined poll room: poll_${pollId}`);
         
         // Send confirmation
         socket.emit('joinedPoll', { pollId, message: 'Successfully joined poll updates' });
@@ -19,8 +19,8 @@ function setupSocketIO(io) {
     // Leave poll room
     socket.on('leavePoll', (pollId) => {
       if (pollId) {
-        socket.leave(`poll-${pollId}`);
-        console.log(`📊 Client ${socket.id} left poll room: ${pollId}`);
+        socket.leave(`poll_${pollId}`);
+        console.log(`📊 Client ${socket.id} left poll room: poll_${pollId}`);
         socket.emit('leftPoll', { pollId, message: 'Left poll updates' });
       }
     });
@@ -29,7 +29,7 @@ function setupSocketIO(io) {
     socket.on('votingStarted', (data) => {
       const { pollId, voterIdentifier } = data;
       if (pollId) {
-        socket.to(`poll-${pollId}`).emit('someoneVoting', {
+        socket.to(`poll_${pollId}`).emit('someoneVoting', {
           pollId,
           timestamp: new Date().toISOString(),
           message: 'Someone is currently voting...'
@@ -41,7 +41,7 @@ function setupSocketIO(io) {
     socket.on('typing', (data) => {
       const { pollId, isTyping } = data;
       if (pollId) {
-        socket.to(`poll-${pollId}`).emit('userTyping', {
+        socket.to(`poll_${pollId}`).emit('userTyping', {
           pollId,
           isTyping,
           socketId: socket.id

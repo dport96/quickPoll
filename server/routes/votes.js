@@ -14,8 +14,6 @@ const validateVote = [
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('❌ Validation errors in vote submission:', errors.array());
-    console.log('📝 Request body received:', req.body);
     return res.status(400).json({
       error: 'Validation failed',
       details: errors.array()
@@ -34,13 +32,6 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
       voterInfo = {}
     } = req.body;
 
-    console.log('🗳️ Vote submission received:', {
-      pollId,
-      voteData,
-      voterIdentifier,
-      voterInfo
-    });
-
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
     const ipAddress = req.ip || req.connection.remoteAddress;
@@ -49,7 +40,6 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
     // Check if poll exists and is active
     const poll = await memoryStore.getPoll(pollId);
     if (!poll || !poll.isActive) {
-      console.log('❌ Poll not found for vote submission:', pollId);
       return res.status(404).json({ error: 'Poll not found or inactive' });
     }
 
@@ -94,6 +84,7 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
     const totalVotes = allVotes.length;
 
     // Emit real-time update to all clients watching this poll
+    console.log(`📡 Emitting voteSubmitted to room: poll_${pollId}`);
     req.io.to(`poll_${pollId}`).emit('voteSubmitted', {
       pollId,
       voteId: vote.id,
@@ -103,8 +94,19 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
 
     // Calculate and emit updated results
     const results = calculateResults(allVotes, poll);
+    console.log(`📡 Emitting resultsUpdated to room: poll_${pollId}`);
     req.io.to(`poll_${pollId}`).emit('resultsUpdated', {
       pollId,
+      poll: {
+        id: poll.id,
+        title: poll.title,
+        description: poll.description,
+        type: poll.type,
+        requireAuth: poll.requireAuth,
+        validEmails: poll.validEmails || [],
+        options: poll.options,
+        createdAt: poll.createdAt
+      },
       results,
       totalVotes,
       timestamp: new Date().toISOString()
@@ -229,6 +231,16 @@ router.delete('/:voteId', async (req, res) => {
     const results = calculateResults(allVotes, poll);
     req.io.to(`poll_${pollId}`).emit('resultsUpdated', {
       pollId,
+      poll: {
+        id: poll.id,
+        title: poll.title,
+        description: poll.description,
+        type: poll.type,
+        requireAuth: poll.requireAuth,
+        validEmails: poll.validEmails || [],
+        options: poll.options,
+        createdAt: poll.createdAt
+      },
       results,
       totalVotes,
       timestamp: new Date().toISOString()

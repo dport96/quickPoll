@@ -38,8 +38,6 @@ const CORS_ORIGINS = [
   process.env.CORS_ORIGIN
 ].filter(Boolean); // Remove any undefined values
 
-console.log(`🌐 Server IP detected: ${SERVER_IP}`);
-console.log(`🔗 CORS origins: ${CORS_ORIGINS.join(', ')}`);
 
 const app = express();
 const server = createServer(app);
@@ -154,39 +152,31 @@ app.use('*', (req, res) => {
 // Initialize server
 async function startServer() {
   try {
-    console.log('🧠 In-memory storage ready');
     
     setupSocketIO(io);
-    console.log('🔌 Socket.IO configured');
     
     server.listen(PORT, () => {
-      console.log(`🚀 QuickPoll server running on port ${PORT}`);
-      console.log(`📱 Frontend served at: http://${SERVER_IP}:${PORT}`);
-      console.log(`🔗 API endpoint: http://${SERVER_IP}:${PORT}/api`);
-      console.log(`🏠 Local access: http://localhost:${PORT}`);
-      console.log(`💾 Storage: In-Memory Sessions`);
-      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(` Frontend served at: http://${SERVER_IP}:${PORT}`);
+      console.log(` Local access: http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    console.error('Failed to start server:', error);
     process.exit(1);
   }
 }
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('🛑 Received SIGTERM, shutting down gracefully');
+  console.log(' Received SIGTERM, shutting down gracefully');
   
   // Optional: Save data before shutdown
   if (process.env.PERSIST_ON_SHUTDOWN === 'true') {
     const fs = require('fs');
     const data = memoryStore.exportData();
     fs.writeFileSync('./data/backup.json', JSON.stringify(data, null, 2));
-    console.log('💾 Data exported to backup.json');
   }
   
   server.close(() => {
-    console.log('✅ Server closed');
     process.exit(0);
   });
 });
