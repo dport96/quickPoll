@@ -5,8 +5,17 @@ class QuickPollServerApp extends QuickPollEmailApp {
         
         // Server configuration - dynamically use current host
         const currentHost = window.location.hostname;
-        const currentPort = window.location.port || '3001';
-        this.apiUrl = `http://${currentHost}:${currentPort}/api`;
+        const currentPort = window.location.port;
+        
+        // Handle different environments
+        if (currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost.includes('192.168')) {
+            // Local development
+            const port = currentPort || '3001';
+            this.apiUrl = `http://${currentHost}:${port}/api`;
+        } else {
+            // Production (App Engine, custom domain, etc.)
+            this.apiUrl = `${window.location.protocol}//${window.location.host}/api`;
+        }
         this.socket = null;
         this.storageMode = 'server';
         this.currentPollId = null; // Track current poll for Socket.IO
@@ -17,9 +26,17 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
     // Ensure apiUrl is available for any method calls during initialization
     get apiUrl() {
+        if (this._apiUrl) return this._apiUrl;
+        
         const currentHost = window.location.hostname;
-        const currentPort = window.location.port || '3001';
-        return this._apiUrl || `http://${currentHost}:${currentPort}/api`;
+        const currentPort = window.location.port;
+        
+        if (currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost.includes('192.168')) {
+            const port = currentPort || '3001';
+            return `http://${currentHost}:${port}/api`;
+        } else {
+            return `${window.location.protocol}//${window.location.host}/api`;
+        }
     }
     
     set apiUrl(value) {
@@ -60,9 +77,20 @@ class QuickPollServerApp extends QuickPollEmailApp {
             // Load Socket.IO from CDN or local file
             if (typeof io !== 'undefined') {
                 const currentHost = window.location.hostname;
-                const currentPort = window.location.port || '3001';
-                console.log(`🔌 Connecting to Socket.IO at: http://${currentHost}:${currentPort}`);
-                this.socket = io(`http://${currentHost}:${currentPort}`);
+                const currentPort = window.location.port;
+                
+                let socketUrl;
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost.includes('192.168')) {
+                    // Local development
+                    const port = currentPort || '3001';
+                    socketUrl = `http://${currentHost}:${port}`;
+                } else {
+                    // Production - use current origin
+                    socketUrl = window.location.origin;
+                }
+                
+                console.log(`🔌 Connecting to Socket.IO at: ${socketUrl}`);
+                this.socket = io(socketUrl);
                 
                 this.socket.on('connect', () => {
                     console.log('🔌 Socket.IO connected successfully');
