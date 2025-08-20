@@ -82,6 +82,8 @@ router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
         validEmails: poll.validEmails || [],
         options: poll.options,
         createdAt: poll.createdAt,
+        createdBy: poll.createdBy,
+        creatorName: poll.creatorName,
         totalVotes: votes.length,
         expiresAt: poll.expiresAt
       }
@@ -103,8 +105,17 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
       requireAuth = false,
       validEmails = [],
       expiresAt,
-      createdBy
+      createdBy,
+      creatorName
     } = req.body;
+
+    // Require authentication for poll creation
+    if (!createdBy || createdBy === 'anonymous') {
+      return res.status(401).json({ 
+        error: 'Authentication required',
+        message: 'You must be signed in to create a poll' 
+      });
+    }
 
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
@@ -120,10 +131,12 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
       validEmails,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       sessionId,
+      createdBy: createdBy || 'anonymous',
+      creatorName: creatorName || createdBy || 'Anonymous',
       creatorInfo: {
         ipAddress,
         userAgent,
-        createdBy
+        createdBy: createdBy || 'anonymous'
       }
     };
 
@@ -199,6 +212,20 @@ router.get('/:id/results', validatePollId, handleValidationErrors, async (req, r
         results = { error: 'Unknown poll type' };
     }
 
+    // For authenticated polls, include voter list (without vote data)
+    let voters = [];
+    if (poll.requireAuth) {
+      voters = votes
+        .filter(vote => vote.voterIdentifier) // Only authenticated votes
+        .map(vote => ({
+          id: vote.id,
+          email: vote.voterIdentifier,
+          name: vote.voterInfo?.name || '',
+          submittedAt: vote.createdAt
+        }))
+        .sort((a, b) => new Date(a.submittedAt) - new Date(b.submittedAt)); // Sort by submission time
+    }
+
     res.json({
       success: true,
       poll: {
@@ -209,11 +236,14 @@ router.get('/:id/results', validatePollId, handleValidationErrors, async (req, r
         requireAuth: poll.requireAuth,
         validEmails: poll.validEmails || [],
         options: poll.options,
-        createdAt: poll.createdAt
+        createdAt: poll.createdAt,
+        createdBy: poll.createdBy,
+        creatorName: poll.creatorName
       },
       results: {
         ...results,
         totalVotes: votes.length,
+        voters: voters, // Include voter list for authenticated polls
         lastUpdated: new Date().toISOString()
       }
     });

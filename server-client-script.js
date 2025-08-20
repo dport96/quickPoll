@@ -580,12 +580,14 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     <h2>${this.pollData.title}</h2>
                     ${this.pollData.description ? `<p class="poll-description">${this.pollData.description}</p>` : ''}
                     <div class="poll-meta">
+                        <span class="poll-creator">Created by: <strong>${this.pollData.creatorName || this.pollData.createdBy || 'Unknown'}</strong></span>
                         <span class="poll-type">${authInfo}</span>
                         <span class="vote-count">Total Votes: ${totalVotes}</span>
                         <span class="poll-date">Created: ${new Date(this.pollData.createdAt).toLocaleString()}</span>
                     </div>
                 </div>
                 ${resultsHTML}
+                ${this.shouldShowVotersList() ? this.renderVotersList() : ''}
             </div>
         `;
     }
@@ -681,6 +683,58 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 `).join('')}
             </div>
         `;
+    }
+
+    renderVotersList() {
+        const voters = this.results.voters || [];
+        
+        if (voters.length === 0) {
+            return `
+                <div class="voters-section">
+                    <h3>📧 Authenticated Voters</h3>
+                    <div class="voters-list">
+                        <p class="no-voters">No voters yet</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="voters-section">
+                <h3>📧 Authenticated Voters</h3>
+                <div class="voters-count">
+                    <span>${voters.length} verified voter${voters.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="voters-list">
+                    ${voters.map((voter, index) => `
+                        <div class="voter-item">
+                            <div class="voter-info">
+                                <div class="voter-details">
+                                    <span class="voter-number">#${index + 1}</span>
+                                    <span class="voter-email">${voter.email}</span>
+                                    ${voter.name ? `<span class="voter-name">(${voter.name})</span>` : ''}
+                                </div>
+                                <span class="voter-time">${new Date(voter.submittedAt).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    shouldShowVotersList() {
+        // Only show voter list for authenticated polls
+        if (!this.pollData || !this.pollData.requireAuth) {
+            return false;
+        }
+        
+        // Only show to the poll creator
+        if (!this.currentUser || !this.pollData.createdBy) {
+            return false;
+        }
+        
+        return this.currentUser.email === this.pollData.createdBy;
     }
 
     // Handle real-time vote updates

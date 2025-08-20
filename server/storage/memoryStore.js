@@ -33,9 +33,12 @@ class MemoryStore {
       updatedAt: now,
       expiresAt: pollData.expiresAt || null,
       sessionId: pollData.sessionId || null,
+      createdBy: pollData.createdBy || 'anonymous',
+      creatorName: pollData.creatorName || pollData.createdBy || 'Anonymous',
       creatorInfo: {
         ipAddress: pollData.creatorInfo?.ipAddress || '',
-        userAgent: pollData.creatorInfo?.userAgent || ''
+        userAgent: pollData.creatorInfo?.userAgent || '',
+        createdBy: pollData.createdBy || 'anonymous'
       }
     };
 

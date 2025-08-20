@@ -257,6 +257,68 @@ body {
     color: #666;
 }
 
+/* Poll Header and Meta Information */
+.poll-header {
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e1e5e9;
+    padding-bottom: 1.5rem;
+}
+
+.poll-description {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem !important;
+}
+
+.poll-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.poll-meta span {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #666;
+    background: #f8f9fa;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.poll-creator {
+    background: #e3f2fd !important;
+    border-color: #bbdefb !important;
+    color: #1976d2 !important;
+}
+
+.poll-creator strong {
+    color: #0d47a1;
+    margin-left: 0.25rem;
+}
+
+.poll-type {
+    background: #f3e5f5 !important;
+    border-color: #ce93d8 !important;
+    color: #7b1fa2 !important;
+}
+
+.vote-count {
+    background: #e8f5e8 !important;
+    border-color: #c8e6c9 !important;
+    color: #2e7d32 !important;
+}
+
+.poll-date {
+    background: #fff3e0 !important;
+    border-color: #ffcc02 !important;
+    color: #ef6c00 !important;
+}
+
 /* Rating system */
 .rating-container {
     text-align: center;
@@ -557,6 +619,105 @@ body {
     color: #666;
 }
 
+/* Voters List */
+.voters-section {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-left: 4px solid #17a2b8;
+}
+
+.voters-section h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.voters-count {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.voters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.voter-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.voter-item:hover {
+    background: #e9ecef;
+    border-color: #17a2b8;
+}
+
+.voter-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.voter-details {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.voter-number {
+    background: #17a2b8;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    min-width: 2rem;
+    text-align: center;
+}
+
+.voter-email {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.voter-name {
+    font-style: italic;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.voter-time {
+    font-size: 0.85rem;
+    color: #666;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.no-voters {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
 /* Success message */
 .success-message {
     background: rgba(255, 255, 255, 0.95);
@@ -763,6 +924,34 @@ body {
     .header .container {
         flex-direction: column;
         gap: 1rem;
+    }
+    
+    /* Responsive voter list */
+    .voter-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .voter-details {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .voter-time {
+        align-self: flex-end;
+        font-size: 0.8rem;
+    }
+    
+    /* Responsive poll meta */
+    .poll-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .poll-meta span {
+        justify-content: center;
+        text-align: center;
     }
 }
 

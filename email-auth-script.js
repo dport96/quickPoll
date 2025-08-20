@@ -231,6 +231,12 @@ class QuickPollEmailApp {
     }
 
     showCreatePage(type = null) {
+        // Require authentication for poll creation
+        if (!this.currentUser) {
+            this.showSignInForPollCreation();
+            return;
+        }
+        
         this.showPage('create');
         if (type) {
             document.getElementById('poll-type').value = type;
@@ -279,24 +285,15 @@ class QuickPollEmailApp {
     handleCreatePoll(e) {
         e.preventDefault();
         
+        // Always require authentication for poll creation
+        if (!this.currentUser) {
+            this.showSignInForPollCreation();
+            return;
+        }
+        
         const formData = new FormData(e.target);
         const authMode = formData.get('auth-mode');
         const validEmails = formData.get('validEmails');
-        
-        // If creating an authenticated poll, the creator must be signed in
-        if (authMode === 'email' && !this.currentUser) {
-            // Instead of alert, show a more user-friendly message
-            const emailAuthRadio = document.querySelector('input[name="auth-mode"][value="email"]');
-            if (emailAuthRadio) {
-                // Switch back to anonymous
-                document.querySelector('input[name="auth-mode"][value="anonymous"]').checked = true;
-                this.handleAuthModeChange({ target: { value: 'anonymous' } });
-                
-                // Show modal with explanation
-                this.showSignInForPollCreation();
-                return;
-            }
-        }
         
         const pollData = {
             id: this.generateId(),
@@ -307,7 +304,8 @@ class QuickPollEmailApp {
             validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
             options: formData.getAll('option').filter(option => option.trim() !== ''),
             created: new Date().toISOString(),
-            createdBy: this.currentUser ? this.currentUser.email : 'anonymous'
+            createdBy: this.currentUser.email,
+            creatorName: this.currentUser.name || this.currentUser.email
         };
 
         if (pollData.options.length < 2) {
@@ -427,8 +425,14 @@ class QuickPollEmailApp {
 
         let content = `
             <div class="vote-container">
-                <h2>${this.pollData.title}</h2>
-                ${this.pollData.description ? `<p>${this.pollData.description}</p>` : ''}
+                <div class="poll-header">
+                    <h2>${this.pollData.title}</h2>
+                    ${this.pollData.description ? `<p class="poll-description">${this.pollData.description}</p>` : ''}
+                    <div class="poll-meta">
+                        <span class="poll-creator">Created by: <strong>${this.pollData.creatorName || this.pollData.createdBy || 'Unknown'}</strong></span>
+                        <span class="poll-date">${new Date(this.pollData.createdAt).toLocaleString()}</span>
+                    </div>
+                </div>
                 ${this.pollData.requireAuth ? `
                     <div class="auth-indicator authenticated">
                         <span class="auth-icon">✅</span>
