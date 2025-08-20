@@ -14,8 +14,24 @@ class QuickPollServerApp extends QuickPollEmailApp {
         console.log('✅ QuickPollServerApp constructor completed');
     }
 
-    // Remove async from init - revert to parent behavior
-    // init() will be inherited from parent class
+    // Ensure apiUrl is available for any method calls during initialization
+    get apiUrl() {
+        return this._apiUrl || 'http://localhost:3001/api';
+    }
+    
+    set apiUrl(value) {
+        this._apiUrl = value;
+    }
+
+    // Override the parent's init method to handle clean URLs
+    init() {
+        this.bindEvents();
+        this.parseQueryString(); // This will call our overridden version
+        this.showPage(this.currentPage);
+        
+        // Check if user is already signed in
+        this.checkExistingAuth();
+    }
 
     async initializeServerConnection() {
         try {
@@ -90,7 +106,13 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Override URL parsing to handle clean URLs
+    // Override parseQueryString to ensure apiUrl is set
     parseQueryString() {
+        // Ensure apiUrl is set before parsing
+        if (!this.apiUrl) {
+            this.apiUrl = 'http://localhost:3001/api';
+        }
+        
         console.log('🔍 parseQueryString called, pathname:', window.location.pathname);
         const path = window.location.pathname;
         const params = new URLSearchParams(window.location.search);
@@ -134,7 +156,12 @@ class QuickPollServerApp extends QuickPollEmailApp {
     async loadPollById(pollId, targetPage) {
         try {
             console.log(`🔍 Loading poll data for ID: ${pollId}`);
+            console.log(`🌐 API URL: ${this.apiUrl}`);
+            console.log(`🔗 Full URL: ${this.apiUrl}/polls/${pollId}`);
             const response = await fetch(`${this.apiUrl}/polls/${pollId}`);
+            
+            console.log(`📡 Response status: ${response.status}`);
+            console.log(`📡 Response ok: ${response.ok}`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -143,14 +170,30 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // Set the page and show it after successful loading
                 this.currentPage = targetPage;
+                
+                // If showing results, load the results data
+                if (targetPage === 'results') {
+                    await this.loadPollResults(pollId);
+                }
+                
                 this.showPage(targetPage);
             } else if (response.status === 404) {
                 console.error('❌ Poll not found');
+                console.error('❌ Response details:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: response.url
+                });
+                const errorText = await response.text();
+                console.error('❌ Error response body:', errorText);
                 alert('Poll not found. Please check the URL.');
                 this.currentPage = 'landing';
                 this.showPage('landing');
             } else {
-                throw new Error(`HTTP ${response.status}`);
+                console.error('❌ HTTP Error:', response.status, response.statusText);
+                const errorText = await response.text();
+                console.error('❌ Error response body:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
             console.error('❌ Failed to load poll data:', error);
@@ -235,7 +278,59 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Override vote submission for server-side storage
-    async submitVote(voteData) {
+    submitVote() {
+        // First, collect the vote data using the parent's logic
+        let voteData = {};
+
+        if (this.pollData.type === 'simple') {
+            const selected = document.querySelector('.poll-option.selected');
+            if (!selected) {
+                alert('Please select an option.');
+                return;
+            }
+            voteData = { option: parseInt(selected.dataset.value) };
+        } else if (this.pollData.type === 'rating') {
+            const ratings = {};
+            const starsContainers = document.querySelectorAll('.stars');
+            let hasRating = false;
+            
+            starsContainers.forEach(container => {
+                const rating = container.dataset.selectedRating;
+                if (rating) {
+                    ratings[container.dataset.option] = parseInt(rating);
+                    hasRating = true;
+                }
+            });
+            
+            if (!hasRating) {
+                alert('Please rate at least one option.');
+                return;
+            }
+            voteData = { ratings };
+        } else if (this.pollData.type === 'ranking') {
+            const sortedOptions = [...document.querySelectorAll('.sortable-option')];
+            console.log('🔀 Found sortable options:', sortedOptions.length);
+            console.log('🔀 Sortable elements:', sortedOptions);
+            
+            if (sortedOptions.length === 0) {
+                alert('No ranking options found. Please check the poll setup.');
+                return;
+            }
+            
+            const ranking = sortedOptions.map(option => {
+                const value = parseInt(option.dataset.value);
+                console.log('🔀 Option value:', value, 'from element:', option);
+                return value;
+            });
+            console.log('🔀 Final ranking data:', ranking);
+            voteData = { rankings: ranking }; // Server expects 'rankings' not 'ranking'
+        }
+
+        // Now submit to the server
+        this.submitVoteAsync(voteData);
+    }
+
+    async submitVoteAsync(voteData) {
         try {
             // Show loading state
             const submitBtn = document.getElementById('submit-vote');
@@ -303,23 +398,34 @@ class QuickPollServerApp extends QuickPollEmailApp {
             voterIdentifier = this.currentUser.email;
         }
 
+        const requestData = {
+            pollId,
+            voteData,
+            voterInfo: {
+                timestamp: new Date().toISOString()
+            }
+        };
+
+        // Only include voterIdentifier if it's not null
+        if (voterIdentifier) {
+            requestData.voterIdentifier = voterIdentifier;
+        }
+
+        console.log('🗳️ Submitting vote data:', requestData);
+
         const response = await fetch(`${this.apiUrl}/votes`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                pollId,
-                voteData,
-                voterIdentifier,
-                voterInfo: {
-                    timestamp: new Date().toISOString()
-                }
-            })
+            body: JSON.stringify(requestData)
         });
+
+        console.log('📡 Vote response status:', response.status);
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('❌ Vote submission error details:', errorData);
             throw new Error(errorData.error || 'Server error');
         }
 
@@ -386,13 +492,98 @@ class QuickPollServerApp extends QuickPollEmailApp {
             this.results = data.results;
             
             console.log('✅ Results loaded successfully from server');
-            console.log(`   Total votes: ${data.metadata.totalVotes}`);
+            console.log(`   Total votes: ${data.results.totalVotes || 0}`);
             
             return data;
         } catch (error) {
             console.error('❌ Error loading results:', error);
             throw error;
         }
+    }
+
+    // Override renderResultsPage for server-side storage
+    renderResultsPage() {
+        const container = document.getElementById('results-content');
+        
+        if (!this.pollData) {
+            container.innerHTML = `
+                <div class="results-container">
+                    <h2>Poll Not Found</h2>
+                    <p>The requested poll could not be found.</p>
+                    <button onclick="location.href='./'" class="btn btn-primary">Go Home</button>
+                </div>
+            `;
+            return;
+        }
+
+        if (!this.results) {
+            container.innerHTML = `
+                <div class="results-container">
+                    <h2>Loading Results...</h2>
+                    <p>Please wait while we load the poll results.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Calculate total votes
+        const totalVotes = this.results.totalVotes || 0;
+        const authInfo = this.pollData.requireAuth ? '📧 Email Authenticated Poll' : '📊 Anonymous Poll';
+
+        let resultsHTML = '';
+        
+        if (this.pollData.type === 'simple') {
+            resultsHTML = this.renderSimpleResults();
+        } else if (this.pollData.type === 'rating') {
+            resultsHTML = this.renderRatingResults();
+        } else if (this.pollData.type === 'ranking') {
+            resultsHTML = this.renderRankingResults();
+        }
+
+        container.innerHTML = `
+            <div class="results-container">
+                <div class="poll-header">
+                    <h2>${this.pollData.title}</h2>
+                    ${this.pollData.description ? `<p class="poll-description">${this.pollData.description}</p>` : ''}
+                    <div class="poll-meta">
+                        <span class="poll-type">${authInfo}</span>
+                        <span class="vote-count">Total Votes: ${totalVotes}</span>
+                        <span class="poll-date">Created: ${new Date(this.pollData.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                ${resultsHTML}
+            </div>
+        `;
+    }
+
+    renderSimpleResults() {
+        const options = this.results.options || [];
+        const maxVotes = Math.max(...options.map(opt => opt.votes));
+        
+        return `
+            <div class="results-chart simple-results">
+                <h3>Results</h3>
+                ${options.map(option => `
+                    <div class="result-item">
+                        <div class="result-label">${option.option}</div>
+                        <div class="result-bar">
+                            <div class="result-fill" style="width: ${maxVotes > 0 ? (option.votes / maxVotes) * 100 : 0}%"></div>
+                            <span class="result-count">${option.votes} votes (${option.percentage.toFixed(1)}%)</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    renderRatingResults() {
+        // Implementation for rating results
+        return `<div class="results-chart rating-results"><h3>Rating Results</h3><p>Rating results display not yet implemented.</p></div>`;
+    }
+
+    renderRankingResults() {
+        // Implementation for ranking results  
+        return `<div class="results-chart ranking-results"><h3>Ranking Results</h3><p>Ranking results display not yet implemented.</p></div>`;
     }
 
     // Handle real-time vote updates

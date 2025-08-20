@@ -28,6 +28,7 @@ class QuickPollEmailApp {
 
         // Auth events
         document.getElementById('sign-out-btn').addEventListener('click', () => this.signOut());
+        document.getElementById('sign-in-now-btn').addEventListener('click', () => this.showEmailAuthModal());
         document.getElementById('email-auth-form').addEventListener('submit', (e) => this.handleEmailAuth(e));
         document.getElementById('close-modal').addEventListener('click', () => this.hideEmailModal());
         document.getElementById('cancel-auth').addEventListener('click', () => this.cancelEmailAuth());
@@ -382,9 +383,10 @@ class QuickPollEmailApp {
                 <div class="vote-container">
                     <h2>Poll Not Found</h2>
                     <p>The requested poll could not be found.</p>
-                    <button onclick="location.href='./'" class="btn btn-primary">Go Home</button>
+                    <button id="go-home-btn" class="btn btn-primary">Go Home</button>
                 </div>
             `;
+            this.bindVoteEvents();
             return;
         }
 
@@ -400,12 +402,13 @@ class QuickPollEmailApp {
                         <p>This poll requires email verification to ensure one vote per person.</p>
                         <p>Please sign in to participate in this poll.</p>
                         <div class="form-actions">
-                            <button onclick="app.showEmailAuthModal()" class="btn btn-primary">Sign In to Vote</button>
-                            <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+                            <button id="sign-in-to-vote-btn" class="btn btn-primary">Sign In to Vote</button>
+                            <button id="back-to-home-auth-btn" class="btn btn-secondary">Back to Home</button>
                         </div>
                     </div>
                 </div>
             `;
+            this.bindVoteEvents();
             return;
         }
 
@@ -446,7 +449,7 @@ class QuickPollEmailApp {
         content += `
                 <div class="form-actions">
                     <button id="submit-vote" class="btn btn-primary">Submit Vote</button>
-                    <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+                    <button id="back-to-home-vote-btn" class="btn btn-secondary">Back to Home</button>
                 </div>
             </div>
         `;
@@ -622,12 +625,13 @@ class QuickPollEmailApp {
                     <p>Your email address (${this.currentUser.email}) is not authorized to vote in this poll.</p>
                     <p>Please contact the poll creator if you believe this is an error.</p>
                     <div class="form-actions">
-                        <button onclick="app.signOut()" class="btn btn-secondary">Sign In with Different Email</button>
-                        <button onclick="location.href='./'" class="btn btn-primary">Back to Home</button>
+                        <button id="sign-out-btn-denied" class="btn btn-secondary">Sign In with Different Email</button>
+                        <button id="back-to-home-denied-btn" class="btn btn-primary">Back to Home</button>
                     </div>
                 </div>
             </div>
         `;
+        this.bindVoteEvents();
     }
 
     hasUserVoted() {
@@ -712,11 +716,44 @@ class QuickPollEmailApp {
             submitBtn.addEventListener('click', () => this.submitVote());
         }
 
-        if (this.pollData.type === 'simple') {
+        // Home navigation buttons
+        const goHomeBtn = document.getElementById('go-home-btn');
+        if (goHomeBtn) {
+            goHomeBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        const backToHomeAuthBtn = document.getElementById('back-to-home-auth-btn');
+        if (backToHomeAuthBtn) {
+            backToHomeAuthBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        const backToHomeVoteBtn = document.getElementById('back-to-home-vote-btn');
+        if (backToHomeVoteBtn) {
+            backToHomeVoteBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        const backToHomeDeniedBtn = document.getElementById('back-to-home-denied-btn');
+        if (backToHomeDeniedBtn) {
+            backToHomeDeniedBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        // Sign in button
+        const signInToVoteBtn = document.getElementById('sign-in-to-vote-btn');
+        if (signInToVoteBtn) {
+            signInToVoteBtn.addEventListener('click', () => this.showEmailAuthModal());
+        }
+
+        // Sign out button  
+        const signOutBtnDenied = document.getElementById('sign-out-btn-denied');
+        if (signOutBtnDenied) {
+            signOutBtnDenied.addEventListener('click', () => this.signOut());
+        }
+
+        if (this.pollData && this.pollData.type === 'simple') {
             this.bindSimplePollEvents();
-        } else if (this.pollData.type === 'rating') {
+        } else if (this.pollData && this.pollData.type === 'rating') {
             this.bindRatingEvents();
-        } else if (this.pollData.type === 'ranking') {
+        } else if (this.pollData && this.pollData.type === 'ranking') {
             this.bindRankingEvents();
         }
     }
@@ -858,6 +895,42 @@ class QuickPollEmailApp {
         window.location.href = resultsLink;
     }
 
+    bindResultsEvents() {
+        // Home navigation buttons
+        const goHomeResultsBtn = document.getElementById('go-home-results-btn');
+        if (goHomeResultsBtn) {
+            goHomeResultsBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        const backToHomeResultsBtn = document.getElementById('back-to-home-results-btn');
+        if (backToHomeResultsBtn) {
+            backToHomeResultsBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        const backToHomeRestrictedBtn = document.getElementById('back-to-home-restricted-btn');
+        if (backToHomeRestrictedBtn) {
+            backToHomeRestrictedBtn.addEventListener('click', () => this.showPage('landing'));
+        }
+
+        // Refresh results button
+        const refreshResultsBtn = document.getElementById('refresh-results-btn');
+        if (refreshResultsBtn) {
+            refreshResultsBtn.addEventListener('click', () => location.reload());
+        }
+
+        // Close poll button
+        const closePollBtn = document.getElementById('close-poll-btn');
+        if (closePollBtn) {
+            closePollBtn.addEventListener('click', () => this.closePoll());
+        }
+
+        // Sign in button
+        const signInResultsBtn = document.getElementById('sign-in-results-btn');
+        if (signInResultsBtn) {
+            signInResultsBtn.addEventListener('click', () => this.showEmailAuthModal());
+        }
+    }
+
     renderResultsPage() {
         const container = document.getElementById('results-content');
         
@@ -866,9 +939,10 @@ class QuickPollEmailApp {
                 <div class="results-container">
                     <h2>Poll Not Found</h2>
                     <p>The requested poll could not be found.</p>
-                    <button onclick="location.href='./'" class="btn btn-primary">Go Home</button>
+                    <button id="go-home-results-btn" class="btn btn-primary">Go Home</button>
                 </div>
             `;
+            this.bindResultsEvents();
             return;
         }
 
@@ -886,11 +960,12 @@ class QuickPollEmailApp {
                             `<p>You are not currently signed in.</p>`
                         }
                         <div class="form-actions">
-                            <button onclick="app.showEmailAuthModal()" class="btn btn-primary">${this.currentUser ? 'Sign In as Different User' : 'Sign In'}</button>
-                            <button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+                            <button id="sign-in-results-btn" class="btn btn-primary">${this.currentUser ? 'Sign In as Different User' : 'Sign In'}</button>
+                            <button id="back-to-home-restricted-btn" class="btn btn-secondary">Back to Home</button>
                         </div>
                     </div>
                 `;
+                this.bindResultsEvents();
                 return;
             }
         }
@@ -931,20 +1006,21 @@ class QuickPollEmailApp {
 
         content += `
                 <div class="form-actions">
-                    <button onclick="location.reload()" class="btn btn-primary">Refresh Results</button>`;
+                    <button id="refresh-results-btn" class="btn btn-primary">Refresh Results</button>`;
         
         // Only show Close Poll button to the poll creator
         if (this.pollData.createdBy === 'anonymous' || 
             (this.currentUser && this.currentUser.email === this.pollData.createdBy)) {
-            content += `<button onclick="app.closePoll()" class="btn btn-danger">Close Poll</button>`;
+            content += `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>`;
         }
         
-        content += `<button onclick="location.href='./'" class="btn btn-secondary">Back to Home</button>
+        content += `<button id="back-to-home-results-btn" class="btn btn-secondary">Back to Home</button>
                 </div>
             </div>
         `;
 
         container.innerHTML = content;
+        this.bindResultsEvents();
     }
 
     renderSimpleResults() {

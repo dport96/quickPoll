@@ -55,9 +55,14 @@ router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
     const { id } = req.params;
     const memoryStore = req.memoryStore;
     
+    console.log(`📊 GET /api/polls/${id} - Request received`);
+    console.log(`🔍 Searching for poll with ID: ${id}`);
+    
     const poll = await memoryStore.getPoll(id);
+    console.log(`🎯 Poll found:`, poll ? 'YES' : 'NO');
 
     if (!poll || !poll.isActive) {
+      console.log(`❌ Poll not found or inactive for ID: ${id}`);
       return res.status(404).json({ error: 'Poll not found' });
     }
 

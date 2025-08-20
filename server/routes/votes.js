@@ -14,6 +14,8 @@ const validateVote = [
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('❌ Validation errors in vote submission:', errors.array());
+    console.log('📝 Request body received:', req.body);
     return res.status(400).json({
       error: 'Validation failed',
       details: errors.array()
@@ -32,6 +34,13 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
       voterInfo = {}
     } = req.body;
 
+    console.log('🗳️ Vote submission received:', {
+      pollId,
+      voteData,
+      voterIdentifier,
+      voterInfo
+    });
+
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
     const ipAddress = req.ip || req.connection.remoteAddress;
@@ -40,6 +49,7 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
     // Check if poll exists and is active
     const poll = await memoryStore.getPoll(pollId);
     if (!poll || !poll.isActive) {
+      console.log('❌ Poll not found for vote submission:', pollId);
       return res.status(404).json({ error: 'Poll not found or inactive' });
     }
 
@@ -60,7 +70,7 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
 
     if (existingVote) {
       return res.status(409).json({
-        error: 'Vote already submitted',
+        error: 'You already voted',
         existingVote: {
           id: existingVote.id,
           submittedAt: existingVote.createdAt
