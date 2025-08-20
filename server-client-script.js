@@ -61,31 +61,45 @@ class QuickPollServerApp extends QuickPollEmailApp {
             if (typeof io !== 'undefined') {
                 const currentHost = window.location.hostname;
                 const currentPort = window.location.port || '3001';
+                console.log(`🔌 Connecting to Socket.IO at: http://${currentHost}:${currentPort}`);
                 this.socket = io(`http://${currentHost}:${currentPort}`);
                 
                 this.socket.on('connect', () => {
+                    console.log('🔌 Socket.IO connected successfully');
                     this.updateConnectionStatus(true);
                     
                     // Join poll room if we have a current poll
                     if (this.currentPollId) {
+                        console.log(`📊 Joining poll room for: ${this.currentPollId}`);
                         this.socket.emit('joinPoll', this.currentPollId);
                     }
                 });
 
                 this.socket.on('disconnect', () => {
+                    console.log('🔌 Socket.IO disconnected');
                     this.updateConnectionStatus(false);
                 });
 
+                this.socket.on('joinedPoll', (data) => {
+                    console.log('📊 Successfully joined poll room:', data);
+                });
+
                 this.socket.on('voteSubmitted', (data) => {
+                    console.log('📥 Received voteSubmitted event:', data);
                     this.handleRealTimeVoteUpdate(data);
                 });
 
                 this.socket.on('resultsUpdated', (data) => {
+                    console.log('📥 Received resultsUpdated event:', data);
                     this.handleRealTimeResultsUpdate(data);
                 });
 
                 this.socket.on('error', (error) => {
                     console.error('🔌 Socket error:', error);
+                });
+
+                this.socket.on('connect_error', (error) => {
+                    console.error('🔌 Socket connection error:', error);
                 });
             } else {
                 console.warn('Socket.IO not available, real-time updates disabled');
@@ -204,8 +218,15 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
     // Helper method to join a poll room
     joinPollRoom(pollId) {
+        console.log(`📊 Attempting to join poll room for: ${pollId}`);
         if (this.socket && this.socket.connected) {
+            console.log('✅ Socket connected, emitting joinPoll event');
             this.socket.emit('joinPoll', pollId);
+        } else if (this.socket) {
+            console.log('🔄 Socket connecting, will auto-join room when ready');
+            // Socket will auto-join when it connects (handled in 'connect' event)
+        } else {
+            console.log('❌ Socket not available');
         }
     }
 
@@ -573,8 +594,13 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
     // Handle real-time vote updates
     async handleRealTimeVoteUpdate(data) {
+        console.log('🔄 Processing real-time vote update:', data);
+        console.log('📊 Current poll data:', this.pollData);
+        console.log('📄 Current page:', this.currentPage);
+        
         if (this.pollData && this.pollData.id === data.pollId && this.currentPage === 'results') {
             try {
+                console.log('✅ Conditions met, updating results...');
                 // Reload the poll results to get updated data
                 await this.loadPollResults(data.pollId);
                 
@@ -583,16 +609,28 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // Show notification
                 this.showRealTimeNotification('New vote received! Results updated.');
+                console.log('✅ Real-time vote update completed');
             } catch (error) {
                 console.error('Error updating results in real-time:', error);
             }
+        } else {
+            console.log('❌ Conditions not met for real-time update:', {
+                hasPollData: !!this.pollData,
+                pollIdMatch: this.pollData?.id === data.pollId,
+                onResultsPage: this.currentPage === 'results'
+            });
         }
     }
 
     // Handle real-time results updates
     async handleRealTimeResultsUpdate(data) {
+        console.log('🔄 Processing real-time results update:', data);
+        console.log('📊 Current poll data:', this.pollData);
+        console.log('📄 Current page:', this.currentPage);
+        
         if (this.pollData && this.pollData.id === data.pollId && this.currentPage === 'results') {
             try {
+                console.log('✅ Conditions met, updating results directly...');
                 // Update results data directly from the event
                 this.results = data.results;
                 this.pollData = { ...this.pollData, ...data.poll };
@@ -602,9 +640,16 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // Show notification
                 this.showRealTimeNotification('Results updated!');
+                console.log('✅ Real-time results update completed');
             } catch (error) {
                 console.error('Error handling real-time results update:', error);
             }
+        } else {
+            console.log('❌ Conditions not met for real-time results update:', {
+                hasPollData: !!this.pollData,
+                pollIdMatch: this.pollData?.id === data.pollId,
+                onResultsPage: this.currentPage === 'results'
+            });
         }
     }
 

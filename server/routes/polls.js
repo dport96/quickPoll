@@ -34,7 +34,7 @@ const validatePoll = [
 ];
 
 const validatePollId = [
-  param('id').isAlphanumeric().isLength({ min: 6, max: 12 }).withMessage('Invalid poll ID format')
+  param('id').matches(/^[A-Za-z0-9_-]{6,12}$/).withMessage('Invalid poll ID format')
 ];
 
 // Error handler for validation

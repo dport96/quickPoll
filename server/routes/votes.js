@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Validation middleware
 const validateVote = [
-  body('pollId').isAlphanumeric().isLength({ min: 6, max: 12 }).withMessage('Invalid poll ID'),
+  body('pollId').matches(/^[A-Za-z0-9_-]{6,12}$/).withMessage('Invalid poll ID'),
   body('voteData').isObject().withMessage('Vote data must be an object'),
   body('voterIdentifier').optional().isString().withMessage('Voter identifier must be a string'),
 ];
