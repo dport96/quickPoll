@@ -63,10 +63,30 @@ class QuickPollEmailApp {
         });
 
         // Poll created page events
-        document.getElementById('copy-voting-link').addEventListener('click', () => this.copyToClipboard('voting-link'));
-        document.getElementById('copy-results-link').addEventListener('click', () => this.copyToClipboard('results-link'));
-        document.getElementById('view-results-now').addEventListener('click', () => this.viewResults());
-        document.getElementById('close-poll').addEventListener('click', () => this.closePoll());
+        const copyVotingLinkBtn = document.getElementById('copy-voting-link');
+        const copyResultsLinkBtn = document.getElementById('copy-results-link');
+        const viewResultsBtn = document.getElementById('view-results-now');
+        const closePollBtn = document.getElementById('close-poll');
+        
+        if (copyVotingLinkBtn) {
+            copyVotingLinkBtn.replaceWith(copyVotingLinkBtn.cloneNode(true));
+            document.getElementById('copy-voting-link').addEventListener('click', () => this.copyToClipboard('voting-link'));
+        }
+        
+        if (copyResultsLinkBtn) {
+            copyResultsLinkBtn.replaceWith(copyResultsLinkBtn.cloneNode(true));
+            document.getElementById('copy-results-link').addEventListener('click', () => this.copyToClipboard('results-link'));
+        }
+        
+        if (viewResultsBtn) {
+            viewResultsBtn.replaceWith(viewResultsBtn.cloneNode(true));
+            document.getElementById('view-results-now').addEventListener('click', () => this.viewResults());
+        }
+        
+        if (closePollBtn) {
+            closePollBtn.replaceWith(closePollBtn.cloneNode(true));
+            document.getElementById('close-poll').addEventListener('click', () => this.closePoll());
+        }
 
         // Modal click outside to close
         document.getElementById('email-auth-modal').addEventListener('click', (e) => {
@@ -1277,33 +1297,15 @@ class QuickPollEmailApp {
             this.renderVotePage();
         }
     }
-
-    closePoll() {
-        if (!this.pollData) {
-            alert('No poll data found.');
-            return;
-        }
-
-        const confirmed = confirm('Are you sure you want to close this poll? This will prevent any further voting. All existing data and results will be preserved. [v2.0]');
-        
-        if (confirmed) {
-            // Set poll as closed
-            this.pollData.isClosed = true;
-            this.pollData.closedAt = new Date().toISOString();
-            
-            // Save the updated poll data
-            const pollKey = `poll_${this.pollData.id}`;
-            localStorage.setItem(pollKey, JSON.stringify(this.pollData));
-            
-            // Show confirmation and redirect
-            alert('Poll has been closed successfully. No further votes will be accepted.');
-            location.href = './';
-        }
-    }
 }
 
-// Initialize the app when the page loads
+// Initialize the app when the page loads (only if no server app will be created)
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new QuickPollEmailApp();
+    // Wait a bit to see if server script will initialize instead
+    setTimeout(() => {
+        if (!window.app) {
+            app = new QuickPollEmailApp();
+        }
+    }, 10);
 });

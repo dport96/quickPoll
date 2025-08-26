@@ -122,6 +122,11 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     this.handleRealTimeResultsUpdate(data);
                 });
 
+                this.socket.on('pollUpdated', (data) => {
+                    console.log('📥 Received pollUpdated event:', data);
+                    this.handleRealTimePollUpdate(data);
+                });
+
                 this.socket.on('error', (error) => {
                     console.error('🔌 Socket error:', error);
                 });
@@ -364,6 +369,11 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     closeButton.disabled = true;
                     closeButton.classList.remove('btn-danger');
                     closeButton.classList.add('btn-secondary');
+                }
+                
+                // If we're on the results page, refresh it to show updated status
+                if (this.currentPage === 'results') {
+                    this.renderResultsPage();
                 }
                 
                 alert('Poll has been closed successfully. No further votes will be accepted.');
@@ -854,6 +864,66 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 pollIdMatch: this.pollData?.id === data.pollId,
                 onResultsPage: this.currentPage === 'results'
             });
+        }
+    }
+
+    // Handle real-time poll updates (e.g., when poll is closed)
+    async handleRealTimePollUpdate(data) {
+        console.log('🔄 Processing real-time poll update:', data);
+        console.log('📊 Current poll data:', this.pollData);
+        console.log('📄 Current page:', this.currentPage);
+        
+        if (this.pollData && this.pollData.id === data.pollId) {
+            try {
+                console.log('✅ Updating poll data with changes:', data.updates);
+                
+                // Update poll data with the changes
+                Object.assign(this.pollData, data.updates);
+                
+                // If on results page, re-render to show updated status
+                if (this.currentPage === 'results') {
+                    this.renderResultsPage();
+                    
+                    // Show notification if poll was closed
+                    if (data.updates.isClosed) {
+                        this.showRealTimeNotification('Poll has been closed!');
+                    }
+                }
+                
+                // Update UI elements based on poll status
+                if (data.updates.isClosed !== undefined) {
+                    this.updatePollStatusUI(data.updates.isClosed);
+                }
+                
+                console.log('✅ Real-time poll update completed');
+            } catch (error) {
+                console.error('Error handling real-time poll update:', error);
+            }
+        } else {
+            console.log('❌ Poll ID does not match current poll');
+        }
+    }
+
+    // Update poll status UI elements
+    updatePollStatusUI(isClosed) {
+        // Update close poll button if it exists
+        const closeButton = document.getElementById('close-poll');
+        const closePollBtn = document.getElementById('close-poll-btn');
+        
+        if (isClosed) {
+            if (closeButton) {
+                closeButton.textContent = 'Poll Closed';
+                closeButton.disabled = true;
+                closeButton.classList.remove('btn-danger');
+                closeButton.classList.add('btn-secondary');
+            }
+            
+            if (closePollBtn) {
+                closePollBtn.textContent = 'Poll Closed';
+                closePollBtn.disabled = true;
+                closePollBtn.classList.remove('btn-danger');
+                closePollBtn.classList.add('btn-secondary');
+            }
         }
     }
 
