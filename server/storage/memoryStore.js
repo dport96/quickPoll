@@ -1,6 +1,6 @@
 /**
  * In-Memory Data Store for QuickPoll
- * Replaces PostgreSQL database with session-based storage
+ * Provides session-based storage for polls and votes
  */
 
 const { nanoid } = require('nanoid');
