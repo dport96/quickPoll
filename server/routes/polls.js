@@ -57,7 +57,6 @@ router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
     
     
     const poll = await memoryStore.getPoll(id);
-    console.log(`🎯 Poll found:`, poll ? 'YES' : 'NO');
 
     if (!poll || !poll.isActive) {
       return res.status(404).json({ error: 'Poll not found' });
@@ -85,7 +84,9 @@ router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
         createdBy: poll.createdBy,
         creatorName: poll.creatorName,
         totalVotes: votes.length,
-        expiresAt: poll.expiresAt
+        expiresAt: poll.expiresAt,
+        isClosed: poll.isClosed,
+        closedAt: poll.closedAt
       }
     });
   } catch (error) {
@@ -257,7 +258,7 @@ router.get('/:id/results', validatePollId, handleValidationErrors, async (req, r
 router.put('/:id', validatePollId, handleValidationErrors, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, expiresAt } = req.body;
+    const { title, description, expiresAt, isClosed, closedAt } = req.body;
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
 
@@ -275,6 +276,8 @@ router.put('/:id', validatePollId, handleValidationErrors, async (req, res) => {
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
     if (expiresAt !== undefined) updates.expiresAt = expiresAt ? new Date(expiresAt) : null;
+    if (isClosed !== undefined) updates.isClosed = isClosed;
+    if (closedAt !== undefined) updates.closedAt = closedAt;
 
     const updatedPoll = await memoryStore.updatePoll(id, updates);
 

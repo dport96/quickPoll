@@ -48,6 +48,11 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
       return res.status(410).json({ error: 'Poll has expired' });
     }
 
+    // Check if poll is closed
+    if (poll.isClosed) {
+      return res.status(410).json({ error: 'Poll has been closed by the creator' });
+    }
+
     // Validate vote data based on poll type
     const validationResult = validateVoteData(voteData, poll);
     if (!validationResult.valid) {

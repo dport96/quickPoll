@@ -66,7 +66,7 @@ class QuickPollEmailApp {
         document.getElementById('copy-voting-link').addEventListener('click', () => this.copyToClipboard('voting-link'));
         document.getElementById('copy-results-link').addEventListener('click', () => this.copyToClipboard('results-link'));
         document.getElementById('view-results-now').addEventListener('click', () => this.viewResults());
-        document.getElementById('create-another-poll').addEventListener('click', () => this.showPage('landing'));
+        document.getElementById('close-poll').addEventListener('click', () => this.closePoll());
 
         // Modal click outside to close
         document.getElementById('email-auth-modal').addEventListener('click', (e) => {
@@ -370,7 +370,37 @@ class QuickPollEmailApp {
 
     viewResults() {
         const resultsLink = document.getElementById('results-link').value;
-        window.location.href = resultsLink;
+        window.open(resultsLink, '_blank', 'width=1000,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no');
+    }
+
+    closePoll() {
+        if (!this.pollData || !this.pollData.id) {
+            alert('No active poll to close.');
+            return;
+        }
+
+        const confirmed = confirm('Are you sure you want to close this poll? This will prevent any further voting. All existing data and results will be preserved. [v2.0]');
+        
+        if (confirmed) {
+            // Set poll as closed
+            this.pollData.isClosed = true;
+            this.pollData.closedAt = new Date().toISOString();
+            
+            // Save the updated poll data
+            const pollKey = `poll_${this.pollData.id}`;
+            localStorage.setItem(pollKey, JSON.stringify(this.pollData));
+            
+            // Update button state
+            const closeButton = document.getElementById('close-poll');
+            if (closeButton) {
+                closeButton.textContent = 'Poll Closed';
+                closeButton.disabled = true;
+                closeButton.classList.remove('btn-danger');
+                closeButton.classList.add('btn-secondary');
+            }
+            
+            alert('Poll has been closed successfully. No further votes will be accepted.');
+        }
     }
 
     renderVotePage() {
@@ -385,6 +415,25 @@ class QuickPollEmailApp {
                 </div>
             `;
             this.bindVoteEvents();
+            return;
+        }
+
+        // Check if poll is closed
+        if (this.pollData.isClosed) {
+            container.innerHTML = `
+                <div class="vote-container">
+                    <h2>${this.pollData.title}</h2>
+                    <div class="poll-closed-notice">
+                        <h3>🔒 Poll Closed</h3>
+                        <p>This poll has been closed by the creator and is no longer accepting votes.</p>
+                        <p><small>Closed on: ${new Date(this.pollData.closedAt).toLocaleString()}</small></p>
+                        <div class="form-actions">
+                            <button onclick="location.href='/results/${this.pollData.id}'" class="btn btn-primary">View Results</button>
+                            <button onclick="location.href='/'" class="btn btn-secondary">Go Home</button>
+                        </div>
+                    </div>
+                </div>
+            `;
             return;
         }
 
@@ -977,10 +1026,19 @@ class QuickPollEmailApp {
         const totalVotes = Object.keys(this.votes).length;
         const authInfo = this.pollData.requireAuth ? '📧 Email Authenticated Poll' : '📊 Anonymous Poll';
         
+        // Determine poll status
+        const pollStatus = this.pollData.isClosed ? 
+            { text: '🔒 CLOSED', class: 'status-closed', detail: `Closed on ${new Date(this.pollData.closedAt).toLocaleString()}` } :
+            { text: '✅ OPEN', class: 'status-open', detail: 'Accepting votes' };
+        
         let content = `
             <div class="results-container">
                 <h2>Results: ${this.pollData.title}</h2>
                 ${this.pollData.description ? `<p>${this.pollData.description}</p>` : ''}
+                <div class="poll-status">
+                    <span class="status-indicator ${pollStatus.class}">${pollStatus.text}</span>
+                    <span class="status-detail">${pollStatus.detail}</span>
+                </div>
                 <div class="results-header">
                     <span><strong>Total Votes: ${totalVotes}</strong></span>
                     <span class="auth-badge email">${authInfo}</span>
@@ -1226,18 +1284,19 @@ class QuickPollEmailApp {
             return;
         }
 
-        const confirmMessage = `Are you sure you want to close and permanently delete the poll "${this.pollData.title}"?\n\nThis will:\n• Delete all poll data\n• Delete all votes\n• Make the poll inaccessible\n\nThis action cannot be undone.`;
+        const confirmed = confirm('Are you sure you want to close this poll? This will prevent any further voting. All existing data and results will be preserved. [v2.0]');
         
-        if (confirm(confirmMessage)) {
-            // Remove poll data from localStorage
-            const pollKey = `poll_${this.pollData.id}`;
-            const votesKey = `votes_${this.pollData.id}`;
+        if (confirmed) {
+            // Set poll as closed
+            this.pollData.isClosed = true;
+            this.pollData.closedAt = new Date().toISOString();
             
-            localStorage.removeItem(pollKey);
-            localStorage.removeItem(votesKey);
+            // Save the updated poll data
+            const pollKey = `poll_${this.pollData.id}`;
+            localStorage.setItem(pollKey, JSON.stringify(this.pollData));
             
             // Show confirmation and redirect
-            alert(`Poll "${this.pollData.title}" has been permanently closed and deleted.`);
+            alert('Poll has been closed successfully. No further votes will be accepted.');
             location.href = './';
         }
     }

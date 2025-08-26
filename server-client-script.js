@@ -324,6 +324,55 @@ class QuickPollServerApp extends QuickPollEmailApp {
         return result;
     }
 
+    // Override close poll for server-side storage
+    async closePoll() {
+        if (!this.pollData || !this.pollData.id) {
+            alert('No active poll to close.');
+            return;
+        }
+
+        const confirmed = confirm('Are you sure you want to close this poll? This will prevent any further voting. All existing data and results will be preserved. [v2.0]');
+        
+        if (confirmed) {
+            try {
+                // Update poll on server
+                const response = await fetch(`${this.apiUrl}/polls/${this.pollData.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...this.pollData,
+                        isClosed: true,
+                        closedAt: new Date().toISOString()
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to close poll');
+                }
+
+                // Update local poll data
+                this.pollData.isClosed = true;
+                this.pollData.closedAt = new Date().toISOString();
+                
+                // Update button state
+                const closeButton = document.getElementById('close-poll');
+                if (closeButton) {
+                    closeButton.textContent = 'Poll Closed';
+                    closeButton.disabled = true;
+                    closeButton.classList.remove('btn-danger');
+                    closeButton.classList.add('btn-secondary');
+                }
+                
+                alert('Poll has been closed successfully. No further votes will be accepted.');
+            } catch (error) {
+                alert('Error closing poll: ' + error.message);
+            }
+        }
+    }
+
     // Override vote submission for server-side storage
     submitVote() {
         // First, collect the vote data using the parent's logic
@@ -399,12 +448,13 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 throw new Error(response.error || 'Failed to submit vote');
             }
         } catch (error) {
-            console.error( error);
             
             if (error.message.includes('already voted')) {
                 alert('You have already voted in this poll.');
             } else if (error.message.includes('expired')) {
                 alert('This poll has expired and is no longer accepting votes.');
+            } else if (error.message.includes('closed by the creator')) {
+                alert('This poll has been closed by the creator and is no longer accepting votes.');
             } else if (error.message.includes('not authorized')) {
                 alert('Your email address is not authorized to vote in this poll.');
             } else {
@@ -564,6 +614,11 @@ class QuickPollServerApp extends QuickPollEmailApp {
         
         const authInfo = this.pollData.requireAuth ? '📧 Email Authenticated Poll' : '📊 Anonymous Poll';
 
+        // Determine poll status
+        const pollStatus = this.pollData.isClosed ? 
+            { text: '🔒 CLOSED', class: 'status-closed', detail: `Closed on ${new Date(this.pollData.closedAt).toLocaleString()}` } :
+            { text: '✅ OPEN', class: 'status-open', detail: 'Accepting votes' };
+
         let resultsHTML = '';
         
         if (this.pollData.type === 'simple') {
@@ -579,6 +634,10 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 <div class="poll-header">
                     <h2>${this.pollData.title}</h2>
                     ${this.pollData.description ? `<p class="poll-description">${this.pollData.description}</p>` : ''}
+                    <div class="poll-status">
+                        <span class="status-indicator ${pollStatus.class}">${pollStatus.text}</span>
+                        <span class="status-detail">${pollStatus.detail}</span>
+                    </div>
                     <div class="poll-meta">
                         <span class="poll-creator">Created by: <strong>${this.pollData.creatorName || this.pollData.createdBy || 'Unknown'}</strong></span>
                         <span class="poll-type">${authInfo}</span>
