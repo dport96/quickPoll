@@ -1046,3 +1046,15 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Results timestamp for saved images */
+.results-timestamp {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #f9f9f9;
+    font-style: italic;
+}

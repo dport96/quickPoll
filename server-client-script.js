@@ -383,6 +383,80 @@ class QuickPollServerApp extends QuickPollEmailApp {
         }
     }
 
+    async saveResultsAsImage() {
+        try {
+            // Load html2canvas library if not already loaded
+            if (typeof html2canvas === 'undefined') {
+                await this.loadHtml2Canvas();
+            }
+
+            const resultsContainer = document.getElementById('results-content');
+            if (!resultsContainer) {
+                throw new Error('Results container not found');
+            }
+
+            // Create a temporary container for clean capture
+            const tempContainer = resultsContainer.cloneNode(true);
+            
+            // Remove action buttons from the clone for cleaner image
+            const actionButtons = tempContainer.querySelectorAll('.form-actions');
+            actionButtons.forEach(btn => btn.remove());
+
+            // Add timestamp to the results
+            const timestamp = document.createElement('div');
+            timestamp.className = 'results-timestamp';
+            timestamp.textContent = `Results saved on ${new Date().toLocaleString()}`;
+            tempContainer.appendChild(timestamp);
+
+            // Temporarily add the container to the page for capturing
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.backgroundColor = '#ffffff';
+            tempContainer.style.padding = '20px';
+            document.body.appendChild(tempContainer);
+
+            // Capture the temporary container
+            const canvas = await html2canvas(tempContainer, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                width: tempContainer.scrollWidth,
+                height: tempContainer.scrollHeight
+            });
+
+            // Clean up temporary container
+            document.body.removeChild(tempContainer);
+
+            // Create download link
+            const link = document.createElement('a');
+            const filename = `poll-results-${this.pollData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.png`;
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success message
+            this.showRealTimeNotification('Results image saved successfully!');
+        } catch (error) {
+            console.error('Error saving results:', error);
+            alert('Failed to save results image. Please try again.');
+        }
+    }
+
+    async loadHtml2Canvas() {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load html2canvas'));
+            document.head.appendChild(script);
+        });
+    }
+
     // Override vote submission for server-side storage
     submitVote() {
         // First, collect the vote data using the parent's logic
@@ -657,8 +731,59 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 </div>
                 ${resultsHTML}
                 ${this.shouldShowVotersList() ? this.renderVotersList() : ''}
+                <div class="form-actions">
+                    <button id="refresh-results-btn" class="btn btn-primary">Refresh Results</button>
+                    ${this.isCreator() ? `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>` : ''}
+                    ${this.isCreator() && !this.pollData.isClosed ? `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>` : ''}
+                    <button id="back-to-home-results-btn" class="btn btn-secondary">Back to Home</button>
+                </div>
             </div>
         `;
+
+        // Bind event listeners
+        this.bindServerResultsEvents();
+    }
+
+    isCreator() {
+        if (!this.currentUser || !this.pollData.createdBy) {
+            return this.pollData.createdBy === 'anonymous';
+        }
+        return this.currentUser.email === this.pollData.createdBy;
+    }
+
+    bindServerResultsEvents() {
+        // Refresh results button
+        const refreshResultsBtn = document.getElementById('refresh-results-btn');
+        if (refreshResultsBtn) {
+            refreshResultsBtn.addEventListener('click', async () => {
+                try {
+                    await this.loadPollResults();
+                    this.renderResultsPage();
+                } catch (error) {
+                    alert('Failed to refresh results');
+                }
+            });
+        }
+
+        // Save results button
+        const saveResultsBtn = document.getElementById('save-results-btn');
+        if (saveResultsBtn) {
+            saveResultsBtn.addEventListener('click', () => this.saveResultsAsImage());
+        }
+
+        // Close poll button
+        const closePollBtn = document.getElementById('close-poll-btn');
+        if (closePollBtn) {
+            closePollBtn.addEventListener('click', () => this.closePoll());
+        }
+
+        // Back to home button
+        const backToHomeBtn = document.getElementById('back-to-home-results-btn');
+        if (backToHomeBtn) {
+            backToHomeBtn.addEventListener('click', () => {
+                window.location.href = './';
+            });
+        }
     }
 
     renderSimpleResults() {

@@ -423,6 +423,80 @@ class QuickPollEmailApp {
         }
     }
 
+    async saveResultsAsImage() {
+        try {
+            // Load html2canvas library if not already loaded
+            if (typeof html2canvas === 'undefined') {
+                await this.loadHtml2Canvas();
+            }
+
+            const resultsContainer = document.getElementById('results-content');
+            if (!resultsContainer) {
+                throw new Error('Results container not found');
+            }
+
+            // Create a temporary container for clean capture
+            const tempContainer = resultsContainer.cloneNode(true);
+            
+            // Remove action buttons from the clone for cleaner image
+            const actionButtons = tempContainer.querySelectorAll('.form-actions');
+            actionButtons.forEach(btn => btn.remove());
+
+            // Add timestamp to the results
+            const timestamp = document.createElement('div');
+            timestamp.className = 'results-timestamp';
+            timestamp.textContent = `Results saved on ${new Date().toLocaleString()}`;
+            tempContainer.appendChild(timestamp);
+
+            // Temporarily add the container to the page for capturing
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.backgroundColor = '#ffffff';
+            tempContainer.style.padding = '20px';
+            document.body.appendChild(tempContainer);
+
+            // Capture the temporary container
+            const canvas = await html2canvas(tempContainer, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                width: tempContainer.scrollWidth,
+                height: tempContainer.scrollHeight
+            });
+
+            // Clean up temporary container
+            document.body.removeChild(tempContainer);
+
+            // Create download link
+            const link = document.createElement('a');
+            const filename = `poll-results-${this.pollData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.png`;
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success message
+            alert('Results image saved successfully!');
+        } catch (error) {
+            console.error('Error saving results:', error);
+            alert('Failed to save results image. Please try again.');
+        }
+    }
+
+    async loadHtml2Canvas() {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load html2canvas'));
+            document.head.appendChild(script);
+        });
+    }
+
     renderVotePage() {
         const container = document.getElementById('vote-content');
         
@@ -997,6 +1071,12 @@ class QuickPollEmailApp {
             closePollBtn.addEventListener('click', () => this.closePoll());
         }
 
+        // Save results button
+        const saveResultsBtn = document.getElementById('save-results-btn');
+        if (saveResultsBtn) {
+            saveResultsBtn.addEventListener('click', () => this.saveResultsAsImage());
+        }
+
         // Sign in button
         const signInResultsBtn = document.getElementById('sign-in-results-btn');
         if (signInResultsBtn) {
@@ -1090,10 +1170,13 @@ class QuickPollEmailApp {
                 <div class="form-actions">
                     <button id="refresh-results-btn" class="btn btn-primary">Refresh Results</button>`;
         
-        // Only show Close Poll button to the poll creator
+        // Only show creator-only buttons to the poll creator
         if (this.pollData.createdBy === 'anonymous' || 
             (this.currentUser && this.currentUser.email === this.pollData.createdBy)) {
-            content += `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>`;
+            content += `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>`;
+            if (!this.pollData.isClosed) {
+                content += `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>`;
+            }
         }
         
         content += `<button id="back-to-home-results-btn" class="btn btn-secondary">Back to Home</button>
