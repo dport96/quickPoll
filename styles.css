@@ -1058,3 +1058,117 @@ body {
     background-color: #f9f9f9;
     font-style: italic;
 }
+
+/* Non-voter list styling */
+.non-voter-list, .non-voters-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff9e6;
+    border: 1px solid #f0d000;
+    border-radius: 8px;
+}
+
+.non-voter-list h4, .non-voters-section h3 {
+    color: #b8860b;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.non-voter-description, .non-voters-summary {
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.non-voters-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pending-count {
+    font-weight: 600;
+    color: #b8860b;
+}
+
+.participation-rate {
+    font-size: 12px;
+    color: #666;
+    background: #f5f5f5;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.non-voter-emails, .non-voters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.non-voter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.non-voter-item:hover {
+    background: #f8f9fa;
+}
+
+.non-voter-email {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #333;
+}
+
+.copy-email-btn {
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-email-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.btn-small {
+    font-size: 12px;
+    padding: 4px 8px;
+    min-height: auto;
+}
+
+.participation-stats {
+    padding-top: 15px;
+    border-top: 1px solid #f0d000;
+    margin-top: 15px;
+}
+
+.stat-item {
+    font-size: 14px;
+    color: #666;
+}
+
+.completion-message {
+    text-align: center;
+    color: #28a745;
+    font-weight: 500;
+    padding: 15px;
+    background: #f8fff9;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+}

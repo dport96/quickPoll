@@ -731,11 +731,11 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 </div>
                 ${resultsHTML}
                 ${this.shouldShowVotersList() ? this.renderVotersList() : ''}
+                ${this.shouldShowVotersList() ? this.renderNonVotersList() : ''}
                 <div class="form-actions">
                     <button id="refresh-results-btn" class="btn btn-primary">Refresh Results</button>
                     ${this.isCreator() ? `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>` : ''}
                     ${this.isCreator() && !this.pollData.isClosed ? `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>` : ''}
-                    <button id="back-to-home-results-btn" class="btn btn-secondary">Back to Home</button>
                 </div>
             </div>
         `;
@@ -775,14 +775,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
         const closePollBtn = document.getElementById('close-poll-btn');
         if (closePollBtn) {
             closePollBtn.addEventListener('click', () => this.closePoll());
-        }
-
-        // Back to home button
-        const backToHomeBtn = document.getElementById('back-to-home-results-btn');
-        if (backToHomeBtn) {
-            backToHomeBtn.addEventListener('click', () => {
-                window.location.href = './';
-            });
         }
     }
 
@@ -910,6 +902,57 @@ class QuickPollServerApp extends QuickPollEmailApp {
                                 </div>
                                 <span class="voter-time">${new Date(voter.submittedAt).toLocaleString()}</span>
                             </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderNonVotersList() {
+        // Only show for polls with email restrictions and when user is the creator
+        if (!this.pollData.validEmails || this.pollData.validEmails.length === 0) {
+            return '';
+        }
+
+        if (!this.isCreator()) {
+            return '';
+        }
+
+        // Get list of emails that have voted
+        const voters = this.results.voters || [];
+        const voterEmails = voters.map(voter => voter.email);
+
+        // Find emails that haven't voted
+        const nonVoters = this.pollData.validEmails.filter(email => 
+            !voterEmails.includes(email)
+        );
+
+        if (nonVoters.length === 0) {
+            return `
+                <div class="non-voters-section">
+                    <h3>✅ Complete Participation</h3>
+                    <div class="completion-message">
+                        <p>All ${this.pollData.validEmails.length} invited participants have submitted their votes!</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="non-voters-section">
+                <h3>⏳ Pending Participants</h3>
+                <div class="non-voters-summary">
+                    <span class="pending-count">${nonVoters.length} of ${this.pollData.validEmails.length} have not yet voted</span>
+                    <span class="participation-rate">
+                        Participation: ${((this.pollData.validEmails.length - nonVoters.length) / this.pollData.validEmails.length * 100).toFixed(1)}%
+                    </span>
+                </div>
+                <div class="non-voters-list">
+                    ${nonVoters.map(email => `
+                        <div class="non-voter-item">
+                            <span class="non-voter-email">${email}</span>
+                            <button class="btn-small btn-secondary copy-email-btn" onclick="navigator.clipboard.writeText('${email}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);">Copy</button>
                         </div>
                     `).join('')}
                 </div>

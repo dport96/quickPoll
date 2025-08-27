@@ -1049,11 +1049,6 @@ class QuickPollEmailApp {
             goHomeResultsBtn.addEventListener('click', () => this.showPage('landing'));
         }
 
-        const backToHomeResultsBtn = document.getElementById('back-to-home-results-btn');
-        if (backToHomeResultsBtn) {
-            backToHomeResultsBtn.addEventListener('click', () => this.showPage('landing'));
-        }
-
         const backToHomeRestrictedBtn = document.getElementById('back-to-home-restricted-btn');
         if (backToHomeRestrictedBtn) {
             backToHomeRestrictedBtn.addEventListener('click', () => this.showPage('landing'));
@@ -1163,6 +1158,7 @@ class QuickPollEmailApp {
             // Show voter list for authenticated polls
             if (this.pollData.requireAuth) {
                 content += this.renderVoterList();
+                content += this.renderNonVoterList();
             }
         }
 
@@ -1179,8 +1175,7 @@ class QuickPollEmailApp {
             }
         }
         
-        content += `<button id="back-to-home-results-btn" class="btn btn-secondary">Back to Home</button>
-                </div>
+        content += `</div>
             </div>
         `;
 
@@ -1330,6 +1325,59 @@ class QuickPollEmailApp {
                         <div class="voter-time">${voter.timestamp}</div>
                     </div>
                 `).join('')}
+            </div>
+        `;
+    }
+
+    renderNonVoterList() {
+        // Only show for polls with email restrictions and when user is the creator
+        if (!this.pollData.validEmails || this.pollData.validEmails.length === 0) {
+            return '';
+        }
+
+        if (this.pollData.createdBy !== 'anonymous' && 
+            (!this.currentUser || this.currentUser.email !== this.pollData.createdBy)) {
+            return '';
+        }
+
+        // Get list of emails that have voted
+        const voterEmails = Object.values(this.votes)
+            .filter(vote => vote.voter && vote.voter.email)
+            .map(vote => vote.voter.email);
+
+        // Find emails that haven't voted
+        const nonVoters = this.pollData.validEmails.filter(email => 
+            !voterEmails.includes(email)
+        );
+
+        if (nonVoters.length === 0) {
+            return `
+                <div class="non-voter-list">
+                    <h4>✅ All Invited Participants Have Voted!</h4>
+                    <p class="completion-message">All ${this.pollData.validEmails.length} invited participants have submitted their votes.</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="non-voter-list">
+                <h4>⏳ Pending Votes (${nonVoters.length} of ${this.pollData.validEmails.length})</h4>
+                <p class="non-voter-description">The following invited participants have not yet voted:</p>
+                <div class="non-voter-emails">
+                    ${nonVoters.map(email => `
+                        <div class="non-voter-item">
+                            <span class="non-voter-email">${email}</span>
+                            <button class="btn-small btn-secondary copy-email-btn" onclick="navigator.clipboard.writeText('${email}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);">Copy</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="participation-stats">
+                    <span class="stat-item">
+                        <strong>Participation Rate:</strong> 
+                        ${((this.pollData.validEmails.length - nonVoters.length) / this.pollData.validEmails.length * 100).toFixed(1)}%
+                        (${this.pollData.validEmails.length - nonVoters.length}/${this.pollData.validEmails.length})
+                    </span>
+                </div>
             </div>
         `;
     }
