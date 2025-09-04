@@ -15,6 +15,9 @@ class QuickPollEmailApp {
         
         // Check if user is already signed in
         this.checkExistingAuth();
+        
+        // Load saved email list
+        this.loadSavedEmailList();
     }
 
     bindEvents() {
@@ -61,6 +64,19 @@ class QuickPollEmailApp {
                 this.switchToCustomTemplate();
             }
         });
+
+        // Email list change event - save to localStorage when modified
+        const validEmailsTextarea = document.getElementById('validEmails');
+        if (validEmailsTextarea) {
+            validEmailsTextarea.addEventListener('input', (e) => {
+                const emailList = e.target.value.trim();
+                if (emailList) {
+                    localStorage.setItem('savedEmailList', emailList);
+                } else {
+                    localStorage.removeItem('savedEmailList');
+                }
+            });
+        }
 
         // Poll created page events
         const copyVotingLinkBtn = document.getElementById('copy-voting-link');
@@ -331,6 +347,11 @@ class QuickPollEmailApp {
         if (pollData.options.length < 2) {
             alert('Please add at least 2 options.');
             return;
+        }
+
+        // Save the email list to localStorage for future use
+        if (validEmails && validEmails.trim()) {
+            localStorage.setItem('savedEmailList', validEmails.trim());
         }
 
         this.pollData = pollData;
@@ -1426,6 +1447,16 @@ class QuickPollEmailApp {
         // If on a voting page that requires auth, redirect to show auth modal
         if (this.currentPage === 'vote' && this.pollData && this.pollData.requireAuth) {
             this.renderVotePage();
+        }
+    }
+
+    loadSavedEmailList() {
+        const validEmailsTextarea = document.getElementById('validEmails');
+        if (validEmailsTextarea) {
+            const savedEmailList = localStorage.getItem('savedEmailList');
+            if (savedEmailList) {
+                validEmailsTextarea.value = savedEmailList;
+            }
         }
     }
 }
