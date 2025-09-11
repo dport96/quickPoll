@@ -1,0 +1,542 @@
+2025-08-27 12:00:21 -10:00: 🧠 In-memory storage initialized
+2025-08-27 12:00:21 -10:00: Warning: connect.session() MemoryStore is not
+2025-08-27 12:00:21 -10:00: designed for a production environment, as it will leak
+2025-08-27 12:00:21 -10:00: memory, and will not scale past a single process.
+2025-08-27 12:00:21 -10:00: ✅ Socket.IO configured with real-time poll updates
+2025-08-27 12:00:21 -10:00:  Frontend served at: http://128.171.195.8:3001
+2025-08-27 12:00:21 -10:00:  Local access: http://localhost:3001
+2025-08-27 12:01:31 -10:00: 🔌 Client connected: qDKqwwJ8tuUwQn9_AAAB
+2025-08-27 12:01:55 -10:00: 🔌 Client connected: rJOHaIzBNpLGGvvJAAAD
+2025-08-27 12:01:55 -10:00: 📊 Client rJOHaIzBNpLGGvvJAAAD joined poll room: poll_DYwLHVaw
+2025-08-27 12:01:58 -10:00: 🔌 Client disconnected: rJOHaIzBNpLGGvvJAAAD, reason: client namespace disconnect
+2025-08-27 12:02:00 -10:00: 🔌 Client disconnected: qDKqwwJ8tuUwQn9_AAAB, reason: client namespace disconnect
+2025-08-27 13:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 14:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 15:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 16:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 17:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 18:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 19:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 20:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 21:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 22:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-27 23:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 00:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 01:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 02:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 03:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 04:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 05:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 06:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 07:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 08:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 09:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 10:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 11:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 12:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 1
+2025-08-28 13:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 14:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 15:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 16:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 17:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 18:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 19:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 20:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 21:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 22:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-28 23:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 00:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 01:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 02:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 03:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 04:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 05:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 06:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 07:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 08:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 09:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 10:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 11:00:21 -10:00: 🧹 Cleanup completed. Active polls: 1, Sessions: 0
+2025-08-29 11:22:37 -10:00: 🔌 Client connected: uiKnkzBFtoLAv_VjAAAF
+2025-08-29 11:24:03 -10:00: 🔌 Client connected: RqkVDt4glarzxZLiAAAH
+2025-08-29 11:24:03 -10:00: 📊 Client RqkVDt4glarzxZLiAAAH joined poll room: poll_cDMSe31c
+2025-08-29 11:24:15 -10:00: 📡 Emitting voteSubmitted to room: poll_cDMSe31c
+2025-08-29 11:24:15 -10:00: 📡 Emitting resultsUpdated to room: poll_cDMSe31c
+2025-08-29 11:24:18 -10:00: 🔌 Client disconnected: RqkVDt4glarzxZLiAAAH, reason: client namespace disconnect
+2025-08-29 11:24:18 -10:00: 🔌 Client connected: 2QsuPtgstyARvTZzAAAJ
+2025-08-29 11:24:18 -10:00: 📊 Client 2QsuPtgstyARvTZzAAAJ joined poll room: poll_cDMSe31c
+2025-08-29 11:24:19 -10:00: 🔌 Client connected: Y5X1Xn9IJu1mAN0DAAAL
+2025-08-29 11:24:19 -10:00: 📊 Client Y5X1Xn9IJu1mAN0DAAAL joined poll room: poll_cDMSe31c
+2025-08-29 11:24:30 -10:00: 🔌 Client connected: dRwnM7AldKIEHxQvAAAN
+2025-08-29 11:24:30 -10:00: 📊 Client dRwnM7AldKIEHxQvAAAN joined poll room: poll_cDMSe31c
+2025-08-29 11:27:21 -10:00: 🔌 Client disconnected: Y5X1Xn9IJu1mAN0DAAAL, reason: transport close
+2025-08-29 11:29:38 -10:00: 🔌 Client disconnected: 2QsuPtgstyARvTZzAAAJ, reason: transport close
+2025-08-29 11:31:38 -10:00: 🔌 Client connected: jp1gOV3Je8GEqJtoAAAP
+2025-08-29 11:31:39 -10:00: 📊 Client jp1gOV3Je8GEqJtoAAAP joined poll room: poll_cDMSe31c
+2025-08-29 11:31:54 -10:00: 🔌 Client disconnected: dRwnM7AldKIEHxQvAAAN, reason: transport close
+2025-08-29 11:31:56 -10:00: 🔌 Client disconnected: jp1gOV3Je8GEqJtoAAAP, reason: transport close
+2025-08-29 11:32:07 -10:00: 🔌 Client disconnected: uiKnkzBFtoLAv_VjAAAF, reason: transport close
+2025-08-29 12:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 12:11:31 -10:00: 🔌 Client connected: 35BQH4lKJDtLSWe5AAAR
+2025-08-29 12:11:33 -10:00: 📊 Client 35BQH4lKJDtLSWe5AAAR joined poll room: poll_cDMSe31c
+2025-08-29 12:16:24 -10:00: 🔌 Client disconnected: 35BQH4lKJDtLSWe5AAAR, reason: transport close
+2025-08-29 12:16:38 -10:00: 🔌 Client connected: -W3WLcCpF25mGX4cAAAT
+2025-08-29 12:16:39 -10:00: 📊 Client -W3WLcCpF25mGX4cAAAT joined poll room: poll_cDMSe31c
+2025-08-29 12:18:51 -10:00: 🔌 Client disconnected: -W3WLcCpF25mGX4cAAAT, reason: transport close
+2025-08-29 12:19:24 -10:00: 🔌 Client connected: vHnSQBWywBxS71EFAAAV
+2025-08-29 12:19:24 -10:00: 📊 Client vHnSQBWywBxS71EFAAAV joined poll room: poll_cDMSe31c
+2025-08-29 12:19:39 -10:00: 🔌 Client disconnected: vHnSQBWywBxS71EFAAAV, reason: transport close
+2025-08-29 12:45:35 -10:00: 🔌 Client connected: Ye9zFSuXjfsaqkGOAAAX
+2025-08-29 12:45:37 -10:00: 📊 Client Ye9zFSuXjfsaqkGOAAAX joined poll room: poll_cDMSe31c
+2025-08-29 12:46:20 -10:00: 🔌 Client disconnected: Ye9zFSuXjfsaqkGOAAAX, reason: ping timeout
+2025-08-29 12:47:44 -10:00: 🔌 Client connected: mz8WrSv4QEDLjWT3AAAZ
+2025-08-29 12:47:44 -10:00: 📊 Client mz8WrSv4QEDLjWT3AAAZ joined poll room: poll_cDMSe31c
+2025-08-29 12:47:45 -10:00: 🔌 Client disconnected: mz8WrSv4QEDLjWT3AAAZ, reason: transport close
+2025-08-29 13:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 13:06:28 -10:00: 🔌 Client connected: A2VpcHNlR0629p70AAAd
+2025-08-29 13:06:28 -10:00: 📊 Client A2VpcHNlR0629p70AAAd joined poll room: poll_cDMSe31c
+2025-08-29 13:16:57 -10:00: 🔌 Client disconnected: A2VpcHNlR0629p70AAAd, reason: transport close
+2025-08-29 13:33:12 -10:00: 🔌 Client connected: XfqE2mPJTcHzg7KDAAAf
+2025-08-29 13:33:13 -10:00: 📊 Client XfqE2mPJTcHzg7KDAAAf joined poll room: poll_cDMSe31c
+2025-08-29 13:33:55 -10:00: 🔌 Client disconnected: XfqE2mPJTcHzg7KDAAAf, reason: transport close
+2025-08-29 13:41:26 -10:00: 🔌 Client connected: ucNTODNAUcuOayaVAAAh
+2025-08-29 13:41:26 -10:00: 📊 Client ucNTODNAUcuOayaVAAAh joined poll room: poll_cDMSe31c
+2025-08-29 13:50:22 -10:00: 🔌 Client disconnected: ucNTODNAUcuOayaVAAAh, reason: transport close
+2025-08-29 13:55:09 -10:00: 🔌 Client connected: 62JTCMXhJZK_85gSAAAj
+2025-08-29 13:55:09 -10:00: 📊 Client 62JTCMXhJZK_85gSAAAj joined poll room: poll_cDMSe31c
+2025-08-29 14:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 14:04:14 -10:00: 🔌 Client disconnected: 62JTCMXhJZK_85gSAAAj, reason: transport close
+2025-08-29 14:05:26 -10:00: 🔌 Client connected: nUNxcIxHnMy9lHXTAAAl
+2025-08-29 14:05:26 -10:00: 📊 Client nUNxcIxHnMy9lHXTAAAl joined poll room: poll_cDMSe31c
+2025-08-29 14:14:26 -10:00: 🔌 Client disconnected: nUNxcIxHnMy9lHXTAAAl, reason: transport close
+2025-08-29 14:18:22 -10:00: 🔌 Client connected: DNTDazu9wxPx4BFBAAAn
+2025-08-29 14:18:22 -10:00: 📊 Client DNTDazu9wxPx4BFBAAAn joined poll room: poll_cDMSe31c
+2025-08-29 14:19:26 -10:00: 🔌 Client disconnected: DNTDazu9wxPx4BFBAAAn, reason: transport close
+2025-08-29 14:20:57 -10:00: 🔌 Client connected: F2WdWi5ZFTpeK1UpAAAp
+2025-08-29 14:20:57 -10:00: 📊 Client F2WdWi5ZFTpeK1UpAAAp joined poll room: poll_cDMSe31c
+2025-08-29 14:32:26 -10:00: 🔌 Client disconnected: F2WdWi5ZFTpeK1UpAAAp, reason: transport close
+2025-08-29 14:35:10 -10:00: 🔌 Client connected: a56ZeXcODWgCHxSGAAAr
+2025-08-29 14:35:11 -10:00: 📊 Client a56ZeXcODWgCHxSGAAAr joined poll room: poll_cDMSe31c
+2025-08-29 14:44:15 -10:00: 🔌 Client disconnected: a56ZeXcODWgCHxSGAAAr, reason: transport close
+2025-08-29 14:47:16 -10:00: 🔌 Client connected: CYSFH0FB5rR1iW2jAAAt
+2025-08-29 14:47:16 -10:00: 📊 Client CYSFH0FB5rR1iW2jAAAt joined poll room: poll_cDMSe31c
+2025-08-29 14:56:21 -10:00: 🔌 Client disconnected: CYSFH0FB5rR1iW2jAAAt, reason: transport close
+2025-08-29 14:57:34 -10:00: 🔌 Client connected: G3LgDmX7GLwRDTb7AAAv
+2025-08-29 14:57:34 -10:00: 📊 Client G3LgDmX7GLwRDTb7AAAv joined poll room: poll_cDMSe31c
+2025-08-29 15:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 15:06:27 -10:00: 🔌 Client disconnected: G3LgDmX7GLwRDTb7AAAv, reason: transport close
+2025-08-29 15:14:52 -10:00: 🔌 Client connected: m7ccRfk7bIJnW_NQAAAx
+2025-08-29 15:14:52 -10:00: 📊 Client m7ccRfk7bIJnW_NQAAAx joined poll room: poll_cDMSe31c
+2025-08-29 15:18:57 -10:00: 🔌 Client disconnected: m7ccRfk7bIJnW_NQAAAx, reason: transport close
+2025-08-29 15:35:22 -10:00: 🔌 Client connected: EYH59jmmxLb7pkc2AAAz
+2025-08-29 15:35:22 -10:00: 📊 Client EYH59jmmxLb7pkc2AAAz joined poll room: poll_cDMSe31c
+2025-08-29 15:36:06 -10:00: 🔌 Client disconnected: EYH59jmmxLb7pkc2AAAz, reason: transport close
+2025-08-29 16:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 17:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 17:40:32 -10:00: 🔌 Client connected: LWcd4TD9piu18WrPAAA1
+2025-08-29 17:40:32 -10:00: 📊 Client LWcd4TD9piu18WrPAAA1 joined poll room: poll_cDMSe31c
+2025-08-29 17:41:17 -10:00: 🔌 Client disconnected: LWcd4TD9piu18WrPAAA1, reason: transport close
+2025-08-29 18:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 18:33:02 -10:00: 🔌 Client connected: d2e0wDJJKFeO-oFIAAA3
+2025-08-29 18:33:02 -10:00: 📊 Client d2e0wDJJKFeO-oFIAAA3 joined poll room: poll_cDMSe31c
+2025-08-29 18:33:46 -10:00: 🔌 Client disconnected: d2e0wDJJKFeO-oFIAAA3, reason: transport close
+2025-08-29 19:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 19:21:29 -10:00: 🔌 Client connected: WZARXkWErtTcujHUAAA5
+2025-08-29 19:21:29 -10:00: 📊 Client WZARXkWErtTcujHUAAA5 joined poll room: poll_cDMSe31c
+2025-08-29 19:22:01 -10:00: 🔌 Client disconnected: WZARXkWErtTcujHUAAA5, reason: transport close
+2025-08-29 20:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 20:22:24 -10:00: 🔌 Client connected: JYjwhjMwX-3i2hmWAAA7
+2025-08-29 20:22:24 -10:00: 📊 Client JYjwhjMwX-3i2hmWAAA7 joined poll room: poll_cDMSe31c
+2025-08-29 20:23:01 -10:00: 🔌 Client disconnected: JYjwhjMwX-3i2hmWAAA7, reason: transport close
+2025-08-29 20:59:31 -10:00: 🔌 Client connected: LW-UtYJogEXW1VfqAAA9
+2025-08-29 20:59:31 -10:00: 📊 Client LW-UtYJogEXW1VfqAAA9 joined poll room: poll_cDMSe31c
+2025-08-29 21:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 21:25:58 -10:00: 🔌 Client disconnected: LW-UtYJogEXW1VfqAAA9, reason: client namespace disconnect
+2025-08-29 22:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-29 22:42:36 -10:00: 🔌 Client connected: 2BLPFUbcnDfXe3KRAAA_
+2025-08-29 22:42:36 -10:00: 📊 Client 2BLPFUbcnDfXe3KRAAA_ joined poll room: poll_cDMSe31c
+2025-08-29 22:43:21 -10:00: 🔌 Client disconnected: 2BLPFUbcnDfXe3KRAAA_, reason: ping timeout
+2025-08-29 23:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 00:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 01:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 02:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 03:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 04:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 05:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 06:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 07:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 08:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 09:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 10:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 11:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 1
+2025-08-30 12:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 13:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 14:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 15:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 15:41:51 -10:00: 🔌 Client connected: EMfupI_7M-8wJ-DJAABB
+2025-08-30 15:41:56 -10:00: 🔌 Client disconnected: EMfupI_7M-8wJ-DJAABB, reason: transport close
+2025-08-30 16:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 17:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 18:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 19:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 20:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 21:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 22:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-30 23:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 00:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 01:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 02:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 03:00:21 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 04:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 05:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 06:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 07:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 08:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 09:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 10:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 11:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 12:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 13:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 14:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 15:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 16:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 17:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 18:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 19:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 20:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 21:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 22:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-08-31 23:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 00:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 01:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 02:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 03:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 04:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 05:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 06:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 07:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 08:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 09:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 10:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 11:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 12:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 13:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 14:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 15:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 15:37:26 -10:00: 🔌 Client connected: C9mvFbAkzrvSanCmAABD
+2025-09-01 15:37:26 -10:00: 🔌 Client disconnected: C9mvFbAkzrvSanCmAABD, reason: transport close
+2025-09-01 16:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 17:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 18:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 19:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 20:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 21:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 22:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-01 23:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 00:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 01:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 02:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 03:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 04:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 05:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 06:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 07:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 08:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 09:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 10:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 11:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 12:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 13:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 14:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 15:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 16:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 17:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 18:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 19:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 20:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 21:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 22:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-02 23:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 00:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 01:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 02:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 03:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 04:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 05:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 06:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 07:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 08:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 09:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 10:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 11:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 12:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 13:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 14:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 15:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 16:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 17:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 18:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 19:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 20:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 21:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 22:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-03 23:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 00:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 01:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 02:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 03:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 04:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 05:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 06:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 07:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 08:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 09:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 10:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 11:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 12:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 13:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 14:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 15:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 16:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 17:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 18:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 18:29:31 -10:00: 🔌 Client connected: poO7Qlu7DuxzKCnBAABF
+2025-09-04 18:29:34 -10:00: 🔌 Client disconnected: poO7Qlu7DuxzKCnBAABF, reason: transport close
+2025-09-04 19:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 20:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 21:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 22:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-04 23:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 00:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 01:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 02:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 03:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 04:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 05:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 06:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 07:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 08:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 09:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 10:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 11:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 12:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 13:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 14:00:20 -10:00: 🧹 Cleanup completed. Active polls: 2, Sessions: 0
+2025-09-05 14:46:53 -10:00: 🔌 Client connected: CizygqwFph6HIpiMAABH
+2025-09-05 14:49:06 -10:00: 🔌 Client connected: t5_MOD3sUfs2X400AABJ
+2025-09-05 14:49:28 -10:00: 🔌 Client connected: N7BUl-_jafQad5QjAABL
+2025-09-05 14:49:28 -10:00: 📊 Client N7BUl-_jafQad5QjAABL joined poll room: poll_4UhkLeX8
+2025-09-05 14:49:32 -10:00: 🔌 Client connected: lWtQnlVeUkF3-beKAABN
+2025-09-05 14:49:32 -10:00: 📊 Client lWtQnlVeUkF3-beKAABN joined poll room: poll_4UhkLeX8
+2025-09-05 14:49:34 -10:00: 🔌 Client disconnected: t5_MOD3sUfs2X400AABJ, reason: transport close
+2025-09-05 14:49:34 -10:00: 🔌 Client connected: M2bPeDUY22BYi-vXAABP
+2025-09-05 14:49:34 -10:00: 📊 Client M2bPeDUY22BYi-vXAABP joined poll room: poll_4UhkLeX8
+2025-09-05 14:49:39 -10:00: 🔌 Client connected: 9xZ3zSJ9WlAJgBeXAABR
+2025-09-05 14:49:39 -10:00: 📊 Client 9xZ3zSJ9WlAJgBeXAABR joined poll room: poll_4UhkLeX8
+2025-09-05 14:49:41 -10:00: 📡 Emitting voteSubmitted to room: poll_4UhkLeX8
+2025-09-05 14:49:41 -10:00: 📡 Emitting resultsUpdated to room: poll_4UhkLeX8
+2025-09-05 14:49:43 -10:00: 🔌 Client disconnected: N7BUl-_jafQad5QjAABL, reason: transport close
+2025-09-05 14:49:43 -10:00: 🔌 Client connected: s6a1KLCTqYhKKS2PAABT
+2025-09-05 14:49:43 -10:00: 📊 Client s6a1KLCTqYhKKS2PAABT joined poll room: poll_4UhkLeX8
+2025-09-05 14:49:51 -10:00: 📡 Emitting voteSubmitted to room: poll_4UhkLeX8
+2025-09-05 14:49:51 -10:00: 📡 Emitting resultsUpdated to room: poll_4UhkLeX8
+2025-09-05 14:49:53 -10:00: 🔌 Client disconnected: M2bPeDUY22BYi-vXAABP, reason: client namespace disconnect
+2025-09-05 14:49:53 -10:00: 🔌 Client connected: xPUTHA5bVI7RhYC5AABV
+2025-09-05 14:49:53 -10:00: 📊 Client xPUTHA5bVI7RhYC5AABV joined poll room: poll_4UhkLeX8
+2025-09-05 14:49:58 -10:00: 🔌 Client disconnected: s6a1KLCTqYhKKS2PAABT, reason: transport close
+2025-09-05 14:50:20 -10:00: 📡 Emitting voteSubmitted to room: poll_4UhkLeX8
+2025-09-05 14:50:20 -10:00: 📡 Emitting resultsUpdated to room: poll_4UhkLeX8
+2025-09-05 14:50:21 -10:00: 🔌 Client disconnected: lWtQnlVeUkF3-beKAABN, reason: client namespace disconnect
+2025-09-05 14:50:22 -10:00: 🔌 Client connected: cgJKRqqNX3cSQcUSAABX
+2025-09-05 14:50:22 -10:00: 📊 Client cgJKRqqNX3cSQcUSAABX joined poll room: poll_4UhkLeX8
+2025-09-05 14:50:55 -10:00: 🔌 Client disconnected: xPUTHA5bVI7RhYC5AABV, reason: client namespace disconnect
+2025-09-05 14:50:55 -10:00: 🔌 Client connected: stw_CBINHazIQMMSAABZ
+2025-09-05 14:50:55 -10:00: 📊 Client stw_CBINHazIQMMSAABZ joined poll room: poll_4UhkLeX8
+2025-09-05 14:52:10 -10:00: 🔌 Client disconnected: stw_CBINHazIQMMSAABZ, reason: client namespace disconnect
+2025-09-05 14:52:10 -10:00: 🔌 Client connected: AXCKxxefsTabAzo4AABb
+2025-09-05 14:52:10 -10:00: 📊 Client AXCKxxefsTabAzo4AABb joined poll room: poll_4UhkLeX8
+2025-09-05 14:52:13 -10:00: 🔌 Client disconnected: AXCKxxefsTabAzo4AABb, reason: client namespace disconnect
+2025-09-05 14:52:14 -10:00: 🔌 Client connected: QU0hbGsdmsXgC6xEAABd
+2025-09-05 14:52:14 -10:00: 📊 Client QU0hbGsdmsXgC6xEAABd joined poll room: poll_4UhkLeX8
+2025-09-05 14:52:17 -10:00: 🔌 Client disconnected: QU0hbGsdmsXgC6xEAABd, reason: client namespace disconnect
+2025-09-05 14:52:17 -10:00: 🔌 Client connected: G2SMhnamaDRpQsqnAABf
+2025-09-05 14:52:17 -10:00: 📊 Client G2SMhnamaDRpQsqnAABf joined poll room: poll_4UhkLeX8
+2025-09-05 14:52:52 -10:00: 🔌 Client disconnected: 9xZ3zSJ9WlAJgBeXAABR, reason: client namespace disconnect
+2025-09-05 14:52:58 -10:00: 🔌 Client disconnected: CizygqwFph6HIpiMAABH, reason: client namespace disconnect
+2025-09-05 14:53:25 -10:00: 🔌 Client disconnected: cgJKRqqNX3cSQcUSAABX, reason: transport close
+2025-09-05 14:55:00 -10:00: 🔌 Client disconnected: G2SMhnamaDRpQsqnAABf, reason: transport close
+2025-09-05 15:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 15:04:27 -10:00: 🔌 Client connected: s31T8V37lH5JlDYpAABh
+2025-09-05 15:04:27 -10:00: 📊 Client s31T8V37lH5JlDYpAABh joined poll room: poll_4UhkLeX8
+2025-09-05 15:04:29 -10:00: 🔌 Client disconnected: s31T8V37lH5JlDYpAABh, reason: transport close
+2025-09-05 15:07:07 -10:00: 🔌 Client connected: 0psyTNYLt_P94u-QAABk
+2025-09-05 15:07:07 -10:00: 📊 Client 0psyTNYLt_P94u-QAABk joined poll room: poll_4UhkLeX8
+2025-09-05 15:07:09 -10:00: 🔌 Client disconnected: 0psyTNYLt_P94u-QAABk, reason: transport close
+2025-09-05 15:08:02 -10:00: 🔌 Client connected: bCMHWhFzT6xfWsCjAABo
+2025-09-05 15:08:03 -10:00: 📊 Client bCMHWhFzT6xfWsCjAABo joined poll room: poll_4UhkLeX8
+2025-09-05 15:08:07 -10:00: 🔌 Client disconnected: bCMHWhFzT6xfWsCjAABo, reason: transport close
+2025-09-05 15:08:22 -10:00: 🔌 Client connected: JdJQWt05s0HI1bbWAABq
+2025-09-05 15:08:22 -10:00: 📊 Client JdJQWt05s0HI1bbWAABq joined poll room: poll_4UhkLeX8
+2025-09-05 15:10:00 -10:00: 🔌 Client disconnected: JdJQWt05s0HI1bbWAABq, reason: transport close
+2025-09-05 15:12:38 -10:00: 🔌 Client connected: CRYnMz2L_so1_qyNAABs
+2025-09-05 15:12:38 -10:00: 📊 Client CRYnMz2L_so1_qyNAABs joined poll room: poll_4UhkLeX8
+2025-09-05 15:12:39 -10:00: 🔌 Client disconnected: CRYnMz2L_so1_qyNAABs, reason: transport close
+2025-09-05 15:14:08 -10:00: 🔌 Client connected: KlywaSUOUELBr45tAABx
+2025-09-05 15:14:09 -10:00: 📊 Client KlywaSUOUELBr45tAABx joined poll room: poll_4UhkLeX8
+2025-09-05 15:14:10 -10:00: 🔌 Client disconnected: KlywaSUOUELBr45tAABx, reason: transport close
+2025-09-05 15:36:47 -10:00: 🔌 Client connected: MSIAZqDuV7VdhzRsAAB0
+2025-09-05 15:36:47 -10:00: 📊 Client MSIAZqDuV7VdhzRsAAB0 joined poll room: poll_4UhkLeX8
+2025-09-05 15:36:49 -10:00: 🔌 Client disconnected: MSIAZqDuV7VdhzRsAAB0, reason: transport close
+2025-09-05 15:53:17 -10:00: 🔌 Client connected: oCSMjijqy8XNT7ItAAB3
+2025-09-05 15:53:17 -10:00: 📊 Client oCSMjijqy8XNT7ItAAB3 joined poll room: poll_4UhkLeX8
+2025-09-05 15:54:55 -10:00: 🔌 Client disconnected: oCSMjijqy8XNT7ItAAB3, reason: transport close
+2025-09-05 15:56:26 -10:00: 🔌 Client connected: O30FepcHimtOTZcoAAB7
+2025-09-05 15:56:26 -10:00: 📊 Client O30FepcHimtOTZcoAAB7 joined poll room: poll_4UhkLeX8
+2025-09-05 15:56:58 -10:00: 🔌 Client disconnected: O30FepcHimtOTZcoAAB7, reason: transport close
+2025-09-05 16:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 17:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 18:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 18:12:15 -10:00: 🔌 Client connected: D9ZGfde8JSGrPTXnAAB9
+2025-09-05 18:12:15 -10:00: 📊 Client D9ZGfde8JSGrPTXnAAB9 joined poll room: poll_4UhkLeX8
+2025-09-05 18:30:13 -10:00: 🔌 Client connected: nLw6KIG4_SYwI6iMAAB_
+2025-09-05 18:30:18 -10:00: 🔌 Client disconnected: nLw6KIG4_SYwI6iMAAB_, reason: transport close
+2025-09-05 19:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 20:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 20:00:34 -10:00: 🔌 Client disconnected: D9ZGfde8JSGrPTXnAAB9, reason: ping timeout
+2025-09-05 21:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 21:06:33 -10:00: 🔌 Client connected: T6haCOkEcabU4ltfAACB
+2025-09-05 21:06:33 -10:00: 📊 Client T6haCOkEcabU4ltfAACB joined poll room: poll_4UhkLeX8
+2025-09-05 21:11:28 -10:00: 🔌 Client disconnected: T6haCOkEcabU4ltfAACB, reason: ping timeout
+2025-09-05 21:22:48 -10:00: 🔌 Client connected: rpU4kpVRRfWgKjeeAACD
+2025-09-05 21:22:48 -10:00: 📊 Client rpU4kpVRRfWgKjeeAACD joined poll room: poll_4UhkLeX8
+2025-09-05 22:00:20 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-05 23:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 00:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 01:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 01:03:47 -10:00: 🔌 Client disconnected: rpU4kpVRRfWgKjeeAACD, reason: transport close
+2025-09-06 02:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 03:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 04:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 05:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 06:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 07:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 08:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 09:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 10:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 11:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 12:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 13:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 14:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 1
+2025-09-06 15:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 16:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 17:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 18:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 19:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 20:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 21:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 22:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-06 23:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 00:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 01:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 02:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 03:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 04:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 05:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 06:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 07:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 08:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 09:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 10:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 11:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 12:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 13:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 14:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 15:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 16:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 17:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 18:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 19:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 20:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 21:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 22:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-07 23:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 00:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 01:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 02:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 03:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 03:03:22 -10:00: 🔌 Client connected: RcU12k8tQK3_tNzIAACF
+2025-09-08 03:03:27 -10:00: 🔌 Client disconnected: RcU12k8tQK3_tNzIAACF, reason: transport close
+2025-09-08 04:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 05:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 06:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 07:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 08:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 09:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 10:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 11:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 12:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 13:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 14:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 15:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 16:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 17:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 18:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 19:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 20:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 21:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 22:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-08 23:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 00:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 01:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 02:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 03:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 04:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 05:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 06:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 07:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 08:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 09:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 10:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 11:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 12:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 13:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 14:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 14:50:00 -10:00: 🔌 Client connected: xnwkgf7V8tUzgp4UAACH
+2025-09-09 14:50:00 -10:00: 📊 Client xnwkgf7V8tUzgp4UAACH joined poll room: poll_4UhkLeX8
+2025-09-09 15:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 16:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 17:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 18:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 18:57:00 -10:00: 🔌 Client disconnected: xnwkgf7V8tUzgp4UAACH, reason: transport close
+2025-09-09 19:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 20:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 21:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 22:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-09 23:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 00:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 01:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 02:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 03:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 04:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 05:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 06:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 07:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 08:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 09:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 10:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 11:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-10 12:00:19 -10:00: 🧹 Cleanup completed. Active polls: 3, Sessions: 0
+2025-09-11 09:26:36 -10:00: 🧠 In-memory storage initialized
+2025-09-11 09:26:36 -10:00: Warning: connect.session() MemoryStore is not
+2025-09-11 09:26:36 -10:00: designed for a production environment, as it will leak
+2025-09-11 09:26:36 -10:00: memory, and will not scale past a single process.
+2025-09-11 09:26:36 -10:00: ✅ Socket.IO configured with real-time poll updates
+2025-09-11 09:26:36 -10:00:  Frontend served at: http://128.171.195.8:3001
+2025-09-11 09:26:36 -10:00:  Local access: http://localhost:3001
+2025-09-11 09:27:47 -10:00: 🧠 In-memory storage initialized
+2025-09-11 09:27:47 -10:00: Warning: connect.session() MemoryStore is not
+2025-09-11 09:27:47 -10:00: designed for a production environment, as it will leak
+2025-09-11 09:27:47 -10:00: memory, and will not scale past a single process.
+2025-09-11 09:27:47 -10:00: ✅ Socket.IO configured with real-time poll updates
+2025-09-11 09:27:47 -10:00:  Frontend served at: http://128.171.195.8:3001
+2025-09-11 09:27:47 -10:00:  Local access: http://localhost:3001

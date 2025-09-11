@@ -1,0 +1,31 @@
+{
+  "apps": [{
+    "name": "quickpoll-server",
+    "script": "server/server.js",
+    "cwd": "C:/Users/Dan Port/Documents/GitHub/quickPoll",
+    "instances": 1,
+    "exec_mode": "fork",
+    "watch": false,
+    "max_memory_restart": "500M",
+    "env": {
+      "NODE_ENV": "production",
+      "PORT": "3001"
+    },
+    "env_development": {
+      "NODE_ENV": "development",
+      "PORT": "3001"
+    },
+    "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+    "error_file": "./logs/quickpoll-error.log",
+    "out_file": "./logs/quickpoll-out.log",
+    "log_file": "./logs/quickpoll-combined.log",
+    "merge_logs": true,
+    "restart_delay": 4000,
+    "max_restarts": 10,
+    "min_uptime": "10s",
+    "kill_timeout": 5000,
+    "wait_ready": true,
+    "listen_timeout": 8000,
+    "autorestart": true
+  }]
+}
