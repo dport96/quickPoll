@@ -242,8 +242,11 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
-            console.error( error);
-            alert('Failed to load poll data. Please try again.');
+            console.error('Error in loadPollById:', error);
+            console.error('API URL:', this.apiUrl);
+            console.error('Poll ID:', pollId);
+            console.error('Target Page:', targetPage);
+            alert(`Failed to load poll data: ${error.message}. Please try again.`);
             this.currentPage = 'landing';
             this.showPage('landing');
         }

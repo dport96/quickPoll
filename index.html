@@ -20,8 +20,6 @@
                         <span id="user-email"></span>
                         <button id="sign-out-btn" class="btn btn-small btn-secondary">Sign Out</button>
                     </div>
-                    <button id="create-poll-btn" class="btn btn-primary">Create Poll</button>
-                    <button id="view-results-btn" class="btn btn-secondary">View Results</button>
                 </nav>
             </div>
         </header>
@@ -102,11 +100,11 @@
                             <label for="require-auth">Authentication Settings</label>
                             <div class="auth-options">
                                 <label class="radio-option">
-                                    <input type="radio" name="auth-mode" value="anonymous" checked>
+                                    <input type="radio" name="auth-mode" value="anonymous">
                                     <span>Anonymous Voting (One vote per device/session)</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="auth-mode" value="email">
+                                    <input type="radio" name="auth-mode" value="email" checked>
                                     <span>📧 Email Authentication (One vote per email address)</span>
                                 </label>
                             </div>

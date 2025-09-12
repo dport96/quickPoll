@@ -103,7 +103,7 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
       description,
       type,
       options,
-      requireAuth = false,
+      requireAuth = true,
       validEmails = [],
       expiresAt,
       createdBy,

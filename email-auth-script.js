@@ -22,11 +22,9 @@ class QuickPollEmailApp {
 
     bindEvents() {
         // Navigation events
-        document.getElementById('create-poll-btn').addEventListener('click', () => this.showCreatePage());
         document.getElementById('create-ranking-btn').addEventListener('click', () => this.showCreatePage('ranking'));
         document.getElementById('create-rating-btn').addEventListener('click', () => this.showCreatePage('rating'));
         document.getElementById('create-poll-btn-hero').addEventListener('click', () => this.showCreatePage('simple'));
-        document.getElementById('view-results-btn').addEventListener('click', () => this.showResultsPage());
         document.getElementById('back-to-home').addEventListener('click', () => this.showPage('landing'));
 
         // Auth events
@@ -64,19 +62,6 @@ class QuickPollEmailApp {
                 this.switchToCustomTemplate();
             }
         });
-
-        // Email list change event - save to localStorage when modified
-        const validEmailsTextarea = document.getElementById('validEmails');
-        if (validEmailsTextarea) {
-            validEmailsTextarea.addEventListener('input', (e) => {
-                const emailList = e.target.value.trim();
-                if (emailList) {
-                    localStorage.setItem('savedEmailList', emailList);
-                } else {
-                    localStorage.removeItem('savedEmailList');
-                }
-            });
-        }
 
         // Poll created page events
         const copyVotingLinkBtn = document.getElementById('copy-voting-link');
@@ -127,14 +112,13 @@ class QuickPollEmailApp {
         const authRequirementNote = document.getElementById('auth-requirement-note');
         const authSignedInNote = document.getElementById('auth-signed-in-note');
         const authNotSignedInNote = document.getElementById('auth-not-signed-in-note');
-        
+
         if (e.target.value === 'email') {
             authInfo.style.display = 'block';
             validEmailsContainer.style.display = 'block';
             if (authRequirementNote) {
                 authRequirementNote.style.display = 'block';
-                
-                // Show appropriate message based on sign-in status
+                // Show sign-in status notes as before
                 if (this.currentUser) {
                     authSignedInNote.style.display = 'block';
                     authNotSignedInNote.style.display = 'none';
@@ -277,6 +261,18 @@ class QuickPollEmailApp {
         if (type) {
             document.getElementById('poll-type').value = type;
             this.handlePollTypeChange({ target: { value: type } });
+        }
+        
+        // Load saved email list for this user
+        this.loadSavedEmailList();
+        
+        // Set up email list change event listener with current user context
+        this.setupEmailListEventListener();
+        
+        // Initialize the auth mode UI state since Email Authentication is now default
+        const emailAuthRadio = document.querySelector('input[name="auth-mode"][value="email"]');
+        if (emailAuthRadio && emailAuthRadio.checked) {
+            this.handleAuthModeChange({ target: emailAuthRadio });
         }
     }
 
@@ -727,9 +723,9 @@ class QuickPollEmailApp {
             return;
         }
         
-        // Check if email is in valid list (if restrictions apply)
-        if (this.pollData && this.pollData.requireAuth && this.pollData.validEmails.length > 0 && 
-            !this.pollData.validEmails.includes(email)) {
+        // Check if email is in valid list (only when voting in a restricted poll)
+        if (this.currentPage === 'vote' && this.pollData && this.pollData.requireAuth && 
+            this.pollData.validEmails.length > 0 && !this.pollData.validEmails.includes(email)) {
             alert('Your email address is not authorized to vote in this poll.');
             this._submitting = false; // Reset flag
             return;
@@ -1411,6 +1407,14 @@ class QuickPollEmailApp {
         if (this.currentUser) {
             userEmail.textContent = this.currentUser.name || this.currentUser.email;
             userInfo.style.display = 'flex';
+            
+            // Re-attach sign out button event listener to ensure it works
+            const signOutBtn = document.getElementById('sign-out-btn');
+            if (signOutBtn) {
+                // Remove existing listener and add fresh one
+                signOutBtn.replaceWith(signOutBtn.cloneNode(true));
+                document.getElementById('sign-out-btn').addEventListener('click', () => this.signOut());
+            }
         } else {
             userInfo.style.display = 'none';
         }
@@ -1444,18 +1448,56 @@ class QuickPollEmailApp {
         // Update UI
         this.updateUserInterface();
         
+        // Always redirect to landing page after sign out
+        this.showPage('landing');
+        
         // If on a voting page that requires auth, redirect to show auth modal
         if (this.currentPage === 'vote' && this.pollData && this.pollData.requireAuth) {
             this.renderVotePage();
         }
     }
 
-    loadSavedEmailList() {
-        const validEmailsTextarea = document.getElementById('validEmails');
+    getSavedEmailListKey() {
+        // Return user-specific localStorage key for saved email list
+        if (this.currentUser && this.currentUser.email) {
+            return `savedEmailList_${this.currentUser.email}`;
+        }
+        return null;
+    }
+
+    setupEmailListEventListener() {
+        const validEmailsTextarea = document.getElementById('valid-emails');
         if (validEmailsTextarea) {
-            const savedEmailList = localStorage.getItem('savedEmailList');
-            if (savedEmailList) {
-                validEmailsTextarea.value = savedEmailList;
+            // Remove existing listener if any (to avoid duplicates)
+            validEmailsTextarea.removeEventListener('input', this.emailListInputHandler);
+            
+            // Create a bound handler function that we can remove later
+            this.emailListInputHandler = (e) => {
+                const emailList = e.target.value.trim();
+                const storageKey = this.getSavedEmailListKey();
+                if (emailList && storageKey) {
+                    localStorage.setItem(storageKey, emailList);
+                } else if (storageKey) {
+                    localStorage.removeItem(storageKey);
+                }
+            };
+            
+            // Add the new listener
+            validEmailsTextarea.addEventListener('input', this.emailListInputHandler);
+        }
+    }
+
+    loadSavedEmailList() {
+        const validEmailsTextarea = document.getElementById('valid-emails');
+        if (validEmailsTextarea) {
+            const storageKey = this.getSavedEmailListKey();
+            if (storageKey) {
+                const savedEmailList = localStorage.getItem(storageKey);
+                if (savedEmailList) {
+                    validEmailsTextarea.value = savedEmailList;
+                } else {
+                    validEmailsTextarea.value = ''; // Clear if no saved data for this user
+                }
             }
         }
     }
