@@ -1,12 +1,10 @@
 const express = require('express');
-const { body, param, validationResult } = require('express-validator');
-const { nanoid } = require('nanoid');
+const { body, validationResult } = require('express-validator');
 
 const router = express.Router();
 
 // Validation middleware
 const validateVote = [
-  body('pollId').matches(/^[A-Za-z0-9_-]{6,12}$/).withMessage('Invalid poll ID'),
   body('voteData').isObject().withMessage('Vote data must be an object'),
   body('voterIdentifier').optional().isString().withMessage('Voter identifier must be a string'),
 ];
@@ -25,8 +23,13 @@ const handleValidationErrors = (req, res, next) => {
 // POST /api/votes - Submit a vote
 router.post('/', validateVote, handleValidationErrors, async (req, res) => {
   try {
+    console.log('📊 Vote submission attempt:', { 
+      voteData: req.body.voteData, 
+      voterIdentifier: req.body.voterIdentifier || 'anonymous',
+      hasVoterInfo: !!req.body.voterInfo 
+    });
+
     const {
-      pollId,
       voteData,
       voterIdentifier,
       voterInfo = {}
@@ -37,10 +40,10 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
     const ipAddress = req.ip || req.connection.remoteAddress;
     const userAgent = req.get('User-Agent') || '';
 
-    // Check if poll exists and is active
-    const poll = await memoryStore.getPoll(pollId);
-    if (!poll || !poll.isActive) {
-      return res.status(404).json({ error: 'Poll not found or inactive' });
+    // Check if there's an active poll
+    const poll = await memoryStore.getCurrentPoll();
+    if (!poll) {
+      return res.status(404).json({ error: 'No active poll found' });
     }
 
     // Check if poll has expired
@@ -59,9 +62,30 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
       return res.status(400).json({ error: validationResult.error });
     }
 
+    // Check email authentication if required
+    if (poll.requireAuth) {
+      if (!voterIdentifier) {
+        return res.status(401).json({ 
+          error: 'Email authentication required',
+          message: 'Please sign in with your email to vote in this poll'
+        });
+      }
+
+      // Check if email is in the valid emails list
+      if (poll.validEmails && poll.validEmails.length > 0) {
+        const isValidEmail = poll.validEmails.includes(voterIdentifier);
+        if (!isValidEmail) {
+          return res.status(403).json({ 
+            error: 'Email not authorized',
+            message: 'Your email address is not authorized to vote in this poll'
+          });
+        }
+      }
+    }
+
     // Check for duplicate votes (by session, IP, or email)
     const identifier = voterIdentifier || sessionId || ipAddress;
-    const existingVote = await memoryStore.hasVoted(pollId, identifier);
+    const existingVote = await memoryStore.hasVoted(identifier);
 
     if (existingVote) {
       return res.status(409).json({
@@ -74,24 +98,21 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
     }
 
     // Submit the vote
-    const vote = await memoryStore.submitVote({
-      pollId,
-      voteData,
+    const vote = await memoryStore.submitVote(voteData, {
+      ...voterInfo,
       voterIdentifier: voterIdentifier || '',
-      voterInfo,
       ipAddress,
       userAgent,
       sessionId
     });
 
     // Get updated vote counts
-    const allVotes = await memoryStore.getVotesForPoll(pollId);
+    const allVotes = await memoryStore.getVotesForPoll();
     const totalVotes = allVotes.length;
 
-    // Emit real-time update to all clients watching this poll
-    console.log(`📡 Emitting voteSubmitted to room: poll_${pollId}`);
-    req.io.to(`poll_${pollId}`).emit('voteSubmitted', {
-      pollId,
+    // Emit real-time update to all clients
+    console.log(`📡 Emitting voteSubmitted to all clients`);
+    req.io.emit('voteSubmitted', {
       voteId: vote.id,
       totalVotes,
       timestamp: vote.createdAt
@@ -99,11 +120,9 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
 
     // Calculate and emit updated results
     const results = calculateResults(allVotes, poll);
-    console.log(`📡 Emitting resultsUpdated to room: poll_${pollId}`);
-    req.io.to(`poll_${pollId}`).emit('resultsUpdated', {
-      pollId,
+    console.log(`📡 Emitting resultsUpdated to all clients`);
+    req.io.emit('resultsUpdated', {
       poll: {
-        id: poll.id,
         title: poll.title,
         description: poll.description,
         type: poll.type,
@@ -121,11 +140,9 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
       success: true,
       vote: {
         id: vote.id,
-        pollId: vote.pollId,
         submittedAt: vote.createdAt
       },
       poll: {
-        id: poll.id,
         title: poll.title,
         totalVotes
       }

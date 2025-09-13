@@ -1,279 +1,216 @@
-/**
- * In-Memory Data Store for QuickPoll
- * Provides session-based storage for polls and votes
- */
-
-const { nanoid } = require('nanoid');
-
+// In-memory storage for single poll system
 class MemoryStore {
   constructor() {
-    this.polls = new Map();
+    this.currentPoll = null;
     this.votes = new Map();
     this.sessions = new Map();
-    this.pollsBySession = new Map(); // Maps session -> poll IDs
-    
-    console.log('🧠 In-memory storage initialized');
   }
 
-  // Poll Management
+  // Get the current active poll
+  async getCurrentPoll() {
+    return this.currentPoll;
+  }
+
+  // Create a new poll (replaces any existing poll)
   async createPoll(pollData) {
-    const pollId = nanoid(8); // Generate 8-character short ID
-    const now = new Date();
+    // Clear existing data when creating new poll
+    this.currentPoll = null;
+    this.votes.clear();
     
+    // Create new poll with ID and timestamps
     const poll = {
-      id: pollId,
-      title: pollData.title,
-      description: pollData.description || '',
-      type: pollData.type,
-      options: pollData.options,
-      requireAuth: pollData.requireAuth || false,
-      validEmails: pollData.validEmails || [],
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-      expiresAt: pollData.expiresAt || null,
-      sessionId: pollData.sessionId || null,
-      createdBy: pollData.createdBy || 'anonymous',
-      creatorName: pollData.creatorName || pollData.createdBy || 'Anonymous',
-      creatorInfo: {
-        ipAddress: pollData.creatorInfo?.ipAddress || '',
-        userAgent: pollData.creatorInfo?.userAgent || '',
-        createdBy: pollData.createdBy || 'anonymous'
-      }
+      id: this.generateId(),
+      ...pollData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isClosed: false,
+      closedAt: null
     };
-
-    this.polls.set(pollId, poll);
     
-    // Track polls by session
-    if (poll.sessionId) {
-      if (!this.pollsBySession.has(poll.sessionId)) {
-        this.pollsBySession.set(poll.sessionId, new Set());
-      }
-      this.pollsBySession.get(poll.sessionId).add(pollId);
-    }
-
+    this.currentPoll = poll;
     return poll;
   }
 
-  async getPoll(pollId) {
-    return this.polls.get(pollId) || null;
-  }
-
-  async updatePoll(pollId, updates) {
-    const poll = this.polls.get(pollId);
-    if (!poll) return null;
-
-    const updatedPoll = {
-      ...poll,
-      ...updates,
-      updatedAt: new Date()
-    };
-
-    this.polls.set(pollId, updatedPoll);
-    return updatedPoll;
-  }
-
-  async deletePoll(pollId) {
-    const poll = this.polls.get(pollId);
-    if (!poll) return false;
-
-    // Remove from session tracking
-    if (poll.sessionId && this.pollsBySession.has(poll.sessionId)) {
-      this.pollsBySession.get(poll.sessionId).delete(pollId);
+  // Update current poll
+  async updatePoll(updates) {
+    if (!this.currentPoll) {
+      throw new Error('No active poll to update');
     }
+    
+    this.currentPoll = {
+      ...this.currentPoll,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    return this.currentPoll;
+  }
 
-    // Delete all votes for this poll
-    const pollVotes = Array.from(this.votes.keys()).filter(key => key.startsWith(`${pollId}:`));
-    pollVotes.forEach(key => this.votes.delete(key));
-
-    this.polls.delete(pollId);
+  // Delete current poll
+  async deletePoll() {
+    if (!this.currentPoll) {
+      return false;
+    }
+    
+    this.currentPoll = null;
+    this.votes.clear();
     return true;
   }
 
-  async getPollsBySession(sessionId) {
-    const pollIds = this.pollsBySession.get(sessionId);
-    if (!pollIds) return [];
+  // Submit a vote
+  async submitVote(voteData, voterInfo = {}) {
+    if (!this.currentPoll) {
+      throw new Error('No active poll');
+    }
 
-    return Array.from(pollIds)
-      .map(id => this.polls.get(id))
-      .filter(poll => poll && poll.isActive);
-  }
+    // Check if poll is closed
+    if (this.currentPoll.isClosed) {
+      throw new Error('Poll is closed');
+    }
 
-  // Vote Management
-  async submitVote(voteData) {
-    const voteId = nanoid(8);
-    const now = new Date();
+    // Generate vote ID
+    const voteId = this.generateId();
     
+    // Create vote object
     const vote = {
       id: voteId,
-      pollId: voteData.pollId,
-      voteData: voteData.voteData,
-      voterIdentifier: voteData.voterIdentifier || '',
-      voterInfo: voteData.voterInfo || {},
-      ipAddress: voteData.ipAddress || '',
-      userAgent: voteData.userAgent || '',
-      sessionId: voteData.sessionId || '',
-      createdAt: now
+      voteData,
+      voterInfo,
+      createdAt: new Date().toISOString(),
+      sessionId: voterInfo.sessionId || null,
+      ipAddress: voterInfo.ipAddress || null
     };
 
-    // Store vote with composite key: pollId:voteId
-    const voteKey = `${vote.pollId}:${voteId}`;
-    this.votes.set(voteKey, vote);
-
+    // Store the vote
+    this.votes.set(voteId, vote);
+    
     return vote;
   }
 
-  async getVotesForPoll(pollId) {
-    const votes = [];
-    for (const [key, vote] of this.votes.entries()) {
-      if (key.startsWith(`${pollId}:`)) {
-        votes.push(vote);
-      }
-    }
-    return votes;
+  // Get all votes for current poll
+  async getVotesForPoll() {
+    return Array.from(this.votes.values());
   }
 
-  async hasVoted(pollId, identifier) {
-    for (const [key, vote] of this.votes.entries()) {
-      if (key.startsWith(`${pollId}:`) && 
-          (vote.voterIdentifier === identifier || 
-           vote.ipAddress === identifier ||
-           vote.sessionId === identifier)) {
-        return vote;
-      }
-    }
-    return null;
+  // Check if a user has already voted (by identifier)
+  async hasVoted(identifier) {
+    const votes = Array.from(this.votes.values());
+    return votes.find(vote => {
+      // Check against session ID, IP address, or voter identifier
+      return vote.sessionId === identifier || 
+             vote.ipAddress === identifier || 
+             vote.voterInfo?.voterIdentifier === identifier ||
+             (vote.voterInfo && vote.voterInfo.sessionId === identifier);
+    });
   }
 
-  async deleteVote(voteId) {
-    // Find and delete vote by ID
-    for (const [key, vote] of this.votes.entries()) {
-      if (vote.id === voteId) {
-        this.votes.delete(key);
-        return true;
-      }
+  // Calculate poll results
+  async calculateResults() {
+    if (!this.currentPoll) {
+      return null;
     }
-    return false;
-  }
 
-  // Session Management
-  async createSession(sessionData) {
-    const sessionId = sessionData.sessionId || nanoid(8);
-    const now = new Date();
+    const votes = Array.from(this.votes.values());
+    const results = {};
+    
+    // Initialize results for each option
+    this.currentPoll.options.forEach((option, index) => {
+      results[index] = {
+        option: option,
+        votes: 0,
+        percentage: 0
+      };
+    });
 
-    const session = {
-      id: sessionId,
-      ipAddress: sessionData.ipAddress || '',
-      userAgent: sessionData.userAgent || '',
-      createdAt: now,
-      lastAccess: now,
-      data: sessionData.data || {}
+    // Count votes
+    votes.forEach(vote => {
+      if (vote.voteData && vote.voteData.selectedOptions) {
+        vote.voteData.selectedOptions.forEach(optionIndex => {
+          if (results[optionIndex]) {
+            results[optionIndex].votes++;
+          }
+        });
+      }
+    });
+
+    // Calculate percentages
+    const totalVotes = votes.length;
+    if (totalVotes > 0) {
+      Object.keys(results).forEach(key => {
+        results[key].percentage = Math.round((results[key].votes / totalVotes) * 100);
+      });
+    }
+
+    return {
+      poll: this.currentPoll,
+      results: Object.values(results),
+      totalVotes,
+      timestamp: new Date().toISOString()
     };
-
-    this.sessions.set(sessionId, session);
-    return session;
   }
 
+  // Delete a specific vote
+  async deleteVote(voteId) {
+    return this.votes.delete(voteId);
+  }
+
+  // Get system statistics
+  async getSystemStats() {
+    return {
+      totalPolls: this.currentPoll ? 1 : 0,
+      totalVotes: this.votes.size,
+      activePoll: !!this.currentPoll,
+      pollTitle: this.currentPoll?.title || null,
+      pollCreated: this.currentPoll?.createdAt || null,
+      pollClosed: this.currentPoll?.isClosed || false
+    };
+  }
+
+  // Store session data
+  async storeSession(sessionId, sessionData) {
+    this.sessions.set(sessionId, {
+      ...sessionData,
+      createdAt: new Date().toISOString(),
+      lastAccessed: new Date().toISOString()
+    });
+  }
+
+  // Alias for storeSession (for backward compatibility)
+  async createSession(sessionData) {
+    const sessionId = sessionData.sessionId;
+    return this.storeSession(sessionId, sessionData);
+  }
+
+  // Get session data
   async getSession(sessionId) {
     const session = this.sessions.get(sessionId);
     if (session) {
-      // Update last access time
-      session.lastAccess = new Date();
-      this.sessions.set(sessionId, session);
+      // Update last accessed time
+      session.lastAccessed = new Date().toISOString();
     }
     return session;
   }
 
-  async updateSession(sessionId, data) {
-    const session = this.sessions.get(sessionId);
-    if (!session) return null;
-
-    session.data = { ...session.data, ...data };
-    session.lastAccess = new Date();
-    this.sessions.set(sessionId, session);
-    return session;
-  }
-
-  // Analytics and Statistics
-  async getPollStats(pollId) {
-    const poll = this.polls.get(pollId);
-    if (!poll) return null;
-
-    const votes = await this.getVotesForPoll(pollId);
-    
-    return {
-      totalVotes: votes.length,
-      uniqueVoters: new Set(votes.map(v => v.voterIdentifier || v.ipAddress)).size,
-      createdAt: poll.createdAt,
-      lastVoteAt: votes.length > 0 ? Math.max(...votes.map(v => v.createdAt)) : null
-    };
-  }
-
-  async getSystemStats() {
-    return {
-      totalPolls: this.polls.size,
-      activePolls: Array.from(this.polls.values()).filter(p => p.isActive).length,
-      totalVotes: this.votes.size,
-      activeSessions: this.sessions.size,
-      memoryUsage: process.memoryUsage()
-    };
-  }
-
-  // Cleanup and Maintenance
-  async cleanup() {
-    const now = new Date();
-    const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
-    
-    // Clean up old sessions
+  // Clean up old sessions (optional maintenance)
+  async cleanupSessions(maxAge = 24 * 60 * 60 * 1000) { // 24 hours default
+    const now = Date.now();
     for (const [sessionId, session] of this.sessions.entries()) {
-      if (now - session.lastAccess > maxSessionAge) {
+      const sessionAge = now - new Date(session.lastAccessed).getTime();
+      if (sessionAge > maxAge) {
         this.sessions.delete(sessionId);
-        this.pollsBySession.delete(sessionId);
       }
     }
-
-    // Clean up expired polls
-    for (const [pollId, poll] of this.polls.entries()) {
-      if (poll.expiresAt && now > poll.expiresAt) {
-        await this.deletePoll(pollId);
-      }
-    }
-
-    console.log(`🧹 Cleanup completed. Active polls: ${this.polls.size}, Sessions: ${this.sessions.size}`);
   }
 
-  // Export/Import for persistence (optional)
-  exportData() {
-    return {
-      polls: Array.from(this.polls.entries()),
-      votes: Array.from(this.votes.entries()),
-      sessions: Array.from(this.sessions.entries()),
-      pollsBySession: Array.from(this.pollsBySession.entries()).map(([k, v]) => [k, Array.from(v)])
-    };
+  // Generate random ID
+  generateId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   }
 
-  importData(data) {
-    if (data.polls) {
-      this.polls = new Map(data.polls);
-    }
-    if (data.votes) {
-      this.votes = new Map(data.votes);
-    }
-    if (data.sessions) {
-      this.sessions = new Map(data.sessions);
-    }
-    if (data.pollsBySession) {
-      this.pollsBySession = new Map(data.pollsBySession.map(([k, v]) => [k, new Set(v)]));
-    }
+  // Check if a poll is currently active
+  async hasActivePoll() {
+    return !!this.currentPoll && !this.currentPoll.isClosed;
   }
 }
 
-// Singleton instance
-const memoryStore = new MemoryStore();
-
-// Auto-cleanup every hour
-setInterval(() => {
-  memoryStore.cleanup();
-}, 60 * 60 * 1000);
-
-module.exports = memoryStore;
+module.exports = MemoryStore;

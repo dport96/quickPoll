@@ -12,8 +12,11 @@ require('dotenv').config();
 
 const pollRoutes = require('./routes/polls');
 const voteRoutes = require('./routes/votes');
-const memoryStore = require('./storage/memoryStore');
+const MemoryStore = require('./storage/memoryStore');
 const { setupSocketIO } = require('./socket/socketHandler');
+
+// Initialize memory store
+const memoryStore = new MemoryStore();
 
 // Function to get server's IP address
 function getServerIP() {
@@ -157,8 +160,18 @@ app.get('/vote/:pollId([A-Za-z0-9_-]{6,12})', (req, res) => {
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 
+app.get('/vote', (req, res) => {
+  // Serve the main HTML file for single-poll system
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
 app.get('/results/:pollId([A-Za-z0-9_-]{6,12})', (req, res) => {
   // Serve the main HTML file - the frontend will handle the routing
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
+app.get('/results', (req, res) => {
+  // Serve the main HTML file for single-poll system
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 

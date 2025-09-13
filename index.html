@@ -15,6 +15,7 @@
             <div class="container">
                 <h1 class="logo">QuickPoll</h1>
                 <nav class="nav">
+                    <button id="sign-in-btn" class="btn btn-primary">Sign In</button>
                     <div id="user-info" class="user-info" style="display: none;">
                         <span class="user-icon">✉️</span>
                         <span id="user-email"></span>
@@ -201,10 +202,6 @@
                 <div class="container">
                     <div class="success-message">
                         <h2>Poll Created Successfully!</h2>
-                        <div class="poll-id-display">
-                            <label>Poll ID:</label>
-                            <span id="poll-id-value" class="poll-id"></span>
-                        </div>
                         
                         <!-- GitHub Gist Info -->
                         <div id="gist-info" class="gist-info" style="display: none;">
@@ -255,6 +252,7 @@
                         <div class="form-actions">
                             <button id="view-results-now" class="btn btn-primary">View Results</button>
                             <button id="close-poll" class="btn btn-danger">Close Poll</button>
+                            <button id="create-new-poll-btn" class="btn btn-success" style="display: none;">Create New Poll</button>
                         </div>
                     </div>
                 </div>

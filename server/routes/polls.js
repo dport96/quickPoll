@@ -1,6 +1,5 @@
 const express = require('express');
-const { body, param, validationResult } = require('express-validator');
-const { nanoid } = require('nanoid');
+const { body, validationResult } = require('express-validator');
 
 const router = express.Router();
 
@@ -33,10 +32,6 @@ const validatePoll = [
     .withMessage('validEmails must be an array'),
 ];
 
-const validatePollId = [
-  param('id').matches(/^[A-Za-z0-9_-]{6,12}$/).withMessage('Invalid poll ID format')
-];
-
 // Error handler for validation
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -49,17 +44,14 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// GET /api/polls/:id - Get poll details
-router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
+// GET /api/polls/current - Get current poll details
+router.get('/current', async (req, res) => {
   try {
-    const { id } = req.params;
     const memoryStore = req.memoryStore;
-    
-    
-    const poll = await memoryStore.getPoll(id);
+    const poll = await memoryStore.getCurrentPoll();
 
-    if (!poll || !poll.isActive) {
-      return res.status(404).json({ error: 'Poll not found' });
+    if (!poll) {
+      return res.status(404).json({ error: 'No active poll found' });
     }
 
     // Check if poll has expired
@@ -68,12 +60,11 @@ router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
     }
 
     // Get vote count
-    const votes = await memoryStore.getVotesForPoll(id);
+    const votes = await memoryStore.getVotesForPoll();
 
     res.json({
       success: true,
       poll: {
-        id: poll.id,
         title: poll.title,
         description: poll.description,
         type: poll.type,
@@ -90,14 +81,33 @@ router.get('/:id', validatePollId, handleValidationErrors, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching poll:', error);
-    res.status(500).json({ error: 'Failed to fetch poll' });
+    console.error('Error fetching current poll:', error);
+    res.status(500).json({ error: 'Failed to fetch current poll' });
   }
 });
 
 // POST /api/polls - Create new poll
 router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
   try {
+    console.log('📊 Poll creation attempt:', req.body);
+    
+    const memoryStore = req.memoryStore;
+    
+    // Check if there's already an active poll
+    const existingPoll = await memoryStore.getCurrentPoll();
+    if (existingPoll && !existingPoll.isClosed) {
+      console.log('❌ Poll creation blocked - active poll exists:', existingPoll.title);
+      return res.status(409).json({ 
+        error: 'Poll already exists',
+        message: 'There is already an active poll. Please wait for it to be closed before creating a new one.',
+        existingPoll: {
+          title: existingPoll.title,
+          createdAt: existingPoll.createdAt,
+          createdBy: existingPoll.createdBy
+        }
+      });
+    }
+
     const {
       title,
       description,
@@ -110,15 +120,11 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
       creatorName
     } = req.body;
 
-    // Require authentication for poll creation
-    if (!createdBy || createdBy === 'anonymous') {
-      return res.status(401).json({ 
-        error: 'Authentication required',
-        message: 'You must be signed in to create a poll' 
-      });
-    }
+    // Authentication check - allow anonymous creation but track properly
+    const isAnonymous = !createdBy || createdBy === 'anonymous';
+    const actualCreatedBy = isAnonymous ? `anonymous-${Date.now()}` : createdBy;
+    const actualCreatorName = isAnonymous ? 'Anonymous User' : (creatorName || createdBy);
 
-    const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
     const ipAddress = req.ip || req.connection.remoteAddress;
     const userAgent = req.get('User-Agent') || '';
@@ -132,28 +138,28 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
       validEmails,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       sessionId,
-      createdBy: createdBy || 'anonymous',
-      creatorName: creatorName || createdBy || 'Anonymous',
+      createdBy: actualCreatedBy,
+      creatorName: actualCreatorName,
       creatorInfo: {
         ipAddress,
         userAgent,
-        createdBy: createdBy || 'anonymous'
+        createdBy: actualCreatedBy
       }
     };
 
     const poll = await memoryStore.createPoll(pollData);
+    console.log('✅ Poll created successfully:', poll.title, 'by', poll.createdBy);
 
     // Create or update session
     await memoryStore.createSession({
       sessionId,
       ipAddress,
       userAgent,
-      data: { createdPolls: [poll.id] }
+      data: { createdPoll: true }
     });
 
     // Emit real-time event for new poll creation
     req.io.emit('pollCreated', {
-      pollId: poll.id,
       title: poll.title,
       type: poll.type
     });
@@ -161,7 +167,6 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
     res.status(201).json({
       success: true,
       poll: {
-        id: poll.id,
         title: poll.title,
         description: poll.description,
         type: poll.type,
@@ -170,9 +175,9 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
         options: poll.options,
         createdAt: poll.createdAt,
         totalVotes: 0,
-        // Generate URLs for sharing
-        votingUrl: `${req.protocol}://${req.get('host')}/vote/${poll.id}`,
-        resultsUrl: `${req.protocol}://${req.get('host')}/results/${poll.id}`
+        // Generate URLs for sharing (no ID needed)
+        votingUrl: `${req.protocol}://${req.get('host')}/vote`,
+        resultsUrl: `${req.protocol}://${req.get('host')}/results`
       }
     });
   } catch (error) {
@@ -181,20 +186,19 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
   }
 });
 
-// GET /api/polls/:id/results - Get poll results
-router.get('/:id/results', validatePollId, handleValidationErrors, async (req, res) => {
+// GET /api/polls/results - Get current poll results
+router.get('/results', async (req, res) => {
   try {
-    const { id } = req.params;
     const memoryStore = req.memoryStore;
 
-    // Get poll details
-    const poll = await memoryStore.getPoll(id);
-    if (!poll || !poll.isActive) {
-      return res.status(404).json({ error: 'Poll not found' });
+    // Get current poll details
+    const poll = await memoryStore.getCurrentPoll();
+    if (!poll) {
+      return res.status(404).json({ error: 'No active poll found' });
     }
 
     // Get all votes for this poll
-    const votes = await memoryStore.getVotesForPoll(id);
+    const votes = await memoryStore.getVotesForPoll();
 
     // Calculate results based on poll type
     let results = {};
@@ -230,7 +234,6 @@ router.get('/:id/results', validatePollId, handleValidationErrors, async (req, r
     res.json({
       success: true,
       poll: {
-        id: poll.id,
         title: poll.title,
         description: poll.description,
         type: poll.type,
@@ -254,21 +257,25 @@ router.get('/:id/results', validatePollId, handleValidationErrors, async (req, r
   }
 });
 
-// PUT /api/polls/:id - Update poll
-router.put('/:id', validatePollId, handleValidationErrors, async (req, res) => {
+// PUT /api/polls - Update current poll
+router.put('/', async (req, res) => {
   try {
-    const { id } = req.params;
+    console.log('📝 Poll update attempt:', req.body);
     const { title, description, expiresAt, isClosed, closedAt } = req.body;
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
 
-    const poll = await memoryStore.getPoll(id);
+    const poll = await memoryStore.getCurrentPoll();
     if (!poll) {
-      return res.status(404).json({ error: 'Poll not found' });
+      console.log('❌ No active poll found for update');
+      return res.status(404).json({ error: 'No active poll found' });
     }
 
+    console.log('🔐 Checking authorization - poll.sessionId:', poll.sessionId, 'req.sessionID:', sessionId);
+    
     // Check if user owns this poll
     if (poll.sessionId !== sessionId) {
+      console.log('❌ Authorization failed - user does not own this poll');
       return res.status(403).json({ error: 'Not authorized to update this poll' });
     }
 
@@ -279,11 +286,11 @@ router.put('/:id', validatePollId, handleValidationErrors, async (req, res) => {
     if (isClosed !== undefined) updates.isClosed = isClosed;
     if (closedAt !== undefined) updates.closedAt = closedAt;
 
-    const updatedPoll = await memoryStore.updatePoll(id, updates);
+    const updatedPoll = await memoryStore.updatePoll(updates);
+    console.log('✅ Poll updated successfully:', updates);
 
     // Emit real-time update
-    req.io.to(`poll_${id}`).emit('pollUpdated', {
-      pollId: id,
+    req.io.emit('pollUpdated', {
       updates
     });
 
@@ -297,16 +304,15 @@ router.put('/:id', validatePollId, handleValidationErrors, async (req, res) => {
   }
 });
 
-// DELETE /api/polls/:id - Delete poll
-router.delete('/:id', validatePollId, handleValidationErrors, async (req, res) => {
+// DELETE /api/polls - Delete current poll
+router.delete('/', async (req, res) => {
   try {
-    const { id } = req.params;
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
 
-    const poll = await memoryStore.getPoll(id);
+    const poll = await memoryStore.getCurrentPoll();
     if (!poll) {
-      return res.status(404).json({ error: 'Poll not found' });
+      return res.status(404).json({ error: 'No active poll found' });
     }
 
     // Check if user owns this poll
@@ -314,13 +320,13 @@ router.delete('/:id', validatePollId, handleValidationErrors, async (req, res) =
       return res.status(403).json({ error: 'Not authorized to delete this poll' });
     }
 
-    const deleted = await memoryStore.deletePoll(id);
+    const deleted = await memoryStore.deletePoll();
     if (!deleted) {
       return res.status(404).json({ error: 'Poll not found' });
     }
 
     // Emit real-time event
-    req.io.to(`poll_${id}`).emit('pollDeleted', { pollId: id });
+    req.io.emit('pollDeleted', {});
 
     res.json({
       success: true,
@@ -329,31 +335,6 @@ router.delete('/:id', validatePollId, handleValidationErrors, async (req, res) =
   } catch (error) {
     console.error('Error deleting poll:', error);
     res.status(500).json({ error: 'Failed to delete poll' });
-  }
-});
-
-// GET /api/polls/session/my - Get polls created by current session
-router.get('/session/my', async (req, res) => {
-  try {
-    const sessionId = req.sessionID;
-    const memoryStore = req.memoryStore;
-
-    const polls = await memoryStore.getPollsBySession(sessionId);
-
-    res.json({
-      success: true,
-      polls: polls.map(poll => ({
-        id: poll.id,
-        title: poll.title,
-        type: poll.type,
-        createdAt: poll.createdAt,
-        isActive: poll.isActive,
-        totalVotes: 0 // Will be calculated if needed
-      }))
-    });
-  } catch (error) {
-    console.error('Error fetching user polls:', error);
-    res.status(500).json({ error: 'Failed to fetch polls' });
   }
 });
 

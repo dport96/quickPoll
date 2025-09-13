@@ -18,7 +18,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
         }
         this.socket = null;
         this.storageMode = 'server';
-        this.currentPollId = null; // Track current poll for Socket.IO
         
         // Initialize server connection
         this.initializeServerConnection();
@@ -62,6 +61,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // Initialize Socket.IO for real-time updates
                 this.initializeSocketIO();
+                
+                // Check for existing active poll on page load
+                await this.checkForActivePoll();
             } else {
                 console.warn("Real-time updates disabled");
                 this.handleOfflineMode();
@@ -69,6 +71,92 @@ class QuickPollServerApp extends QuickPollEmailApp {
         } catch (error) {
             console.warn( error);
             this.handleOfflineMode();
+        }
+    }
+
+    // Check if there's an active poll and update UI accordingly
+    async checkForActivePoll() {
+        try {
+            const response = await fetch(`${this.apiUrl}/polls/current`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.displayActivePollNotice(data.poll);
+            } else if (response.status === 404) {
+                // No active poll, show normal create form
+                this.hideActivePollNotice();
+            }
+        } catch (error) {
+            console.log('No active poll or connection issue:', error.message);
+            this.hideActivePollNotice();
+        }
+    }
+
+    // Display notice about active poll
+    displayActivePollNotice(poll) {
+        // Find or create notice element
+        let notice = document.getElementById('active-poll-notice');
+        if (!notice) {
+            notice = document.createElement('div');
+            notice.id = 'active-poll-notice';
+            notice.className = 'alert alert-info active-poll-notice';
+            
+            // Insert at the top of the create form
+            const createForm = document.getElementById('create-poll-form');
+            if (createForm) {
+                createForm.parentNode.insertBefore(notice, createForm);
+            }
+        }
+        
+        const createdDate = new Date(poll.createdAt).toLocaleString();
+        notice.innerHTML = `
+            <h4>⚠️ Active Poll Detected</h4>
+            <p><strong>Title:</strong> ${poll.title}</p>
+            <p><strong>Created:</strong> ${createdDate}</p>
+            <p><strong>Created by:</strong> ${poll.createdBy}</p>
+            <p>There is currently an active poll. You cannot create a new poll until this one is closed.</p>
+            <div class="active-poll-actions">
+                <a href="/vote" class="btn btn-primary">Vote in Current Poll</a>
+                <a href="/results" class="btn btn-secondary">View Results</a>
+            </div>
+        `;
+        
+        // Disable the create poll form
+        this.disableCreateForm();
+    }
+
+    // Hide the active poll notice
+    hideActivePollNotice() {
+        const notice = document.getElementById('active-poll-notice');
+        if (notice) {
+            notice.style.display = 'none';
+        }
+        
+        // Re-enable the create poll form
+        this.enableCreateForm();
+    }
+
+    // Disable create poll form
+    disableCreateForm() {
+        const form = document.getElementById('create-poll-form');
+        if (form) {
+            const inputs = form.querySelectorAll('input, textarea, button, select');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            form.style.opacity = '0.5';
+        }
+    }
+
+    // Enable create poll form
+    enableCreateForm() {
+        const form = document.getElementById('create-poll-form');
+        if (form) {
+            const inputs = form.querySelectorAll('input, textarea, button, select');
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+            form.style.opacity = '1';
         }
     }
 
@@ -96,11 +184,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     console.log('🔌 Socket.IO connected successfully');
                     this.updateConnectionStatus(true);
                     
-                    // Join poll room if we have a current poll
-                    if (this.currentPollId) {
-                        console.log(`📊 Joining poll room for: ${this.currentPollId}`);
-                        this.socket.emit('joinPoll', this.currentPollId);
-                    }
+                    // Join the main poll room for real-time updates
+                    console.log('📊 Joining main poll room');
+                    this.socket.emit('joinPoll', 'current');
                 });
 
                 this.socket.on('disconnect', () => {
@@ -125,6 +211,16 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 this.socket.on('pollUpdated', (data) => {
                     console.log('📥 Received pollUpdated event:', data);
                     this.handleRealTimePollUpdate(data);
+                });
+
+                this.socket.on('pollCreated', (data) => {
+                    console.log('📥 Received pollCreated event:', data);
+                    this.handlePollCreated(data);
+                });
+
+                this.socket.on('pollDeleted', (data) => {
+                    console.log('📥 Received pollDeleted event:', data);
+                    this.handlePollDeleted(data);
                 });
 
                 this.socket.on('error', (error) => {
@@ -168,43 +264,24 @@ class QuickPollServerApp extends QuickPollEmailApp {
         }
         
         const path = window.location.pathname;
-        const params = new URLSearchParams(window.location.search);
         
-        // Handle clean URLs like /vote/:id or /results/:id
-        if (path.startsWith('/vote/')) {
-            const pollId = path.substring(6); // Remove '/vote/'
-            if (pollId) {
-                // Don't set currentPage yet - let loadPollById handle it
-                this.loadPollById(pollId, 'vote');
-                return;
-            }
-        } else if (path.startsWith('/results/')) {
-            const pollId = path.substring(9); // Remove '/results/'
-            if (pollId) {
-                // Don't set currentPage yet - let loadPollById handle it
-                this.loadPollById(pollId, 'results');
-                return;
-            }
+        // Handle clean URLs like /vote or /results (no ID needed)
+        if (path === '/vote') {
+            this.loadCurrentPoll('vote');
+            return;
+        } else if (path === '/results') {
+            this.loadCurrentPoll('results');
+            return;
         }
         
-        // Fallback to query parameter parsing for backwards compatibility
-        const mode = params.get('mode');
-        const pollId = params.get('id');
-
-        if (mode && pollId) {
-            this.loadPollFromParams(params);
-            if (mode === 'vote') {
-                this.currentPage = 'vote';
-            } else if (mode === 'results') {
-                this.currentPage = 'results';
-            }
-        }
+        // If no specific path, default to landing page
+        this.currentPage = 'landing';
     }
 
-    // Load poll data from server using just the poll ID
-    async loadPollById(pollId, targetPage) {
+    // Load current poll data from server
+    async loadCurrentPoll(targetPage) {
         try {
-            const response = await fetch(`${this.apiUrl}/polls/${pollId}`);
+            const response = await fetch(`${this.apiUrl}/polls/current`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -215,54 +292,28 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // If showing results, load the results data
                 if (targetPage === 'results') {
-                    await this.loadPollResults(pollId);
+                    await this.loadPollResults();
                 }
-                
-                // Join real-time updates for this poll
-                this.currentPollId = pollId;
-                this.joinPollRoom(pollId);
                 
                 this.showPage(targetPage);
             } else if (response.status === 404) {
-                console.error('❌ Poll not found');
-                console.error( {
-                    status: response.status,
-                    statusText: response.statusText,
-                    url: response.url
-                });
-                const errorText = await response.text();
-                console.error( errorText);
-                alert('Poll not found. Please check the URL.');
+                console.error('❌ No active poll found');
+                alert('No active poll found.');
                 this.currentPage = 'landing';
                 this.showPage('landing');
             } else {
-                console.error( response.status, response.statusText);
+                console.error('Poll loading error:', response.status, response.statusText);
                 const errorText = await response.text();
-                console.error( errorText);
+                console.error('Error details:', errorText);
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
-            console.error('Error in loadPollById:', error);
+            console.error('Error in loadCurrentPoll:', error);
             console.error('API URL:', this.apiUrl);
-            console.error('Poll ID:', pollId);
             console.error('Target Page:', targetPage);
             alert(`Failed to load poll data: ${error.message}. Please try again.`);
             this.currentPage = 'landing';
             this.showPage('landing');
-        }
-    }
-
-    // Helper method to join a poll room
-    joinPollRoom(pollId) {
-        console.log(`📊 Attempting to join poll room for: ${pollId}`);
-        if (this.socket && this.socket.connected) {
-            console.log('✅ Socket connected, emitting joinPoll event');
-            this.socket.emit('joinPoll', pollId);
-        } else if (this.socket) {
-            console.log('🔄 Socket connecting, will auto-join room when ready');
-            // Socket will auto-join when it connects (handled in 'connect' event)
-        } else {
-            console.log('❌ Socket not available');
         }
     }
 
@@ -306,7 +357,16 @@ class QuickPollServerApp extends QuickPollEmailApp {
             }
         } catch (error) {
             console.error( error);
-            alert('Failed to create poll. Please check your internet connection and try again.');
+            
+            // Check for specific error messages
+            if (error.message.includes('Poll already exists') || error.message.includes('already an active poll')) {
+                alert('Cannot create poll: There is already an active poll. Please wait for it to be closed before creating a new one.');
+            } else if (error.message.includes('Authentication required')) {
+                alert('Please sign in with your email before creating a poll.');
+            } else {
+                alert('Failed to create poll. Please check your internet connection and try again.');
+            }
+            
             this.showPage('create');
         }
     }
@@ -334,7 +394,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
     // Override close poll for server-side storage
     async closePoll() {
-        if (!this.pollData || !this.pollData.id) {
+        if (!this.pollData) {
             alert('No active poll to close.');
             return;
         }
@@ -343,14 +403,13 @@ class QuickPollServerApp extends QuickPollEmailApp {
         
         if (confirmed) {
             try {
-                // Update poll on server
-                const response = await fetch(`${this.apiUrl}/polls/${this.pollData.id}`, {
+                // Update poll on server - using single poll endpoint without ID
+                const response = await fetch(`${this.apiUrl}/polls`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        ...this.pollData,
                         isClosed: true,
                         closedAt: new Date().toISOString()
                     })
@@ -373,6 +432,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     closeButton.classList.remove('btn-danger');
                     closeButton.classList.add('btn-secondary');
                 }
+                
+                // Update create new poll button visibility
+                this.setupCreateNewPollButton();
                 
                 // If we're on the results page, refresh it to show updated status
                 if (this.currentPage === 'results') {
@@ -529,8 +591,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 alert('Your vote has been submitted!');
                 
                 // Redirect to results page using clean URL
-                const pollId = this.getPollIdFromUrl();
-                window.location.href = `/results/${pollId}`;
+                window.location.href = `/results`;
             } else {
                 throw new Error(response.error || 'Failed to submit vote');
             }
@@ -573,8 +634,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     async submitVoteToServer(voteData) {
-        const pollId = this.getPollIdFromUrl();
-
         // Get voter identifier for authenticated polls
         let voterIdentifier = null;
         if (this.pollData && this.pollData.requireAuth && this.currentUser) {
@@ -582,7 +641,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
         }
 
         const requestData = {
-            pollId,
             voteData,
             voterInfo: {
                 timestamp: new Date().toISOString()
@@ -594,7 +652,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
             requestData.voterIdentifier = voterIdentifier;
         }
 
-
         const response = await fetch(`${this.apiUrl}/votes`, {
             method: 'POST',
             headers: {
@@ -602,7 +659,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
             },
             body: JSON.stringify(requestData)
         });
-
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -638,10 +694,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
             const pollData = await pollResponse.json();
             this.pollData = pollData.poll;
             
-            // Join real-time updates for this poll
-            this.currentPollId = pollId;
-            this.joinPollRoom(pollId);
-            
         } catch (error) {
             console.error( error);
             throw error;
@@ -649,10 +701,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Override results loading for server-side storage
-    async loadPollResults(pollId) {
+    async loadPollResults() {
         try {
-            
-            const response = await fetch(`${this.apiUrl}/polls/${pollId}/results`);
+            const response = await fetch(`${this.apiUrl}/polls/results`);
             
             if (!response.ok) {
                 throw new Error('Failed to load poll results');
@@ -983,11 +1034,11 @@ class QuickPollServerApp extends QuickPollEmailApp {
         console.log('📊 Current poll data:', this.pollData);
         console.log('📄 Current page:', this.currentPage);
         
-        if (this.pollData && this.pollData.id === data.pollId && this.currentPage === 'results') {
+        if (this.pollData && this.currentPage === 'results') {
             try {
                 console.log('✅ Conditions met, updating results...');
                 // Reload the poll results to get updated data
-                await this.loadPollResults(data.pollId);
+                await this.loadPollResults();
                 
                 // Re-render the results page with fresh data
                 this.renderResultsPage();
@@ -1001,7 +1052,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
         } else {
             console.log('❌ Conditions not met for real-time update:', {
                 hasPollData: !!this.pollData,
-                pollIdMatch: this.pollData?.id === data.pollId,
                 onResultsPage: this.currentPage === 'results'
             });
         }
@@ -1013,7 +1063,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
         console.log('📊 Current poll data:', this.pollData);
         console.log('📄 Current page:', this.currentPage);
         
-        if (this.pollData && this.pollData.id === data.pollId && this.currentPage === 'results') {
+        if (this.pollData && this.currentPage === 'results') {
             try {
                 console.log('✅ Conditions met, updating results directly...');
                 // Update results data directly from the event
@@ -1032,7 +1082,6 @@ class QuickPollServerApp extends QuickPollEmailApp {
         } else {
             console.log('❌ Conditions not met for real-time results update:', {
                 hasPollData: !!this.pollData,
-                pollIdMatch: this.pollData?.id === data.pollId,
                 onResultsPage: this.currentPage === 'results'
             });
         }
@@ -1044,7 +1093,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
         console.log('📊 Current poll data:', this.pollData);
         console.log('📄 Current page:', this.currentPage);
         
-        if (this.pollData && this.pollData.id === data.pollId) {
+        if (this.pollData) {
             try {
                 console.log('✅ Updating poll data with changes:', data.updates);
                 
@@ -1071,7 +1120,33 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 console.error('Error handling real-time poll update:', error);
             }
         } else {
-            console.log('❌ Poll ID does not match current poll');
+            console.log('❌ No current poll data available');
+        }
+    }
+
+    // Handle poll creation events
+    async handlePollCreated(data) {
+        console.log('🔄 Processing poll created event:', data);
+        
+        // If we're on the landing page, check for the new active poll
+        if (this.currentPage === 'landing' || this.currentPage === 'create') {
+            await this.checkForActivePoll();
+        }
+    }
+
+    // Handle poll deletion events
+    async handlePollDeleted(data) {
+        console.log('🔄 Processing poll deleted event:', data);
+        
+        // If we're on the landing page, hide the active poll notice
+        if (this.currentPage === 'landing' || this.currentPage === 'create') {
+            this.hideActivePollNotice();
+        }
+        
+        // If we're on vote or results page, redirect to landing
+        if (this.currentPage === 'vote' || this.currentPage === 'results') {
+            alert('The poll has been deleted by its creator.');
+            window.location.href = '/';
         }
     }
 
@@ -1188,13 +1263,49 @@ class QuickPollServerApp extends QuickPollEmailApp {
         document.getElementById('voting-link').value = votingUrl;
         document.getElementById('results-link').value = resultsUrl;
         
-        // Update the Poll ID display - this was missing!
-        document.getElementById('poll-id-value').textContent = this.pollData.id;
-
+        // Handle create new poll button visibility and event listener
+        this.setupCreateNewPollButton();
+        
         // Generate QR code for voting URL
         await this.generateQRCode(votingUrl);
 
         this.showPage('poll-created');
+    }
+
+    // Setup create new poll button visibility and functionality
+    setupCreateNewPollButton() {
+        const createNewPollBtn = document.getElementById('create-new-poll-btn');
+        if (!createNewPollBtn) return;
+
+        // Show button only if poll is closed
+        if (this.pollData && this.pollData.isClosed) {
+            createNewPollBtn.style.display = 'inline-block';
+            
+            // Remove any existing event listener and add new one
+            createNewPollBtn.replaceWith(createNewPollBtn.cloneNode(true));
+            document.getElementById('create-new-poll-btn').addEventListener('click', () => {
+                this.createNewPoll();
+            });
+        } else {
+            createNewPollBtn.style.display = 'none';
+        }
+    }
+
+    // Handle creating a new poll
+    createNewPoll() {
+        // Navigate to the create poll page
+        this.showPage('create');
+        
+        // Clear any existing poll data so we start fresh
+        this.pollData = null;
+        
+        // Update UI to reflect no active poll
+        this.hideActivePollNotice();
+        
+        // Show success message
+        setTimeout(() => {
+            alert('Ready to create a new poll! The previous poll has been closed.');
+        }, 100);
     }
 
     // Generate QR code for the voting URL

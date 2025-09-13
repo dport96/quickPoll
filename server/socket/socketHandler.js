@@ -3,50 +3,41 @@ function setupSocketIO(io) {
   io.on('connection', (socket) => {
     console.log(`🔌 Client connected: ${socket.id}`);
 
-    // Join poll room for real-time updates
-    socket.on('joinPoll', (pollId) => {
-      if (pollId && pollId.match(/^[A-Za-z0-9_-]{6,12}$/)) {
-        socket.join(`poll_${pollId}`);
-        console.log(`📊 Client ${socket.id} joined poll room: poll_${pollId}`);
+    // Join poll room for real-time updates (single poll system)
+    socket.on('joinPoll', (room) => {
+      if (room === 'current' || room) {
+        socket.join('poll_room');
+        console.log(`📊 Client ${socket.id} joined main poll room`);
         
         // Send confirmation
-        socket.emit('joinedPoll', { pollId, message: 'Successfully joined poll updates' });
+        socket.emit('joinedPoll', { message: 'Successfully joined poll updates' });
       } else {
-        socket.emit('error', { message: 'Invalid poll ID' });
+        socket.emit('error', { message: 'Invalid room' });
       }
     });
 
     // Leave poll room
-    socket.on('leavePoll', (pollId) => {
-      if (pollId) {
-        socket.leave(`poll_${pollId}`);
-        console.log(`📊 Client ${socket.id} left poll room: poll_${pollId}`);
-        socket.emit('leftPoll', { pollId, message: 'Left poll updates' });
-      }
+    socket.on('leavePoll', () => {
+      socket.leave('poll_room');
+      console.log(`📊 Client ${socket.id} left poll room`);
+      socket.emit('leftPoll', { message: 'Left poll updates' });
     });
 
     // Handle real-time voting status
     socket.on('votingStarted', (data) => {
-      const { pollId, voterIdentifier } = data;
-      if (pollId) {
-        socket.to(`poll_${pollId}`).emit('someoneVoting', {
-          pollId,
-          timestamp: new Date().toISOString(),
-          message: 'Someone is currently voting...'
-        });
-      }
+      socket.to('poll_room').emit('someoneVoting', {
+        timestamp: new Date().toISOString(),
+        message: 'Someone is currently voting...'
+      });
     });
 
     // Handle typing indicators for comments (if implemented)
     socket.on('typing', (data) => {
-      const { pollId, isTyping } = data;
-      if (pollId) {
-        socket.to(`poll_${pollId}`).emit('userTyping', {
-          pollId,
-          isTyping,
-          socketId: socket.id
-        });
-      }
+      const { isTyping } = data;
+      socket.to('poll_room').emit('userTyping', {
+        isTyping,
+        socketId: socket.id
+      });
     });
 
     // Ping/pong for connection monitoring

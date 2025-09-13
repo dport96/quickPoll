@@ -28,6 +28,7 @@ class QuickPollEmailApp {
         document.getElementById('back-to-home').addEventListener('click', () => this.showPage('landing'));
 
         // Auth events
+        document.getElementById('sign-in-btn').addEventListener('click', () => this.showEmailAuthModal());
         document.getElementById('sign-out-btn').addEventListener('click', () => this.signOut());
         document.getElementById('sign-in-now-btn').addEventListener('click', () => this.showEmailAuthModal());
         document.getElementById('email-auth-form').addEventListener('submit', (e) => this.handleEmailAuth(e));
@@ -87,6 +88,12 @@ class QuickPollEmailApp {
         if (closePollBtn) {
             closePollBtn.replaceWith(closePollBtn.cloneNode(true));
             document.getElementById('close-poll').addEventListener('click', () => this.closePoll());
+        }
+
+        const createNewPollBtn = document.getElementById('create-new-poll-btn');
+        if (createNewPollBtn) {
+            createNewPollBtn.replaceWith(createNewPollBtn.cloneNode(true));
+            document.getElementById('create-new-poll-btn').addEventListener('click', () => this.createNewPoll());
         }
 
         // Modal click outside to close
@@ -372,7 +379,6 @@ class QuickPollEmailApp {
 
         document.getElementById('voting-link').value = votingLink;
         document.getElementById('results-link').value = resultsLink;
-        document.getElementById('poll-id-value').textContent = this.pollData.id;
 
         // Show auth info if required
         const authInfo = document.getElementById('auth-info');
@@ -438,6 +444,20 @@ class QuickPollEmailApp {
             
             alert('Poll has been closed successfully. No further votes will be accepted.');
         }
+    }
+
+    createNewPoll() {
+        // Default implementation for local storage mode
+        // Navigate to the create poll page
+        this.showPage('create');
+        
+        // Clear any existing poll data so we start fresh
+        this.pollData = null;
+        
+        // Show success message
+        setTimeout(() => {
+            alert('Ready to create a new poll! The previous poll has been closed.');
+        }, 100);
     }
 
     async saveResultsAsImage() {
@@ -723,6 +743,13 @@ class QuickPollEmailApp {
             return;
         }
         
+        // Check if another user is already signed in with this email address
+        if (this.isEmailAlreadyInUse(email)) {
+            alert('This email address is already signed in from another session. Please sign in with a different email address or sign out from the other session first.');
+            this._submitting = false;
+            return;
+        }
+        
         // Check if email is in valid list (only when voting in a restricted poll)
         if (this.currentPage === 'vote' && this.pollData && this.pollData.requireAuth && 
             this.pollData.validEmails.length > 0 && !this.pollData.validEmails.includes(email)) {
@@ -741,6 +768,10 @@ class QuickPollEmailApp {
         // Store user data
         this.currentUser = userData;
         localStorage.setItem('currentUser', JSON.stringify(userData));
+        
+        // Create session record to track active sessions
+        const sessionKey = `userSession_${email}`;
+        localStorage.setItem(sessionKey, JSON.stringify(userData));
         
         // Update UI
         this.updateUserInterface();
@@ -1403,10 +1434,12 @@ class QuickPollEmailApp {
     updateUserInterface() {
         const userInfo = document.getElementById('user-info');
         const userEmail = document.getElementById('user-email');
+        const signInBtn = document.getElementById('sign-in-btn');
 
         if (this.currentUser) {
             userEmail.textContent = this.currentUser.name || this.currentUser.email;
             userInfo.style.display = 'flex';
+            if (signInBtn) signInBtn.style.display = 'none';
             
             // Re-attach sign out button event listener to ensure it works
             const signOutBtn = document.getElementById('sign-out-btn');
@@ -1417,6 +1450,7 @@ class QuickPollEmailApp {
             }
         } else {
             userInfo.style.display = 'none';
+            if (signInBtn) signInBtn.style.display = 'block';
         }
         
         // Update auth requirement notes if visible
@@ -1441,6 +1475,12 @@ class QuickPollEmailApp {
     }
 
     signOut() {
+        // Remove session record for this user
+        if (this.currentUser && this.currentUser.email) {
+            const sessionKey = `userSession_${this.currentUser.email}`;
+            localStorage.removeItem(sessionKey);
+        }
+        
         // Clear user data
         this.currentUser = null;
         localStorage.removeItem('currentUser');
@@ -1500,6 +1540,38 @@ class QuickPollEmailApp {
                 }
             }
         }
+    }
+
+    isEmailAlreadyInUse(email) {
+        // Check if current user is already signed in with this email
+        if (this.currentUser && this.currentUser.email === email) {
+            return false; // Same user trying to sign in again, allow it
+        }
+        
+        // Check localStorage for any existing user sessions with this email
+        // We'll use a simple approach: check if there's a session timestamp for this email
+        // that's recent (within the last 24 hours)
+        const sessionKey = `userSession_${email}`;
+        const existingSession = localStorage.getItem(sessionKey);
+        
+        if (existingSession) {
+            try {
+                const sessionData = JSON.parse(existingSession);
+                const sessionTime = new Date(sessionData.signedInAt);
+                const now = new Date();
+                const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
+                
+                // Consider session active if it's less than 24 hours old
+                if (hoursDiff < 24) {
+                    return true; // Email is already in use
+                }
+            } catch (error) {
+                // Invalid session data, remove it
+                localStorage.removeItem(sessionKey);
+            }
+        }
+        
+        return false; // Email is not in use
     }
 }
 
