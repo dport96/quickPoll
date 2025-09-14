@@ -422,4 +422,38 @@ function calculateRankingResults(votes, options) {
   return { options: results };
 }
 
+// GET /api/votes/status - Check if current user has voted
+router.get('/status', async (req, res) => {
+  try {
+    const memoryStore = req.memoryStore;
+    const sessionId = req.sessionID;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    
+    // Get voter identifier from query params (for authenticated users)
+    const voterIdentifier = req.query.voterIdentifier;
+    
+    // Check if there's an active poll
+    const poll = await memoryStore.getCurrentPoll();
+    if (!poll) {
+      return res.status(404).json({ error: 'No active poll found' });
+    }
+
+    // Determine identifier to check
+    const identifier = voterIdentifier || sessionId || ipAddress;
+    
+    // Check if user has voted
+    const existingVote = await memoryStore.hasVoted(identifier);
+    
+    res.json({
+      success: true,
+      hasVoted: !!existingVote,
+      voteId: existingVote ? existingVote.id : null,
+      submittedAt: existingVote ? existingVote.createdAt : null
+    });
+  } catch (error) {
+    console.error('Error checking vote status:', error);
+    res.status(500).json({ error: 'Failed to check vote status' });
+  }
+});
+
 module.exports = router;

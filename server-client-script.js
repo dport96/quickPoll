@@ -404,15 +404,22 @@ class QuickPollServerApp extends QuickPollEmailApp {
         if (confirmed) {
             try {
                 // Update poll on server - using single poll endpoint without ID
+                const requestBody = {
+                    isClosed: true,
+                    closedAt: new Date().toISOString()
+                };
+
+                // Include user identifier for authorization
+                if (this.currentUser && this.currentUser.email) {
+                    requestBody.requestedBy = this.currentUser.email;
+                }
+
                 const response = await fetch(`${this.apiUrl}/polls`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        isClosed: true,
-                        closedAt: new Date().toISOString()
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (!response.ok) {
@@ -1292,20 +1299,77 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Handle creating a new poll
-    createNewPoll() {
-        // Navigate to the create poll page
-        this.showPage('create');
-        
-        // Clear any existing poll data so we start fresh
-        this.pollData = null;
-        
-        // Update UI to reflect no active poll
-        this.hideActivePollNotice();
-        
-        // Show success message
-        setTimeout(() => {
-            alert('Ready to create a new poll! The previous poll has been closed.');
-        }, 100);
+    async createNewPoll() {
+        try {
+            // First check if there's an active poll
+            const response = await fetch(`${this.apiUrl}/polls/current`);
+            
+            if (response.ok) {
+                // There's an active poll, determine where to redirect
+                const data = await response.json();
+                const activePoll = data.poll;
+                
+                // Check if current user is the creator
+                const isCreatorOfActivePoll = this.currentUser 
+                    ? this.currentUser.email === activePoll.createdBy
+                    : activePoll.createdBy === 'anonymous';
+                
+                if (isCreatorOfActivePoll) {
+                    // Creator should go to results page to manage their poll
+                    this.showPage('results');
+                    return;
+                }
+                
+                // For non-creators, check if they've voted
+                const voterIdentifier = this.currentUser ? this.currentUser.email : null;
+                const voteStatusUrl = voterIdentifier 
+                    ? `${this.apiUrl}/votes/status?voterIdentifier=${encodeURIComponent(voterIdentifier)}`
+                    : `${this.apiUrl}/votes/status`;
+                
+                const voteStatusResponse = await fetch(voteStatusUrl);
+                
+                if (voteStatusResponse.ok) {
+                    const voteStatus = await voteStatusResponse.json();
+                    
+                    if (voteStatus.hasVoted) {
+                        // User has voted, show results
+                        this.showPage('results');
+                    } else {
+                        // User hasn't voted, show voting page
+                        this.showPage('vote');
+                    }
+                } else {
+                    // If we can't check vote status, default to voting page
+                    this.showPage('vote');
+                }
+                
+                return;
+            } else if (response.status === 404) {
+                // No active poll, proceed with creating new poll
+                this.showPage('create');
+                
+                // Clear any existing poll data so we start fresh
+                this.pollData = null;
+                
+                // Update UI to reflect no active poll
+                this.hideActivePollNotice();
+                
+                // Show success message
+                setTimeout(() => {
+                    alert('Ready to create a new poll!');
+                }, 100);
+            } else {
+                // Handle other errors
+                console.error('Error checking for active poll:', response.statusText);
+                alert('Error checking for active polls. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error in createNewPoll:', error);
+            // If there's an error, default to create page
+            this.showPage('create');
+            this.pollData = null;
+            this.hideActivePollNotice();
+        }
     }
 
     // Generate QR code for the voting URL

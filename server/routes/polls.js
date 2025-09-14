@@ -261,7 +261,7 @@ router.get('/results', async (req, res) => {
 router.put('/', async (req, res) => {
   try {
     console.log('📝 Poll update attempt:', req.body);
-    const { title, description, expiresAt, isClosed, closedAt } = req.body;
+    const { title, description, expiresAt, isClosed, closedAt, requestedBy } = req.body;
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
 
@@ -271,10 +271,28 @@ router.put('/', async (req, res) => {
       return res.status(404).json({ error: 'No active poll found' });
     }
 
-    console.log('🔐 Checking authorization - poll.sessionId:', poll.sessionId, 'req.sessionID:', sessionId);
+    console.log('🔐 Checking authorization - poll.createdBy:', poll.createdBy, 'poll.sessionId:', poll.sessionId, 'req.sessionID:', sessionId, 'requestedBy:', requestedBy);
     
-    // Check if user owns this poll
-    if (poll.sessionId !== sessionId) {
+    // Check authorization: 
+    // 1. For authenticated users: match email address
+    // 2. For anonymous users: match session ID
+    let isAuthorized = false;
+    
+    if (requestedBy) {
+      // User provided their email, check if they created this poll
+      isAuthorized = poll.createdBy === requestedBy;
+      console.log('🔐 Email-based authorization check:', isAuthorized);
+    } else if (poll.createdBy && poll.createdBy.startsWith('anonymous-')) {
+      // Anonymous poll, check session ID
+      isAuthorized = poll.sessionId === sessionId;
+      console.log('🔐 Session-based authorization check:', isAuthorized);
+    } else {
+      // Fallback to session check
+      isAuthorized = poll.sessionId === sessionId;
+      console.log('🔐 Fallback session-based authorization check:', isAuthorized);
+    }
+    
+    if (!isAuthorized) {
       console.log('❌ Authorization failed - user does not own this poll');
       return res.status(403).json({ error: 'Not authorized to update this poll' });
     }

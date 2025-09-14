@@ -93,7 +93,14 @@ class QuickPollEmailApp {
         const createNewPollBtn = document.getElementById('create-new-poll-btn');
         if (createNewPollBtn) {
             createNewPollBtn.replaceWith(createNewPollBtn.cloneNode(true));
-            document.getElementById('create-new-poll-btn').addEventListener('click', () => this.createNewPoll());
+            document.getElementById('create-new-poll-btn').addEventListener('click', async () => {
+                try {
+                    await this.createNewPoll();
+                } catch (error) {
+                    console.error('Error creating new poll:', error);
+                    alert('Error creating new poll. Please try again.');
+                }
+            });
         }
 
         // Modal click outside to close
