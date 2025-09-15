@@ -264,6 +264,64 @@ class QuickPollEmailApp {
         }
     }
 
+    // Refresh the current page content after sign-in to clear any cached data
+    refreshCurrentPage() {
+        console.log('Refreshing current page:', this.currentPage);
+        
+        // Clear any cached poll data that might be outdated
+        // (but preserve poll data if we're viewing a specific poll)
+        
+        switch (this.currentPage) {
+            case 'vote':
+                // Re-render the vote page with updated user context
+                this.renderVotePage();
+                break;
+                
+            case 'results':
+                // Re-render results page with updated user context
+                this.renderResultsPage();
+                break;
+                
+            case 'create':
+                // Update create page UI to reflect signed-in state
+                this.updateCreatePageForSignedInUser();
+                break;
+                
+            case 'landing':
+                // Landing page might need to check for active polls again
+                this.updateLandingPageForSignedInUser();
+                break;
+                
+            case 'poll-created':
+                // Poll created page may need user context updates
+                this.updatePollCreatedPageForSignedInUser();
+                break;
+                
+            default:
+                console.log('No specific refresh action for page:', this.currentPage);
+        }
+    }
+
+    // Helper methods for page-specific refresh logic
+    updateCreatePageForSignedInUser() {
+        // Re-load saved email lists and update any authentication-related UI
+        this.loadSavedEmailList();
+        
+        // Update authentication requirement notes
+        this.updateAuthRequirementNotes();
+    }
+
+    updateLandingPageForSignedInUser() {
+        // Landing page updates are handled by the inherited class
+        // Base implementation - override in server-client-script.js if needed
+        console.log('Landing page refresh for signed-in user');
+    }
+
+    updatePollCreatedPageForSignedInUser() {
+        // Update any user-specific elements on the poll created page
+        console.log('Poll created page refresh for signed-in user');
+    }
+
     showCreatePage(type = null) {
         // Require authentication for poll creation
         if (!this.currentUser) {
@@ -566,7 +624,6 @@ class QuickPollEmailApp {
                         <p>This poll has been closed by the creator and is no longer accepting votes.</p>
                         <p><small>Closed on: ${new Date(this.pollData.closedAt).toLocaleString()}</small></p>
                         <div class="form-actions">
-                            <button onclick="location.href='/results/${this.pollData.id}'" class="btn btn-primary">View Results</button>
                             <button onclick="location.href='/'" class="btn btn-secondary">Go Home</button>
                         </div>
                     </div>
@@ -790,10 +847,8 @@ class QuickPollEmailApp {
             document.getElementById('email-auth-form').reset();
         }, 100);
         
-        // If on voting page, refresh the content
-        if (this.currentPage === 'vote') {
-            this.renderVotePage();
-        }
+        // Refresh the current page content to ensure no cached data
+        this.refreshCurrentPage();
         
         // Reset submitting flag
         this._submitting = false;
@@ -1497,6 +1552,9 @@ class QuickPollEmailApp {
         
         // Always redirect to landing page after sign out
         this.showPage('landing');
+        
+        // Refresh the current page to clear any cached/stale data
+        this.refreshCurrentPage();
         
         // If on a voting page that requires auth, redirect to show auth modal
         if (this.currentPage === 'vote' && this.pollData && this.pollData.requireAuth) {

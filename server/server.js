@@ -175,6 +175,12 @@ app.get('/results', (req, res) => {
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 
+// Poll created success page
+app.get('/created', (req, res) => {
+  // Serve the main HTML file - the frontend will handle the routing
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

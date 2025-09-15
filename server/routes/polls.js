@@ -49,6 +49,7 @@ router.get('/current', async (req, res) => {
   try {
     const memoryStore = req.memoryStore;
     const poll = await memoryStore.getCurrentPoll();
+    const includeClosed = req.query.includeClosed === 'true';
 
     if (!poll) {
       return res.status(404).json({ error: 'No active poll found' });
@@ -57,6 +58,11 @@ router.get('/current', async (req, res) => {
     // Check if poll has expired
     if (poll.expiresAt && new Date(poll.expiresAt) < new Date()) {
       return res.status(410).json({ error: 'Poll has expired' });
+    }
+
+    // Check if poll is closed (only reject if includeClosed is false)
+    if (poll.isClosed && !includeClosed) {
+      return res.status(410).json({ error: 'Poll has been closed' });
     }
 
     // Get vote count
@@ -242,7 +248,9 @@ router.get('/results', async (req, res) => {
         options: poll.options,
         createdAt: poll.createdAt,
         createdBy: poll.createdBy,
-        creatorName: poll.creatorName
+        creatorName: poll.creatorName,
+        isClosed: poll.isClosed || false,
+        closedAt: poll.closedAt || null
       },
       results: {
         ...results,
