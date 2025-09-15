@@ -52,6 +52,23 @@ class QuickPollServerApp extends QuickPollEmailApp {
         this.checkExistingAuth();
     }
 
+    // Override showPage to add focus to poll title when showing create page
+    showPage(pageId) {
+        // Call parent method first
+        super.showPage(pageId);
+        
+        // Add focus to poll title input when showing create page
+        if (pageId === 'create') {
+            // Use setTimeout to ensure the page is fully displayed before focusing
+            setTimeout(() => {
+                const pollTitleInput = document.getElementById('poll-title');
+                if (pollTitleInput) {
+                    pollTitleInput.focus();
+                }
+            }, 100);
+        }
+    }
+
     async initializeServerConnection() {
         try {
             // Test server connection
@@ -391,9 +408,18 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 // Set up the poll created page with poll data
                 await this.displayPollCreatedPage();
                 this.showPage('poll-created');
+            } else if (response.status === 404) {
+                // No poll found, but stay on created page and show create new poll option
+                console.log('No poll found - showing create new poll option');
+                this.pollData = null;
+                this.currentPage = 'poll-created';
+                
+                // Set up the poll created page without poll data
+                await this.displayPollCreatedPage();
+                this.showPage('poll-created');
             } else {
-                // No poll found, redirect to landing page
-                console.error('No poll found for created page');
+                // Other error, redirect to landing page
+                console.error('Error loading poll for created page:', response.status);
                 window.location.href = '/';
             }
         } catch (error) {
@@ -409,17 +435,51 @@ class QuickPollServerApp extends QuickPollEmailApp {
         const votingUrl = `${window.location.origin}/vote`;
         const resultsUrl = `${window.location.origin}/results`;
 
-        // Update URL fields
+        // Update URL fields if they exist and we have poll data
         const votingLinkElement = document.getElementById('voting-link');
         const resultsLinkElement = document.getElementById('results-link');
-        if (votingLinkElement) votingLinkElement.value = votingUrl;
-        if (resultsLinkElement) resultsLinkElement.value = resultsUrl;
+        if (this.pollData) {
+            // We have poll data, show the links
+            if (votingLinkElement) {
+                votingLinkElement.value = votingUrl;
+                votingLinkElement.style.display = 'block';
+            }
+            if (resultsLinkElement) {
+                resultsLinkElement.value = resultsUrl;
+                resultsLinkElement.style.display = 'block';
+            }
+            
+            // Generate QR code for voting URL
+            await this.generateQRCode(votingUrl);
+        } else {
+            // No poll data, hide the link fields
+            if (votingLinkElement) {
+                votingLinkElement.style.display = 'none';
+            }
+            if (resultsLinkElement) {
+                resultsLinkElement.style.display = 'none';
+            }
+            
+            // Hide QR code section
+            const qrSection = document.querySelector('.qr-code-section');
+            if (qrSection) {
+                qrSection.style.display = 'none';
+            }
+        }
+        
+        // Show/hide close poll button based on creator status and poll state
+        const closePollBtn = document.getElementById('close-poll');
+        if (closePollBtn) {
+            // Only show close button if there's a poll, user is creator, AND poll is not closed
+            if (this.pollData && this.isCreator() && !this.pollData.isClosed) {
+                closePollBtn.style.display = 'inline-block';
+            } else {
+                closePollBtn.style.display = 'none';
+            }
+        }
         
         // Handle create new poll button visibility and event listener
         this.setupCreateNewPollButton();
-        
-        // Generate QR code for voting URL
-        await this.generateQRCode(votingUrl);
     }
 
     // Override the poll creation method for server-side storage
@@ -1212,6 +1272,26 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 // Update poll data with the changes
                 Object.assign(this.pollData, data.updates);
                 
+                // If on vote page, refresh to show updated poll status
+                if (this.currentPage === 'vote') {
+                    await this.refreshVotePage();
+                    
+                    // Show notification if poll was closed
+                    if (data.updates.isClosed) {
+                        this.showRealTimeNotification('Poll has been closed!');
+                    }
+                }
+                
+                // If on created page, refresh to show updated buttons and status
+                if (this.currentPage === 'poll-created') {
+                    await this.displayPollCreatedPage();
+                    
+                    // Show notification if poll was closed
+                    if (data.updates.isClosed) {
+                        this.showRealTimeNotification('Poll has been closed!');
+                    }
+                }
+                
                 // If on results page, re-render to show updated status
                 if (this.currentPage === 'results') {
                     this.renderResultsPage();
@@ -1243,6 +1323,24 @@ class QuickPollServerApp extends QuickPollEmailApp {
         // If we're on the landing page, check for the new active poll
         if (this.currentPage === 'landing' || this.currentPage === 'create') {
             await this.checkForActivePoll();
+        }
+        
+        // If we're on the vote page, refresh to show the new poll
+        if (this.currentPage === 'vote') {
+            await this.refreshVotePage();
+            this.showRealTimeNotification('A new poll has been created!');
+        }
+        
+        // If we're on the created page, refresh to reflect new poll state
+        if (this.currentPage === 'poll-created') {
+            // Reload poll data and refresh the page
+            const response = await fetch(`${this.apiUrl}/polls/current?includeClosed=true`);
+            if (response.ok) {
+                const newData = await response.json();
+                this.pollData = newData.poll;
+            }
+            await this.displayPollCreatedPage();
+            this.showRealTimeNotification('A new poll has been created!');
         }
     }
 
@@ -1309,6 +1407,48 @@ class QuickPollServerApp extends QuickPollEmailApp {
         setTimeout(() => {
             notification.classList.remove('show');
         }, 3000);
+    }
+
+    // Helper method to refresh vote page when poll changes
+    async refreshVotePage() {
+        console.log('🔄 Refreshing vote page due to poll changes');
+        
+        try {
+            // Show a brief loading indicator
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.opacity = '0.7';
+            }
+            
+            // Reload current poll data (including closed polls for vote page)
+            const response = await fetch(`${this.apiUrl}/polls/current?includeClosed=true`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.pollData = data.poll;
+                
+                // Re-render the vote page with updated poll data
+                this.renderVotePage();
+                
+                console.log('✅ Vote page refreshed successfully');
+            } else if (response.status === 404) {
+                // No poll exists - show appropriate message
+                console.log('❌ No poll found during refresh');
+                this.showNoPollMessage();
+            } else {
+                throw new Error(`Failed to fetch poll: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error refreshing vote page:', error);
+            // Show error message to user
+            this.showRealTimeNotification('Unable to refresh poll data. Please reload the page.');
+        } finally {
+            // Restore opacity
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.opacity = '1';
+            }
+        }
     }
 
     // Override the parseQueryString to handle server-side loading with clean URLs
@@ -1386,8 +1526,10 @@ class QuickPollServerApp extends QuickPollEmailApp {
         const createNewPollBtn = document.getElementById('create-new-poll-btn');
         if (!createNewPollBtn) return;
 
-        // Show button only if poll is closed
-        if (this.pollData && this.pollData.isClosed) {
+        // Show button if there's no poll OR if poll is closed
+        const shouldShowButton = !this.pollData || (this.pollData && this.pollData.isClosed);
+        
+        if (shouldShowButton) {
             createNewPollBtn.style.display = 'inline-block';
             
             // Remove any existing event listener and add new one

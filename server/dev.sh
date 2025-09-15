@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "🔧 Starting QuickPoll Server in development mode..."
+echo "� Starting QuickPoll Server in development mode..."
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -13,5 +13,5 @@ if ! npm list nodemon > /dev/null 2>&1; then
     npm install --save-dev nodemon
 fi
 
-# Start in development mode with auto-reload
+# Start with nodemon
 npm run dev
