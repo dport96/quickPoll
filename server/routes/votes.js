@@ -422,7 +422,7 @@ function calculateRankingResults(votes, options) {
   return { options: results };
 }
 
-// GET /api/votes/status - Check if current user has voted
+// GET /api/votes/status - Check if current user has voted and is authorized to vote
 router.get('/status', async (req, res) => {
   try {
     const memoryStore = req.memoryStore;
@@ -444,11 +444,35 @@ router.get('/status', async (req, res) => {
     // Check if user has voted
     const existingVote = await memoryStore.hasVoted(identifier);
     
+    // Check if user is authorized to vote
+    let isAuthorized = true;
+    let authError = null;
+    
+    if (poll.requireAuth) {
+      if (!voterIdentifier) {
+        isAuthorized = false;
+        authError = 'Email authentication required';
+      } else if (poll.validEmails && poll.validEmails.length > 0) {
+        const isValidEmail = poll.validEmails.includes(voterIdentifier);
+        if (!isValidEmail) {
+          isAuthorized = false;
+          authError = 'Email not authorized';
+        }
+      }
+    }
+    
     res.json({
       success: true,
       hasVoted: !!existingVote,
+      isAuthorized: isAuthorized,
+      authError: authError,
+      canVote: isAuthorized && !existingVote,
       voteId: existingVote ? existingVote.id : null,
-      submittedAt: existingVote ? existingVote.createdAt : null
+      submittedAt: existingVote ? existingVote.createdAt : null,
+      poll: {
+        requireAuth: poll.requireAuth,
+        hasValidEmailsList: !!(poll.validEmails && poll.validEmails.length > 0)
+      }
     });
   } catch (error) {
     console.error('Error checking vote status:', error);

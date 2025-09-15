@@ -412,6 +412,35 @@ body {
     border: 1px solid #dee2e6;
 }
 
+/* Poll Status Info for Created Page */
+.poll-status-info {
+    margin: 1.5rem 0;
+}
+
+.status-box {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-box h4 {
+    margin-bottom: 1rem;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+#poll-status-content p {
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+}
+
+#poll-status-content strong {
+    color: #495057;
+}
+
 .status-indicator {
     font-weight: bold;
     padding: 0.5rem 1rem;

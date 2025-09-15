@@ -154,19 +154,9 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Clean URL routes for voting and results - for Nano ID format (6-12 alphanumeric chars)
-app.get('/vote/:pollId([A-Za-z0-9_-]{6,12})', (req, res) => {
-  // Serve the main HTML file - the frontend will handle the routing
-  res.sendFile(path.join(__dirname, '../index.html'));
-});
-
+// Clean URL routes for single-poll system
 app.get('/vote', (req, res) => {
   // Serve the main HTML file for single-poll system
-  res.sendFile(path.join(__dirname, '../index.html'));
-});
-
-app.get('/results/:pollId([A-Za-z0-9_-]{6,12})', (req, res) => {
-  // Serve the main HTML file - the frontend will handle the routing
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 
