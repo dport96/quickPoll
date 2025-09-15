@@ -12,6 +12,7 @@ require('dotenv').config();
 
 const pollRoutes = require('./routes/polls');
 const voteRoutes = require('./routes/votes');
+const authRoutes = require('./routes/auth');
 const MemoryStore = require('./storage/memoryStore');
 const { setupSocketIO } = require('./socket/socketHandler');
 
@@ -105,6 +106,7 @@ app.use(express.static(path.join(__dirname, '../')));
 // Routes
 app.use('/api/polls', pollRoutes);
 app.use('/api/votes', voteRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {

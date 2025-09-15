@@ -1,3 +1,8 @@
+# Deplpoyed at
+http://128.171.195.8:3001/
+
+ssh "Dan Port"
+
 # QuickPoll - Professional Real-time Voting Application 🚀
 
 QuickPoll is a professional web-based application that enables you to create ranking, rating, and poll voting contests with real-time results. Your audience can participate live on their mobile phones, tablets, and desktops with instant vote updates across all devices.

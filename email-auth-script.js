@@ -111,12 +111,34 @@ class QuickPollEmailApp {
         });
     }
 
-    checkExistingAuth() {
+    async checkExistingAuth() {
         // Check if user data exists in localStorage
         const userData = localStorage.getItem('currentUser');
         if (userData) {
-            this.currentUser = JSON.parse(userData);
-            this.updateUserInterface();
+            try {
+                const user = JSON.parse(userData);
+                
+                // Verify with server that this session is still valid
+                const response = await fetch(`/api/auth/status?email=${encodeURIComponent(user.email)}`);
+                const result = await response.json();
+                
+                if (result.success && result.isSignedIn) {
+                    // Session is valid on server
+                    this.currentUser = user;
+                    this.updateUserInterface();
+                } else {
+                    // Session is not valid on server, clear local data
+                    this.currentUser = null;
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem(`userSession_${user.email}`);
+                    this.updateUserInterface();
+                }
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+                // If server is unavailable, use local data
+                this.currentUser = JSON.parse(userData);
+                this.updateUserInterface();
+            }
         }
     }
 
@@ -768,7 +790,7 @@ class QuickPollEmailApp {
         };
     }
 
-    handleEmailAuth(e) {
+    async handleEmailAuth(e) {
         e.preventDefault();
         e.stopPropagation(); // Prevent event bubbling
         
@@ -800,16 +822,32 @@ class QuickPollEmailApp {
                 this._submitting = false;
                 return;
             }
+            
+            // Check server-side if email is already signed in
+            const response = await fetch(`/api/auth/signin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, name })
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                if (response.status === 409) {
+                    // Email already signed in from another session
+                    alert(result.message);
+                } else {
+                    alert(result.error || 'An error occurred during sign in. Please try again.');
+                }
+                this._submitting = false;
+                return;
+            }
+            
         } catch (error) {
             console.error('Error in handleEmailAuth:', error);
             alert('An error occurred during email validation. Please try again.');
-            this._submitting = false;
-            return;
-        }
-        
-        // Check if another user is already signed in with this email address
-        if (this.isEmailAlreadyInUse(email)) {
-            alert('This email address is already signed in from another session. Please sign in with a different email address or sign out from the other session first.');
             this._submitting = false;
             return;
         }
@@ -829,13 +867,9 @@ class QuickPollEmailApp {
             signedInAt: new Date().toISOString()
         };
         
-        // Store user data
+        // Store user data locally
         this.currentUser = userData;
         localStorage.setItem('currentUser', JSON.stringify(userData));
-        
-        // Create session record to track active sessions
-        const sessionKey = `userSession_${email}`;
-        localStorage.setItem(sessionKey, JSON.stringify(userData));
         
         // Update UI
         this.updateUserInterface();
@@ -1536,9 +1570,23 @@ class QuickPollEmailApp {
         }
     }
 
-    signOut() {
-        // Remove session record for this user
+    async signOut() {
+        // Notify server about sign out
         if (this.currentUser && this.currentUser.email) {
+            try {
+                await fetch('/api/auth/signout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: this.currentUser.email })
+                });
+            } catch (error) {
+                console.error('Error signing out from server:', error);
+                // Continue with local sign out even if server call fails
+            }
+            
+            // Remove local session record for this user
             const sessionKey = `userSession_${this.currentUser.email}`;
             localStorage.removeItem(sessionKey);
         }
