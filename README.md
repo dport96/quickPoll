@@ -1,5 +1,13 @@
+bugs:
+
+- case insensitive email
+- sign out button always visible
+- signed in check broken
+
+
 # Deplpoyed at
 http://128.171.195.8:3001/
+http://bit.ly/4n6akoH
 
 ssh "Dan Port"
 

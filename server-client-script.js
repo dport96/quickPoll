@@ -102,7 +102,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // Check if current user is the creator of the active poll
                 const isCreatorOfActivePoll = this.currentUser 
-                    ? this.currentUser.email === activePoll.createdBy
+                    ? this.currentUser.email.toLowerCase() === activePoll.createdBy.toLowerCase()
                     : activePoll.createdBy === 'anonymous';
                 
                 // If we're on the landing page and user is the poll creator, redirect to results
@@ -254,7 +254,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
     displayActivePollNotice(poll) {
         // Check if current user is the creator of the active poll
         const isCreatorOfActivePoll = this.currentUser 
-            ? this.currentUser.email === poll.createdBy
+            ? this.currentUser.email.toLowerCase() === poll.createdBy.toLowerCase()
             : poll.createdBy === 'anonymous';
             
         // Find or create notice element
@@ -1138,7 +1138,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
         if (!this.currentUser || !this.pollData.createdBy) {
             return this.pollData.createdBy === 'anonymous';
         }
-        return this.currentUser.email === this.pollData.createdBy;
+        return this.currentUser.email.toLowerCase() === this.pollData.createdBy.toLowerCase();
     }
 
     bindServerResultsEvents() {
@@ -1361,7 +1361,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             return false;
         }
         
-        return this.currentUser.email === this.pollData.createdBy;
+        return this.currentUser.email.toLowerCase() === this.pollData.createdBy.toLowerCase();
     }
 
     // Handle real-time vote updates
@@ -1395,7 +1395,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     
                     // Check if current user is the creator
                     const isCreatorOfActivePoll = this.currentUser 
-                        ? this.currentUser.email === activePoll.createdBy
+                        ? this.currentUser.email.toLowerCase() === activePoll.createdBy.toLowerCase()
                         : activePoll.createdBy === 'anonymous';
                     
                     // Update vote button if user is not the creator
@@ -1672,7 +1672,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 
                 // Check if current user is the creator
                 const isCreatorOfActivePoll = this.currentUser 
-                    ? this.currentUser.email === activePoll.createdBy
+                    ? this.currentUser.email.toLowerCase() === activePoll.createdBy.toLowerCase()
                     : activePoll.createdBy === 'anonymous';
                 
                 if (isCreatorOfActivePoll) {

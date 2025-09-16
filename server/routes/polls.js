@@ -128,7 +128,7 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
 
     // Authentication check - allow anonymous creation but track properly
     const isAnonymous = !createdBy || createdBy === 'anonymous';
-    const actualCreatedBy = isAnonymous ? `anonymous-${Date.now()}` : createdBy;
+    const actualCreatedBy = isAnonymous ? `anonymous-${Date.now()}` : createdBy.toLowerCase();
     const actualCreatorName = isAnonymous ? 'Anonymous User' : (creatorName || createdBy);
 
     const sessionId = req.sessionID;
@@ -141,7 +141,7 @@ router.post('/', validatePoll, handleValidationErrors, async (req, res) => {
       type,
       options,
       requireAuth,
-      validEmails,
+      validEmails: validEmails.map(email => email.trim().toLowerCase()),
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       sessionId,
       createdBy: actualCreatedBy,
@@ -287,8 +287,8 @@ router.put('/', async (req, res) => {
     let isAuthorized = false;
     
     if (requestedBy) {
-      // User provided their email, check if they created this poll
-      isAuthorized = poll.createdBy === requestedBy;
+      // User provided their email, check if they created this poll (case-insensitive)
+      isAuthorized = poll.createdBy.toLowerCase() === requestedBy.toLowerCase();
       console.log('🔐 Email-based authorization check:', isAuthorized);
     } else if (poll.createdBy && poll.createdBy.startsWith('anonymous-')) {
       // Anonymous poll, check session ID

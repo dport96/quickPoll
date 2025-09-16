@@ -103,7 +103,7 @@ router.post('/signout', (req, res) => {
     }
     
     // Clear express session
-    if (req.session.user && req.session.user.email === normalizedEmail) {
+    if (req.session.user && req.session.user.email && req.session.user.email.toLowerCase() === normalizedEmail) {
         req.session.destroy();
     }
     
