@@ -76,6 +76,7 @@ class MemoryStore {
       id: voteId,
       voteData,
       voterInfo,
+      voterIdentifier: voterInfo.voterIdentifier || null,  // Store at top level for easier access
       createdAt: new Date().toISOString(),
       sessionId: voterInfo.sessionId || null,
       ipAddress: voterInfo.ipAddress || null
@@ -99,6 +100,7 @@ class MemoryStore {
       // Check against session ID, IP address, or voter identifier
       return vote.sessionId === identifier || 
              vote.ipAddress === identifier || 
+             vote.voterIdentifier === identifier ||
              vote.voterInfo?.voterIdentifier === identifier ||
              (vote.voterInfo && vote.voterInfo.sessionId === identifier);
     });

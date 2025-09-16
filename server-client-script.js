@@ -52,6 +52,37 @@ class QuickPollServerApp extends QuickPollEmailApp {
         this.checkExistingAuth();
     }
 
+    async checkExistingAuth() {
+        // Check if user data exists in localStorage
+        const userData = localStorage.getItem('currentUser');
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                
+                // Verify with server that this session is still valid
+                const response = await fetch(`${this.apiUrl}/auth/status?email=${encodeURIComponent(user.email)}`);
+                const result = await response.json();
+                
+                if (result.success && result.isSignedIn) {
+                    // Session is valid on server
+                    this.currentUser = user;
+                    this.updateUserInterface();
+                } else {
+                    // Session is not valid on server, clear local data
+                    this.currentUser = null;
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem(`userSession_${user.email}`);
+                    this.updateUserInterface();
+                }
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+                // If server is unavailable, use local data
+                this.currentUser = JSON.parse(userData);
+                this.updateUserInterface();
+            }
+        }
+    }
+
     // Override showPage to add focus to poll title when showing create page
     showPage(pageId) {
         // Call parent method first

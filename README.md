@@ -1,8 +1,6 @@
 bugs:
 
-- case insensitive email
 - sign out button always visible
-- signed in check broken
 
 
 # Deplpoyed at
