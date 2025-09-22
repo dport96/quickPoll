@@ -22,8 +22,6 @@ class QuickPollEmailApp {
 
     bindEvents() {
         // Navigation events
-        document.getElementById('create-ranking-btn').addEventListener('click', () => this.showCreatePage('ranking'));
-        document.getElementById('create-rating-btn').addEventListener('click', () => this.showCreatePage('rating'));
         document.getElementById('create-poll-btn-hero').addEventListener('click', () => this.showCreatePage('simple'));
         document.getElementById('back-to-home').addEventListener('click', () => this.showPage('landing'));
 
@@ -37,14 +35,14 @@ class QuickPollEmailApp {
 
         // Form events
         document.getElementById('poll-form').addEventListener('submit', (e) => this.handleCreatePoll(e));
-        document.getElementById('add-option-btn').addEventListener('click', () => this.addOption());
-        document.getElementById('poll-type').addEventListener('change', (e) => this.handlePollTypeChange(e));
+        //document.getElementById('add-option-btn').addEventListener('click', () => this.addOption());
 
         // Auth mode change
         document.querySelectorAll('input[name="auth-mode"]').forEach(radio => {
             radio.addEventListener('change', (e) => this.handleAuthModeChange(e));
         });
 
+        /* UNUSED CODE
         // Template selection change
         document.querySelectorAll('input[name="template"]').forEach(radio => {
             radio.addEventListener('change', (e) => this.handleTemplateChange(e));
@@ -63,10 +61,12 @@ class QuickPollEmailApp {
                 this.switchToCustomTemplate();
             }
         });
+        */
 
         // Poll created page events
         const copyVotingLinkBtn = document.getElementById('copy-voting-link');
-        const copyResultsLinkBtn = document.getElementById('copy-results-link');
+        // UNUSED: Not giving out a results link to users
+        //const copyResultsLinkBtn = document.getElementById('copy-results-link');
         const viewResultsBtn = document.getElementById('view-results-now');
         const closePollBtn = document.getElementById('close-poll');
         
@@ -75,10 +75,12 @@ class QuickPollEmailApp {
             document.getElementById('copy-voting-link').addEventListener('click', () => this.copyToClipboard('voting-link'));
         }
         
+        /* UNUSED: Not giving out a results link to users
         if (copyResultsLinkBtn) {
             copyResultsLinkBtn.replaceWith(copyResultsLinkBtn.cloneNode(true));
             document.getElementById('copy-results-link').addEventListener('click', () => this.copyToClipboard('results-link'));
         }
+        */
         
         if (viewResultsBtn) {
             viewResultsBtn.replaceWith(viewResultsBtn.cloneNode(true));
@@ -172,6 +174,7 @@ class QuickPollEmailApp {
         }
     }
 
+    /* UNUSED CODE
     handleTemplateChange(e) {
         const templateValue = e.target.value;
         
@@ -221,6 +224,7 @@ class QuickPollEmailApp {
             customRadio.checked = true;
         }
     }
+    */
 
     parseQueryString() {
         const params = new URLSearchParams(window.location.search);
@@ -352,10 +356,6 @@ class QuickPollEmailApp {
         }
         
         this.showPage('create');
-        if (type) {
-            document.getElementById('poll-type').value = type;
-            this.handlePollTypeChange({ target: { value: type } });
-        }
         
         // Load saved email list for this user
         this.loadSavedEmailList();
@@ -377,12 +377,7 @@ class QuickPollEmailApp {
         }
     }
 
-    handlePollTypeChange(e) {
-        const type = e.target.value;
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.style.display = 'block';
-    }
-
+    /* UNUSED CODE
     addOption() {
         const optionsList = document.getElementById('options-list');
         const optionCount = optionsList.children.length + 1;
@@ -407,6 +402,7 @@ class QuickPollEmailApp {
             alert('You must have at least 2 options.');
         }
     }
+    */
 
     handleCreatePoll(e) {
         e.preventDefault();
@@ -420,6 +416,8 @@ class QuickPollEmailApp {
         const formData = new FormData(e.target);
         const authMode = formData.get('auth-mode');
         const validEmails = formData.get('validEmails');
+
+        alert(formData.getAll('option').filter(option => option.trim() !== ''));
         
         const pollData = {
             id: this.generateId(),
@@ -428,7 +426,7 @@ class QuickPollEmailApp {
             type: formData.get('type'),
             requireAuth: authMode === 'email',
             validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
-            options: formData.getAll('option').filter(option => option.trim() !== ''),
+            options: ['Approve', 'Oppose', 'Abstain'],
             created: new Date().toISOString(),
             createdBy: this.currentUser.email,
             creatorName: this.currentUser.name || this.currentUser.email
