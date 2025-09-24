@@ -703,8 +703,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             type: formData.get('type'),
             requireAuth: authMode === 'email',
             validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
-            //options: formData.getAll('option').filter(option => option.trim() !== ''),
-            options: ['Approve', 'Oppose', 'Abstain'],
+            options: formData.getAll('option').filter(option => option.trim() !== ''),
             createdBy: this.currentUser ? this.currentUser.email : 'anonymous'
         };
 
