@@ -180,8 +180,8 @@ class QuickPollEmailApp {
         }
 
         const templates = {
-            'yes-no': ['Yes', 'No'],
             'approve-disapprove': ['Approve', 'Disapprove', 'Abstain'],
+            'yes-no': ['Yes', 'No'],
             'agree-disagree': ['Agree', 'Disagree', 'Neutral'],
             'satisfaction': ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied']
         };
@@ -597,6 +597,51 @@ class QuickPollEmailApp {
             const filename = `poll-results-${this.pollData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.png`;
             link.download = filename;
             link.href = canvas.toDataURL('image/png');
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success message
+            alert('Results image saved successfully!');
+        } catch (error) {
+            console.error('Error saving results:', error);
+            alert('Failed to save results image. Please try again.');
+        }
+    }
+    
+    async saveResultsAsTxt() {
+        try {
+            const resultsContainer = document.getElementById('results-content');
+            if (!resultsContainer) {
+                throw new Error('Results container not found');
+            }
+            var emailsVoted = ['email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
+
+            var title = "Poll Title: " + "MyTitle";
+            var yesCount = "Yes Count: " + "52";
+            var noCount = "No Count: " + "38";
+            var abstainCount = "Abstain Count: " + "10";
+            var totalVoteCount = "Total Vote Count: " + "100";
+            var emailAddresses = "Email Address List:";
+            emailsVoted.forEach((email) => { emailAddresses += "\n" + email; });
+            var timestamp = `Results saved on ${new Date().toLocaleString()}`;
+            var text = "Poll Results:\n";
+            text += title + "\n";
+            text += yesCount + "\n";
+            text += noCount + "\n";
+            text += abstainCount + "\n";
+            text += totalVoteCount + "\n";
+            text += email-addresses + "\n";
+            text += timestamp + "\n";
+
+            // Create download link
+            const link = document.createElement('a');
+            const filename = `poll-results-${this.pollData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+            link.download = filename;
+            var blob = new Blob([text], { type: 'text/plain' });
+            link.href = URL.createObjectURL(blob);
             
             // Trigger download
             document.body.appendChild(link);
@@ -1215,6 +1260,12 @@ class QuickPollEmailApp {
         if (saveResultsBtn) {
             saveResultsBtn.addEventListener('click', () => this.saveResultsAsImage());
         }
+        
+        // Save results text button
+        const saveResultsTxtBtn = document.getElementById('save-results-txt-btn');
+        if (saveResultsTxtBtn) {
+            saveResultsTxtBtn.addEventListener('click', () => this.saveResultsAsTxt());
+        }
 
         // Sign in button
         const signInResultsBtn = document.getElementById('sign-in-results-btn');
@@ -1314,6 +1365,7 @@ class QuickPollEmailApp {
         if (this.pollData.createdBy === 'anonymous' || 
             (this.currentUser && this.currentUser.email === this.pollData.createdBy)) {
             content += `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>`;
+            content += `<button id="save-results-txt-btn" class="btn btn-success">Save Results as Txt file</button>`;
             if (!this.pollData.isClosed) {
                 content += `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>`;
             }

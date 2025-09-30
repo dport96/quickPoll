@@ -703,7 +703,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             type: formData.get('type'),
             requireAuth: authMode === 'email',
             validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
-            options: formData.getAll('option').filter(option => option.trim() !== ''),
+            options: ['Support', 'Oppose', 'Abstain'],//formData.getAll('option').filter(option => option.trim() !== ''),
             createdBy: this.currentUser ? this.currentUser.email : 'anonymous'
         };
 
@@ -902,6 +902,48 @@ class QuickPollServerApp extends QuickPollEmailApp {
             script.onerror = () => reject(new Error('Failed to load html2canvas'));
             document.head.appendChild(script);
         });
+    }
+
+    async saveResultsAsTxt() {
+        try {
+            const resultsContainer = document.getElementById('results-content');
+            if (!resultsContainer) {
+                throw new Error('Results container not found');
+            }
+            var emailsVoted = ['dummydata@hawaii.edu', 'email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
+            var yesCount = '52 (dummy data)';
+            var noCount = '38 (dummy data)';
+            var abstainCount = '10 (dummy data)';
+            var totalCount = '100 (dummy data)';
+
+            var text = 'Poll Results:\n';
+            text += `Title: ${this.pollData.title}\n`;
+            text += `Date: ${new Date(this.pollData.createdAt).toLocaleString()}\n\n`;
+            text += `Yes Count: ${yesCount}\n`;
+            text += `No Count: ${noCount}\n`;
+            text += `Abstain Count: ${abstainCount}\n`;
+            text += `Total Vote Count: ${totalCount}\n\n`;
+            text += 'List of Voters:';
+            emailsVoted.forEach(email => { text += "\n" + email; });
+
+            // Create download link
+            const link = document.createElement('a');
+            const filename = `poll-results-${this.pollData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+            link.download = filename;
+            var blob = new Blob([text], { type: 'text/plain' });
+            link.href = URL.createObjectURL(blob);
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success message
+            alert('Results file downloaded successfully!');
+        } catch (error) {
+            console.error('Error saving results:', error);
+            alert('Failed to save results txt. Please try again.');
+        }
     }
 
     // Override vote submission for server-side storage
@@ -1125,6 +1167,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 <div class="form-actions">
                     <button id="refresh-results-btn" class="btn btn-primary">Refresh Results</button>
                     ${this.isCreator() ? `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>` : ''}
+                    ${this.isCreator() ? `<button id="save-results-txt-btn" class="btn btn-success">Save Results as Txt File</button>` : ''}
                     ${this.isCreator() && !this.pollData.isClosed ? `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>` : ''}
                 </div>
             </div>
@@ -1159,6 +1202,12 @@ class QuickPollServerApp extends QuickPollEmailApp {
         const saveResultsBtn = document.getElementById('save-results-btn');
         if (saveResultsBtn) {
             saveResultsBtn.addEventListener('click', () => this.saveResultsAsImage());
+        }
+
+        // Save results txt button
+        const saveResultsTxtBtn = document.getElementById('save-results-txt-btn');
+        if (saveResultsTxtBtn) {
+            saveResultsTxtBtn.addEventListener('click', () => this.saveResultsAsTxt());
         }
 
         // Close poll button

@@ -161,7 +161,8 @@ router.get('/:pollId', async (req, res) => {
     const memoryStore = req.memoryStore;
     const sessionId = req.sessionID;
 
-    const poll = await memoryStore.getPoll(pollId);
+    // Was getPoll. Testing.
+    const poll = await memoryStore.getCurrentPoll(pollId);
     if (!poll) {
       return res.status(404).json({ error: 'Poll not found' });
     }
@@ -222,7 +223,8 @@ router.delete('/:voteId', async (req, res) => {
       return res.status(404).json({ error: 'Vote not found' });
     }
 
-    const poll = await memoryStore.getPoll(pollId);
+    // Was getPoll. Testing.
+    const poll = await memoryStore.getCurrentPoll(pollId);
     if (!poll) {
       return res.status(404).json({ error: 'Poll not found' });
     }
