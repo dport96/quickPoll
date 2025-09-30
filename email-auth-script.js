@@ -22,9 +22,12 @@ class QuickPollEmailApp {
 
     bindEvents() {
         // Navigation events
+        /* Unused: Only Support Oppose Abstain
         document.getElementById('create-ranking-btn').addEventListener('click', () => this.showCreatePage('ranking'));
         document.getElementById('create-rating-btn').addEventListener('click', () => this.showCreatePage('rating'));
         document.getElementById('create-poll-btn-hero').addEventListener('click', () => this.showCreatePage('simple'));
+        */
+        document.getElementById('create-poll-btn').addEventListener('click', () => this.showCreatePage());
         document.getElementById('back-to-home').addEventListener('click', () => this.showPage('landing'));
 
         // Auth events
@@ -37,18 +40,22 @@ class QuickPollEmailApp {
 
         // Form events
         document.getElementById('poll-form').addEventListener('submit', (e) => this.handleCreatePoll(e));
+        /* Unused: Only Support Oppose Abstain
         document.getElementById('add-option-btn').addEventListener('click', () => this.addOption());
         document.getElementById('poll-type').addEventListener('change', (e) => this.handlePollTypeChange(e));
+        */
 
         // Auth mode change
         document.querySelectorAll('input[name="auth-mode"]').forEach(radio => {
             radio.addEventListener('change', (e) => this.handleAuthModeChange(e));
         });
 
+        /* Unused: Only Support Oppose Abstain
         // Template selection change
         document.querySelectorAll('input[name="template"]').forEach(radio => {
             radio.addEventListener('change', (e) => this.handleTemplateChange(e));
         });
+        */
 
         // Option removal events
         document.addEventListener('click', (e) => {
@@ -57,12 +64,14 @@ class QuickPollEmailApp {
             }
         });
 
+        /* Unused: Only Support Oppose Abstain
         // Option input change events - switch to custom when manually edited
         document.addEventListener('input', (e) => {
             if (e.target.name === 'option') {
                 this.switchToCustomTemplate();
             }
         });
+        */
 
         // Poll created page events
         const copyVotingLinkBtn = document.getElementById('copy-voting-link');
@@ -172,6 +181,7 @@ class QuickPollEmailApp {
         }
     }
 
+    /* Unused: Only Support Oppose Abstain
     handleTemplateChange(e) {
         const templateValue = e.target.value;
         
@@ -191,7 +201,9 @@ class QuickPollEmailApp {
             this.populateOptionsFromTemplate(options);
         }
     }
+    */
 
+    /* Unused: Only Support Oppose Abstain
     populateOptionsFromTemplate(options) {
         const optionsList = document.getElementById('options-list');
         
@@ -214,13 +226,14 @@ class QuickPollEmailApp {
             this.addOption();
         }
     }
-
+    
     switchToCustomTemplate() {
         const customRadio = document.querySelector('input[name="template"][value="custom"]');
         if (customRadio && !customRadio.checked) {
             customRadio.checked = true;
         }
     }
+    */
 
     parseQueryString() {
         const params = new URLSearchParams(window.location.search);
@@ -244,7 +257,7 @@ class QuickPollEmailApp {
                 id: params.get('id'),
                 title: params.get('title'),
                 description: params.get('desc') || '',
-                type: params.get('type'),
+                type: 'simple',//params.get('type'),
                 requireAuth: params.get('auth') === 'true',
                 validEmails: params.get('emails') ? params.get('emails').split(',') : [],
                 options: []
@@ -344,7 +357,7 @@ class QuickPollEmailApp {
         console.log('Poll created page refresh for signed-in user');
     }
 
-    showCreatePage(type = null) {
+    showCreatePage() {
         // Require authentication for poll creation
         if (!this.currentUser) {
             this.showSignInForPollCreation();
@@ -352,10 +365,12 @@ class QuickPollEmailApp {
         }
         
         this.showPage('create');
+        /* Unused: Only Support Oppose Abstain
         if (type) {
             document.getElementById('poll-type').value = type;
             this.handlePollTypeChange({ target: { value: type } });
         }
+        */
         
         // Load saved email list for this user
         this.loadSavedEmailList();
@@ -377,12 +392,13 @@ class QuickPollEmailApp {
         }
     }
 
+    /* Unused: Only Support Oppose Abstain
     handlePollTypeChange(e) {
         const type = e.target.value;
         const optionsContainer = document.getElementById('options-container');
         optionsContainer.style.display = 'block';
     }
-
+    
     addOption() {
         const optionsList = document.getElementById('options-list');
         const optionCount = optionsList.children.length + 1;
@@ -407,6 +423,7 @@ class QuickPollEmailApp {
             alert('You must have at least 2 options.');
         }
     }
+    */
 
     handleCreatePoll(e) {
         e.preventDefault();
@@ -425,10 +442,10 @@ class QuickPollEmailApp {
             id: this.generateId(),
             title: formData.get('title'),
             description: formData.get('description'),
-            type: formData.get('type'),
+            type: 'simple',//formData.get('type'),
             requireAuth: authMode === 'email',
             validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
-            options: formData.getAll('option').filter(option => option.trim() !== ''),
+            options: ['Support', 'Oppose', 'Abstain'],//formData.getAll('option').filter(option => option.trim() !== ''),
             created: new Date().toISOString(),
             createdBy: this.currentUser.email,
             creatorName: this.currentUser.name || this.currentUser.email

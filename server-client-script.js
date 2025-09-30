@@ -700,7 +700,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
         const pollData = {
             title: formData.get('title'),
             description: formData.get('description'),
-            type: formData.get('type'),
+            type: 'simple',//formData.get('type'),
             requireAuth: authMode === 'email',
             validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
             options: ['Support', 'Oppose', 'Abstain'],//formData.getAll('option').filter(option => option.trim() !== ''),
