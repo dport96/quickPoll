@@ -910,18 +910,27 @@ class QuickPollServerApp extends QuickPollEmailApp {
             if (!resultsContainer) {
                 throw new Error('Results container not found');
             }
-            var emailsVoted = ['dummydata@hawaii.edu', 'email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
+            const results = this.results;
+            
+            var emailsVoted = results.voters;//['dummydata@hawaii.edu', 'email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
+            var options = results.options;
+            
             var yesCount = '52 (dummy data)';
             var noCount = '38 (dummy data)';
             var abstainCount = '10 (dummy data)';
-            var totalCount = '100 (dummy data)';
+            var totalCount = results.totalVotes;
+            var optionCounts = '';
+            options.map((option, index) => {
+                optionCounts += `${option.option} Count: ${option.votes}\n`;
+            });
 
             var text = 'Poll Results:\n';
             text += `Title: ${this.pollData.title}\n`;
             text += `Date: ${new Date(this.pollData.createdAt).toLocaleString()}\n\n`;
-            text += `Yes Count: ${yesCount}\n`;
-            text += `No Count: ${noCount}\n`;
-            text += `Abstain Count: ${abstainCount}\n`;
+            text += optionCounts;
+            //text += `Support Count: ${yesCount}\n`;
+            //text += `Oppose Count: ${noCount}\n`;
+            //text += `Abstain Count: ${abstainCount}\n`;
             text += `Total Vote Count: ${totalCount}\n\n`;
             text += 'List of Voters:';
             emailsVoted.forEach(email => { text += "\n" + email; });
