@@ -914,26 +914,27 @@ class QuickPollServerApp extends QuickPollEmailApp {
             
             var emailsVoted = results.voters;//['dummydata@hawaii.edu', 'email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
             var options = results.options;
+
+            // TODO: Options are stored as arrays with Support, Oppose etc as attributes rather than keys.
+            // Should fix. Options will only every be support oppose abstain. Reduces code complexity and
+            // increases readability.
+            var supportPercent = 100.0 * options[0].votes / (options[0].votes + options[1].votes);
+            var opposePercent = 100.0 * options[1].votes / (options[0].votes + options[1].votes);
             
-            var yesCount = '52 (dummy data)';
-            var noCount = '38 (dummy data)';
-            var abstainCount = '10 (dummy data)';
             var totalCount = results.totalVotes;
             var optionCounts = '';
             options.map((option, index) => {
                 optionCounts += `${option.option} Count: ${option.votes}\n`;
             });
 
-            var text = 'Poll Results:\n';
-            text += `Title: ${this.pollData.title}\n`;
+            var text = `Poll Title: ${this.pollData.title}\n`;
             text += `Date: ${new Date(this.pollData.createdAt).toLocaleString()}\n\n`;
             text += optionCounts;
-            //text += `Support Count: ${yesCount}\n`;
-            //text += `Oppose Count: ${noCount}\n`;
-            //text += `Abstain Count: ${abstainCount}\n`;
+            text += `Support Percent: ${supportPercent}%\n`;
+            text += `Oppose Percent: ${opposePercent}%\n\n`;
             text += `Total Vote Count: ${totalCount}\n\n`;
             text += 'List of Voters:';
-            emailsVoted.forEach(email => { text += "\n" + email; });
+            emailsVoted.forEach(voter => { text += "\n" + voter.email; });
 
             // Create download link
             const link = document.createElement('a');
@@ -960,6 +961,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
         // First, collect the vote data using the parent's logic
         let voteData = {};
 
+        // TODO: Remove pollData type
         if (this.pollData.type === 'simple') {
             const selected = document.querySelector('.poll-option.selected');
             if (!selected) {
@@ -1006,6 +1008,8 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
         // Now submit to the server
         this.submitVoteAsync(voteData);
+
+        
     }
 
     async submitVoteAsync(voteData) {
@@ -1022,7 +1026,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             
             if (response.success) {
                 alert('Your vote has been submitted!');
-                
+
                 // Redirect to results page using clean URL
                 window.location.href = `/results`;
             } else {
@@ -1080,7 +1084,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error( errorData);
+            console.error(errorData);
             throw new Error(errorData.error || 'Server error');
         }
 
@@ -1110,7 +1114,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Override renderResultsPage for server-side storage
-    renderResultsPage() {
+    renderResultsPage2() {
         const container = document.getElementById('results-content');
         
         if (!this.pollData) {

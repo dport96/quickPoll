@@ -22,11 +22,6 @@ class QuickPollEmailApp {
 
     bindEvents() {
         // Navigation events
-        /* Unused: Only Support Oppose Abstain
-        document.getElementById('create-ranking-btn').addEventListener('click', () => this.showCreatePage('ranking'));
-        document.getElementById('create-rating-btn').addEventListener('click', () => this.showCreatePage('rating'));
-        document.getElementById('create-poll-btn-hero').addEventListener('click', () => this.showCreatePage('simple'));
-        */
         document.getElementById('create-poll-btn').addEventListener('click', () => this.showCreatePage());
         document.getElementById('back-to-home').addEventListener('click', () => this.showPage('landing'));
 
@@ -40,22 +35,11 @@ class QuickPollEmailApp {
 
         // Form events
         document.getElementById('poll-form').addEventListener('submit', (e) => this.handleCreatePoll(e));
-        /* Unused: Only Support Oppose Abstain
-        document.getElementById('add-option-btn').addEventListener('click', () => this.addOption());
-        document.getElementById('poll-type').addEventListener('change', (e) => this.handlePollTypeChange(e));
-        */
 
         // Auth mode change
         document.querySelectorAll('input[name="auth-mode"]').forEach(radio => {
             radio.addEventListener('change', (e) => this.handleAuthModeChange(e));
         });
-
-        /* Unused: Only Support Oppose Abstain
-        // Template selection change
-        document.querySelectorAll('input[name="template"]').forEach(radio => {
-            radio.addEventListener('change', (e) => this.handleTemplateChange(e));
-        });
-        */
 
         // Option removal events
         document.addEventListener('click', (e) => {
@@ -63,15 +47,6 @@ class QuickPollEmailApp {
                 this.removeOption(e.target);
             }
         });
-
-        /* Unused: Only Support Oppose Abstain
-        // Option input change events - switch to custom when manually edited
-        document.addEventListener('input', (e) => {
-            if (e.target.name === 'option') {
-                this.switchToCustomTemplate();
-            }
-        });
-        */
 
         // Poll created page events
         const copyVotingLinkBtn = document.getElementById('copy-voting-link');
@@ -180,60 +155,6 @@ class QuickPollEmailApp {
             }
         }
     }
-
-    /* Unused: Only Support Oppose Abstain
-    handleTemplateChange(e) {
-        const templateValue = e.target.value;
-        
-        if (templateValue === 'custom') {
-            return; // Don't change anything for custom
-        }
-
-        const templates = {
-            'approve-disapprove': ['Approve', 'Disapprove', 'Abstain'],
-            'yes-no': ['Yes', 'No'],
-            'agree-disagree': ['Agree', 'Disagree', 'Neutral'],
-            'satisfaction': ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied']
-        };
-
-        const options = templates[templateValue];
-        if (options) {
-            this.populateOptionsFromTemplate(options);
-        }
-    }
-    */
-
-    /* Unused: Only Support Oppose Abstain
-    populateOptionsFromTemplate(options) {
-        const optionsList = document.getElementById('options-list');
-        
-        // Clear existing options
-        optionsList.innerHTML = '';
-        
-        // Add new options from template
-        options.forEach((option, index) => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'option-input';
-            optionDiv.innerHTML = `
-                <input type="text" name="option" placeholder="Option ${index + 1}" value="${option}" required>
-                <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
-            `;
-            optionsList.appendChild(optionDiv);
-        });
-        
-        // Ensure minimum 2 options
-        while (optionsList.children.length < 2) {
-            this.addOption();
-        }
-    }
-    
-    switchToCustomTemplate() {
-        const customRadio = document.querySelector('input[name="template"][value="custom"]');
-        if (customRadio && !customRadio.checked) {
-            customRadio.checked = true;
-        }
-    }
-    */
 
     parseQueryString() {
         const params = new URLSearchParams(window.location.search);
@@ -365,12 +286,6 @@ class QuickPollEmailApp {
         }
         
         this.showPage('create');
-        /* Unused: Only Support Oppose Abstain
-        if (type) {
-            document.getElementById('poll-type').value = type;
-            this.handlePollTypeChange({ target: { value: type } });
-        }
-        */
         
         // Load saved email list for this user
         this.loadSavedEmailList();
@@ -391,39 +306,6 @@ class QuickPollEmailApp {
             window.location.href = `/results/${pollId}`;
         }
     }
-
-    /* Unused: Only Support Oppose Abstain
-    handlePollTypeChange(e) {
-        const type = e.target.value;
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.style.display = 'block';
-    }
-    
-    addOption() {
-        const optionsList = document.getElementById('options-list');
-        const optionCount = optionsList.children.length + 1;
-        
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'option-input';
-        optionDiv.innerHTML = `
-            <input type="text" name="option" placeholder="Option ${optionCount}" required>
-            <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
-        `;
-        
-        optionsList.appendChild(optionDiv);
-        this.switchToCustomTemplate();
-    }
-
-    removeOption(button) {
-        const optionsList = document.getElementById('options-list');
-        if (optionsList.children.length > 2) {
-            button.parentElement.remove();
-            this.switchToCustomTemplate();
-        } else {
-            alert('You must have at least 2 options.');
-        }
-    }
-    */
 
     handleCreatePoll(e) {
         e.preventDefault();
@@ -564,6 +446,7 @@ class QuickPollEmailApp {
         }, 100);
     }
 
+/* Unused: In server-client-script.js
     async saveResultsAsImage() {
         try {
             // Load html2canvas library if not already loaded
@@ -682,6 +565,7 @@ class QuickPollEmailApp {
             document.head.appendChild(script);
         });
     }
+*/
 
     renderVotePage() {
         const container = document.getElementById('vote-content');
@@ -1179,6 +1063,7 @@ class QuickPollEmailApp {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
+  /* Unused: Overridden in server-client-script.js
     submitVote() {
         let voteData = {};
 
@@ -1247,6 +1132,7 @@ class QuickPollEmailApp {
         const resultsLink = `/results/${this.pollData.id}`;
         window.location.href = resultsLink;
     }
+  */
 
     bindResultsEvents() {
         // Home navigation buttons

@@ -76,11 +76,6 @@
                         </div>
                         
                         <div class="hero-buttons">
-                        <!-- Unused: Only Support Oppose Abstain
-                            <button id="create-ranking-btn" class="btn btn-large btn-primary">Create Ranking Poll</button>
-                            <button id="create-rating-btn" class="btn btn-large btn-primary">Create Rating Poll</button>
-                            <button id="create-poll-btn-hero" class="btn btn-large btn-primary">Create Simple Poll</button>
-                        -->
                             <button id="create-poll-btn" class="btn btn-large btn-primary">Create Simple Poll</button>
                         </div>
                     </div>
@@ -101,17 +96,6 @@
                             <label for="poll-description">Description (Optional)</label>
                             <textarea id="poll-description" name="description" placeholder="Enter poll description"></textarea>
                         </div>
-
-                        <!-- Unused: Only Support Oppose Abstain
-                        <div class="form-group">
-                            <label for="poll-type">Poll Type</label>
-                            <select id="poll-type" name="type" required>
-                                <option value="simple">Simple Poll (Yes/No or Multiple Choice)</option>
-                                <option value="rating">Rating Poll (1-5 stars)</option>
-                                <option value="ranking">Ranking Poll (Drag to rank)</option>
-                            </select>
-                        </div>
-                        -->
 
                         <!-- Authentication Settings -->
                         <div class="form-group">
@@ -144,51 +128,6 @@
                                      placeholder="Enter email addresses (one per line)&#10;user1@example.com&#10;user2@example.com&#10;&#10;Leave empty to allow any email address"></textarea>
                             <small class="help-text">If specified, only these email addresses will be allowed to vote. Leave empty to allow any email.</small>
                         </div>
-
-                        <!-- Unused: Only Support Oppose Abstain
-                        <div id="options-container" class="form-group">
-                            <label>Options</label>
-                            
-                            <!-- Template Options --
-                            <div class="template-options">
-                                <label class="template-label">Quick Templates:</label>
-                                <div class="template-buttons">
-                                    <label class="radio-option template-option">
-                                        <input type="radio" name="template" value="custom" checked>
-                                        <span>Custom Options</span>
-                                    </label>
-                                    <label class="radio-option template-option">
-                                        <input type="radio" name="template" value="yes-no">
-                                        <span>Yes / No</span>
-                                    </label>
-                                    <label class="radio-option template-option">
-                                        <input type="radio" name="template" value="approve-disapprove">
-                                        <span>Approve / Disapprove / Abstain</span>
-                                    </label>
-                                    <label class="radio-option template-option">
-                                        <input type="radio" name="template" value="agree-disagree">
-                                        <span>Agree / Disagree / Neutral</span>
-                                    </label>
-                                    <label class="radio-option template-option">
-                                        <input type="radio" name="template" value="satisfaction">
-                                        <span>Very Satisfied / Satisfied / Neutral / Dissatisfied / Very Dissatisfied</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div id="options-list">
-                                <div class="option-input">
-                                    <input type="text" name="option" placeholder="Option 1" required>
-                                    <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
-                                </div>
-                                <div class="option-input">
-                                    <input type="text" name="option" placeholder="Option 2" required>
-                                    <button type="button" class="btn btn-small btn-danger remove-option">Remove</button>
-                                </div>
-                            </div>
-                            <button type="button" id="add-option-btn" class="btn btn-small btn-secondary">Add Option</button>
-                        </div>
-                        -->
 
                         <div class="form-actions">
                             <button type="button" id="back-to-home" class="btn btn-secondary">Back</button>

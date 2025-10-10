@@ -89,6 +89,8 @@ class MemoryStore {
 
   // Get all votes for current poll
   async getVotesForPoll() {
+    console.log(Array.from(this.votes.values()));
+    console.log(this.votes);
     return Array.from(this.votes.values());
   }
 

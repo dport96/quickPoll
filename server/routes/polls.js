@@ -227,10 +227,10 @@ router.get('/results', async (req, res) => {
     let voters = [];
     if (poll.requireAuth) {
       voters = votes
-        .filter(vote => vote.voterIdentifier) // Only authenticated votes
+        .filter(vote => vote.voterInfo.voterIdentifier) // Only authenticated votes
         .map(vote => ({
           id: vote.id,
-          email: vote.voterIdentifier,
+          email: vote.voterInfo.voterIdentifier,
           name: vote.voterInfo?.name || '',
           submittedAt: vote.createdAt
         }))
