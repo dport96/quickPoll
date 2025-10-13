@@ -702,7 +702,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             description: formData.get('description'),
             type: 'simple',//formData.get('type'),
             requireAuth: authMode === 'email',
-            validEmails: validEmails ? validEmails.split('\n').map(email => email.trim()).filter(email => email) : [],
+            validEmails: validEmails ? validEmails.split('\n').map(email => email.trim().toLowerCase()).filter(email => email) : [],
             options: ['Support', 'Oppose', 'Abstain'],//formData.getAll('option').filter(option => option.trim() !== ''),
             createdBy: this.currentUser ? this.currentUser.email : 'anonymous'
         };
@@ -912,14 +912,15 @@ class QuickPollServerApp extends QuickPollEmailApp {
             }
             const results = this.results;
             
-            var emailsVoted = results.voters;//['dummydata@hawaii.edu', 'email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
-            var options = results.options;
+            const emailsVoted = results.voters;//['dummydata@hawaii.edu', 'email1@hawaii.edu', 'email2@hawaii.edu', 'test@hawaii.edu'];
+            const options = results.options;
 
             // TODO: Options are stored as arrays with Support, Oppose etc as attributes rather than keys.
             // Should fix. Options will only every be support oppose abstain. Reduces code complexity and
             // increases readability.
-            var supportPercent = 100.0 * options[0].votes / (options[0].votes + options[1].votes);
-            var opposePercent = 100.0 * options[1].votes / (options[0].votes + options[1].votes);
+            var totalSupportOppose = options[0].votes + options[1].votes;
+            var supportPercent = totalSupportOppose > 0 ? (100.0 * options[0].votes / totalSupportOppose) : 0;
+            var opposePercent = totalSupportOppose > 0 ? (100.0 * options[1].votes / totalSupportOppose) : 0;
             
             var totalCount = results.totalVotes;
             var optionCounts = '';
@@ -969,7 +970,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
                 return;
             }
             voteData = { option: parseInt(selected.dataset.value) };
-        } else if (this.pollData.type === 'rating') {
+        }
+        /* TODO: Remove these, only Support Oppose Abstain
+        else if (this.pollData.type === 'rating') {
             const ratings = {};
             const starsContainers = document.querySelectorAll('.stars');
             let hasRating = false;
@@ -1005,6 +1008,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             console.log('🔀 Final ranking data:', ranking);
             voteData = { rankings: ranking }; // Server expects 'rankings' not 'ranking'
         }
+        */
 
         // Now submit to the server
         this.submitVoteAsync(voteData);
@@ -1027,8 +1031,9 @@ class QuickPollServerApp extends QuickPollEmailApp {
             if (response.success) {
                 alert('Your vote has been submitted!');
 
-                // Redirect to results page using clean URL
-                window.location.href = `/results`;
+                // Do not redirect users! We want them to only have to scan once, and polls to pop up on their screen!
+                // OLD: Redirect to results page using clean URL
+                //window.location.href = `/results`;
             } else {
                 throw new Error(response.error || 'Failed to submit vote');
             }
@@ -1114,7 +1119,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
     }
 
     // Override renderResultsPage for server-side storage
-    renderResultsPage2() {
+    renderResultsPage() {
         const container = document.getElementById('results-content');
         
         if (!this.pollData) {
@@ -1148,8 +1153,10 @@ class QuickPollServerApp extends QuickPollEmailApp {
             { text: '🔒 CLOSED', class: 'status-closed', detail: `Closed on ${new Date(this.pollData.closedAt).toLocaleString()}` } :
             { text: '✅ OPEN', class: 'status-open', detail: 'Accepting votes' };
 
-        let resultsHTML = '';
+        // Only render results percentages if the poll is closed.
+        let resultsHTML = this.pollData.isClosed ? this.renderSimpleResults() : '';
         
+        /* TODO: Delete this (Only Support Oppose Abstain)
         if (this.pollData.type === 'simple') {
             resultsHTML = this.renderSimpleResults();
         } else if (this.pollData.type === 'rating') {
@@ -1157,7 +1164,10 @@ class QuickPollServerApp extends QuickPollEmailApp {
         } else if (this.pollData.type === 'ranking') {
             resultsHTML = this.renderRankingResults();
         }
+        */
 
+        // Only render list of emails who voted if poll is closed (poll creator may be sharing screen)
+        // Show who hasn't voted yet to the creator while poll is live.
         container.innerHTML = `
             <div class="results-container">
                 <div class="poll-header">
@@ -1175,12 +1185,12 @@ class QuickPollServerApp extends QuickPollEmailApp {
                     </div>
                 </div>
                 ${resultsHTML}
-                ${this.shouldShowVotersList() ? this.renderVotersList() : ''}
+                ${this.shouldShowVotersList() && this.pollData.isClosed ? this.renderVotersList() : ''}
                 ${this.shouldShowVotersList() ? this.renderNonVotersList() : ''}
                 <div class="form-actions">
                     <button id="refresh-results-btn" class="btn btn-primary">Refresh Results</button>
-                    ${this.isCreator() ? `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>` : ''}
-                    ${this.isCreator() ? `<button id="save-results-txt-btn" class="btn btn-success">Save Results as Txt File</button>` : ''}
+                    ${this.isCreator() && this.pollData.isClosed ? `<button id="save-results-btn" class="btn btn-success">Save Results as Image</button>` : ''}
+                    ${this.isCreator() && this.pollData.isClosed ? `<button id="save-results-txt-btn" class="btn btn-success">Save Results as Txt File</button>` : ''}
                     ${this.isCreator() && !this.pollData.isClosed ? `<button id="close-poll-btn" class="btn btn-danger">Close Poll</button>` : ''}
                 </div>
             </div>
@@ -1234,22 +1244,41 @@ class QuickPollServerApp extends QuickPollEmailApp {
         const options = this.results.options || [];
         const maxVotes = Math.max(...options.map(opt => opt.votes));
         
+        // TODO: Options are stored as arrays with Support, Oppose Abstain as attributes rather than keys.
+        // Should fix. Options will only every be support oppose abstain. Reduces code complexity and
+        // increases readability.
+        // Currently, options[0].option = 'Support', options[1].option = 'Oppose', options[2].option = 'Abstain'
+        var totalSupportOppose = options[0].votes + options[1].votes;
+        var supportPercent = totalSupportOppose > 0 ? (100.0 * options[0].votes / totalSupportOppose) : 0;
+        var opposePercent = totalSupportOppose > 0 ? (100.0 * options[1].votes / totalSupportOppose) : 0;
         return `
             <div class="results-chart simple-results">
                 <h3>Results</h3>
-                ${options.map(option => `
-                    <div class="result-item">
-                        <div class="result-label">${option.option}</div>
-                        <div class="result-bar">
-                            <div class="result-fill" style="width: ${maxVotes > 0 ? (option.votes / maxVotes) * 100 : 0}%"></div>
-                            <span class="result-count">${option.votes} votes (${option.percentage.toFixed(1)}%)</span>
-                        </div>
+                <div class="result-item">
+                    <div class="result-label">${options[0].option}</div>
+                    <div class="result-bar">
+                        <div class="result-fill" style="width: ${supportPercent}%"></div>
+                        <span class="result-count">${options[0].votes} votes (${supportPercent.toFixed(1)}%)</span>
                     </div>
-                `).join('')}
+                </div>
+                <div class="result-item">
+                    <div class="result-label">${options[1].option}</div>
+                    <div class="result-bar">
+                        <div class="result-fill" style="width: ${opposePercent}%"></div>
+                        <span class="result-count">${options[1].votes} votes (${opposePercent.toFixed(1)}%)</span>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">${options[2].option}</div>
+                    <div class="result-bar">
+                        <span class="result-count">${options[2].votes} votes</span>
+                    </div>
+                </div>
             </div>
         `;
     }
 
+    /* TODO: Delete this (only Support Oppose Abstain)
     renderRatingResults() {
         const options = this.results.options || [];
         const totalVotes = this.results.totalVotes || 0;
@@ -1322,6 +1351,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
             </div>
         `;
     }
+    */
 
     renderVotersList() {
         const voters = this.results.voters || [];
@@ -1422,6 +1452,7 @@ class QuickPollServerApp extends QuickPollEmailApp {
         if (!this.currentUser || !this.pollData.createdBy) {
             return false;
         }
+        
         
         return this.currentUser.email === this.pollData.createdBy;
     }

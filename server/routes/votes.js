@@ -73,7 +73,7 @@ router.post('/', validateVote, handleValidationErrors, async (req, res) => {
 
       // Check if email is in the valid emails list
       if (poll.validEmails && poll.validEmails.length > 0) {
-        const isValidEmail = poll.validEmails.includes(voterIdentifier);
+        const isValidEmail = poll.validEmails.map((str) => str.toLowerCase()).includes(voterIdentifier);
         if (!isValidEmail) {
           return res.status(403).json({ 
             error: 'Email not authorized',
@@ -455,7 +455,7 @@ router.get('/status', async (req, res) => {
         isAuthorized = false;
         authError = 'Email authentication required';
       } else if (poll.validEmails && poll.validEmails.length > 0) {
-        const isValidEmail = poll.validEmails.includes(voterIdentifier);
+        const isValidEmail = poll.validEmails.map((str) => str.toLowerCase()).includes(voterIdentifier);
         if (!isValidEmail) {
           isAuthorized = false;
           authError = 'Email not authorized';

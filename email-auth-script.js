@@ -574,8 +574,7 @@ class QuickPollEmailApp {
             container.innerHTML = `
                 <div class="vote-container">
                     <h2>Poll Not Found</h2>
-                    <p>The requested poll could not be found.</p>
-                    <button id="go-home-btn" class="btn btn-primary">Go Home</button>
+                    <p>Please wait for the next poll.</p>
                 </div>
             `;
             this.bindVoteEvents();
@@ -587,13 +586,9 @@ class QuickPollEmailApp {
             container.innerHTML = `
                 <div class="vote-container">
                     <h2>${this.pollData.title}</h2>
-                    <div class="poll-closed-notice">
-                        <h3>🔒 Poll Closed</h3>
-                        <p>This poll has been closed by the creator and is no longer accepting votes.</p>
+                    <div>
+                        <h3>🔒 Poll Closed. Please wait for the next poll.</h3>
                         <p><small>Closed on: ${new Date(this.pollData.closedAt).toLocaleString()}</small></p>
-                        <div class="form-actions">
-                            <button onclick="location.href='/'" class="btn btn-secondary">Go Home</button>
-                        </div>
                     </div>
                 </div>
             `;
@@ -1245,6 +1240,10 @@ class QuickPollEmailApp {
                 </div>
             `;
         } else {
+            content += this.renderSimpleResults();
+
+
+        /* TODO: Delete this (Only Support Oppose Abstain)
             if (this.pollData.type === 'simple') {
                 content += this.renderSimpleResults();
             } else if (this.pollData.type === 'rating') {
@@ -1252,6 +1251,7 @@ class QuickPollEmailApp {
             } else if (this.pollData.type === 'ranking') {
                 content += this.renderRankingResults();
             }
+            */
 
             // Show voter list for authenticated polls
             if (this.pollData.requireAuth) {
@@ -1317,6 +1317,7 @@ class QuickPollEmailApp {
         }).join('');
     }
 
+    /* TODO: Delete this (only Support Oppose Abstain)
     renderRatingResults() {
         const optionRatings = {};
         
@@ -1399,6 +1400,7 @@ class QuickPollEmailApp {
             `;
         }).join('');
     }
+    */
 
     renderVoterList() {
         const voters = Object.entries(this.votes)
