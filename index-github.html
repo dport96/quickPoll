@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickPoll - GitHub Pages</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="email-auth-styles.css">
+    
+    <!-- Configuration -->
+    <script src="config.js"></script>
+    
+    <!-- GitHub Integration -->
+    <script src="github-api-client.js"></script>
+    <script src="github-auth.js"></script>
+    <script src="github-pages-app.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">QuickPoll <span style="font-size: 0.5em; color: #888;">GitHub</span></div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/results" class="nav-link">Results</a>
+                <div id="user-info" style="display: none;">
+                    <span id="user-name"></span>
+                </div>
+                <button id="sign-in-btn" class="btn btn-primary btn-small">Sign in with GitHub</button>
+                <button id="sign-out-btn" class="btn btn-secondary btn-small" style="display: none;">Sign Out</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Landing Page / Create Poll Page -->
+        <div id="landing-page" class="page">
+            <div class="container">
+                <div class="hero">
+                    <h1>Create Real-Time Polls</h1>
+                    <p class="subtitle">Serverless polling using GitHub Issues as backend</p>
+                </div>
+
+                <!-- Active Poll Notice -->
+                <div id="active-poll-notice" class="alert alert-info active-poll-notice" style="display: none;"></div>
+
+                <!-- Active Poll Voting Notice (Landing Page) -->
+                <div id="active-poll-voting-notice" class="active-poll-voting-notice" style="display: none;">
+                    <h3>📊 Active Poll Available</h3>
+                    <div id="active-poll-title"></div>
+                    <p>Click below to participate in the current poll:</p>
+                    <div class="active-poll-actions">
+                        <button id="vote-in-active-poll-btn" class="btn btn-primary">Vote Now</button>
+                        <button id="view-active-poll-results-btn" class="btn btn-secondary">View Results</button>
+                    </div>
+                </div>
+
+                <!-- Create Poll Form -->
+                <div class="card create-poll-card">
+                    <h2>Create a New Poll</h2>
+                    <p class="info-text">Sign in with GitHub to create and manage polls</p>
+                    
+                    <form id="create-poll-form">
+                        <div class="form-group">
+                            <label for="poll-title">Poll Title *</label>
+                            <input type="text" id="poll-title" name="title" class="form-control" required placeholder="What's your question?">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="poll-description">Description (optional)</label>
+                            <textarea id="poll-description" name="description" class="form-control" rows="3" placeholder="Provide additional context..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="poll-type">Poll Type</label>
+                            <select id="poll-type" name="type" class="form-control">
+                                <option value="simple">Simple Choice</option>
+                                <option value="multiple">Multiple Choice</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Authentication Mode</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="auth-mode" value="none" checked>
+                                    <span>No Authentication (Anonymous voting)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="auth-mode" value="email">
+                                    <span>Email Authentication (Voters sign in with GitHub)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="valid-emails-group" style="display: none;">
+                            <label for="valid-emails">Authorized Emails (one per line)</label>
+                            <textarea id="valid-emails" class="form-control" rows="4" placeholder="user1@example.com&#10;user2@example.com"></textarea>
+                            <small>Leave empty to allow any authenticated user</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Poll Options *</label>
+                            <div id="options-container">
+                                <div class="option-row">
+                                    <input type="text" class="form-control option-input" placeholder="Option 1" required>
+                                </div>
+                                <div class="option-row">
+                                    <input type="text" class="form-control option-input" placeholder="Option 2" required>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-small" id="add-option-btn">+ Add Option</button>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-large">Create Poll</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Features Section -->
+                <div class="features">
+                    <h3>Why Choose QuickPoll GitHub Edition?</h3>
+                    <div class="feature-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon">🔒</div>
+                            <h4>Secure & Transparent</h4>
+                            <p>All data stored as GitHub Issues - fully transparent and version controlled</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">⚡</div>
+                            <h4>Serverless</h4>
+                            <p>No backend server needed - runs entirely on GitHub Pages</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🎨</div>
+                            <h4>Easy to Use</h4>
+                            <p>Simple interface for creating and managing polls</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📊</div>
+                            <h4>Real-Time Results</h4>
+                            <p>See poll results update as votes come in</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vote Page -->
+        <div id="vote-page" class="page" style="display: none;">
+            <div class="container">
+                <div class="card vote-card">
+                    <h2 id="poll-title-display"></h2>
+                    <p id="poll-description-display" class="poll-description"></p>
+                    
+                    <form id="vote-form">
+                        <div class="form-group">
+                            <label>Select your choice:</label>
+                            <div id="poll-options" class="poll-options"></div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-large">Submit Vote</button>
+                            <a href="/results" class="btn btn-secondary">View Results</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Page -->
+        <div id="results-page" class="page" style="display: none;">
+            <div class="container">
+                <div class="card results-card">
+                    <div class="poll-header">
+                        <h2 id="results-poll-title"></h2>
+                        <div id="poll-status" class="poll-status"></div>
+                    </div>
+                    
+                    <p id="results-poll-description" class="poll-description"></p>
+                    
+                    <div class="results-section">
+                        <h3>Results</h3>
+                        <p id="total-votes" class="total-votes"></p>
+                        <div id="poll-results-container"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/" class="btn btn-secondary">Back to Home</a>
+                        <a href="/vote" class="btn btn-primary">Vote Again</a>
+                        <button id="close-poll" class="btn btn-danger" style="display: none;">Close Poll</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Poll Created Success Page -->
+        <div id="poll-created-page" class="page" style="display: none;">
+            <div class="container">
+                <div class="success-message">
+                    <h2>Poll Created Successfully!</h2>
+                    
+                    <!-- Poll Status Info -->
+                    <div id="poll-status-info" class="poll-status-info" style="display: none;">
+                        <div class="status-box">
+                            <h4 id="poll-status-title">📊 Poll Status</h4>
+                            <div id="poll-status-content">
+                                <p><strong>Status:</strong> <span id="poll-status-indicator"></span></p>
+                                <p><strong>Title:</strong> <span id="poll-title-display"></span></p>
+                                <p><strong>Created:</strong> <span id="poll-created-display"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- GitHub Issue Info -->
+                    <div id="gist-info" class="gist-info" style="display: none;">
+                        <h4>🔗 Stored on GitHub</h4>
+                        <p>This poll is stored as a GitHub Issue: <a id="gist-link" href="#" target="_blank" class="gist-link">View Issue</a></p>
+                    </div>
+                    
+                    <p>Share these links with your audience:</p>
+                    
+                    <!-- QR Code Section -->
+                    <div class="qr-code-section">
+                        <h4>📱 Quick Access QR Code</h4>
+                        <div class="qr-code-container">
+                            <img id="voting-qr-code" src="" alt="QR Code for Voting Link" style="display: none;">
+                            <div id="qr-loading" class="qr-loading">Generating QR code...</div>
+                        </div>
+                        <p class="qr-description">Scan with your phone to vote instantly</p>
+                    </div>
+                    
+                    <div class="link-container">
+                        <div class="link-group">
+                            <label>Voting Link:</label>
+                            <div class="link-display">
+                                <input type="text" id="voting-link" readonly>
+                                <button id="copy-voting-link" class="btn btn-small btn-secondary">Copy</button>
+                            </div>
+                        </div>
+                        <div class="link-group">
+                            <label>Results Link:</label>
+                            <div class="link-display">
+                                <input type="text" id="results-link" readonly>
+                                <button id="copy-results-link" class="btn btn-small btn-secondary">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/results" class="btn btn-primary">View Results</a>
+                        <button id="close-poll" class="btn btn-danger">Close Poll</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 QuickPoll GitHub Edition. Serverless polling using GitHub Issues.</p>
+            <p><small>All poll data is stored as GitHub Issues in your repository.</small></p>
+        </div>
+    </footer>
+
+    <!-- Add Option Button Handler -->
+    <script>
+        // Add option button handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const addOptionBtn = document.getElementById('add-option-btn');
+            const optionsContainer = document.getElementById('options-container');
+            
+            if (addOptionBtn && optionsContainer) {
+                addOptionBtn.addEventListener('click', () => {
+                    const optionCount = optionsContainer.querySelectorAll('.option-row').length + 1;
+                    const optionRow = document.createElement('div');
+                    optionRow.className = 'option-row';
+                    optionRow.innerHTML = `
+                        <input type="text" class="form-control option-input" placeholder="Option ${optionCount}">
+                        <button type="button" class="btn btn-small btn-danger remove-option-btn">Remove</button>
+                    `;
+                    optionsContainer.appendChild(optionRow);
+
+                    // Remove button handler
+                    optionRow.querySelector('.remove-option-btn').addEventListener('click', () => {
+                        optionRow.remove();
+                    });
+                });
+            }
+
+            // Auth mode toggle
+            const authRadios = document.querySelectorAll('input[name="auth-mode"]');
+            const validEmailsGroup = document.getElementById('valid-emails-group');
+            
+            authRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'email' && validEmailsGroup) {
+                        validEmailsGroup.style.display = 'block';
+                    } else if (validEmailsGroup) {
+                        validEmailsGroup.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
