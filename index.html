@@ -23,8 +23,8 @@
         <div class="container">
             <div class="logo">QuickPoll <span style="font-size: 0.5em; color: #888;">GitHub</span></div>
             <nav class="nav">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/results" class="nav-link">Results</a>
+                <a href="?page=" class="nav-link">Home</a>
+                <a href="?page=results" class="nav-link">Results</a>
                 <div id="user-info" style="display: none;">
                     <span id="user-name"></span>
                 </div>
@@ -121,32 +121,6 @@
                     </form>
                 </div>
 
-                <!-- Features Section -->
-                <div class="features">
-                    <h3>Why Choose QuickPoll GitHub Edition?</h3>
-                    <div class="feature-grid">
-                        <div class="feature-item">
-                            <div class="feature-icon">🔒</div>
-                            <h4>Secure & Transparent</h4>
-                            <p>All data stored as GitHub Issues - fully transparent and version controlled</p>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">⚡</div>
-                            <h4>Serverless</h4>
-                            <p>No backend server needed - runs entirely on GitHub Pages</p>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">🎨</div>
-                            <h4>Easy to Use</h4>
-                            <p>Simple interface for creating and managing polls</p>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">📊</div>
-                            <h4>Real-Time Results</h4>
-                            <p>See poll results update as votes come in</p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -165,7 +139,7 @@
                         
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary btn-large">Submit Vote</button>
-                            <a href="/results" class="btn btn-secondary">View Results</a>
+                            <a href="?page=results" class="btn btn-secondary">View Results</a>
                         </div>
                     </form>
                 </div>
@@ -190,8 +164,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <a href="/" class="btn btn-secondary">Back to Home</a>
-                        <a href="/vote" class="btn btn-primary">Vote Again</a>
+                        <a href="?page=" class="btn btn-secondary">Back to Home</a>
+                        <a href="?page=vote" class="btn btn-primary">Vote Again</a>
                         <button id="close-poll" class="btn btn-danger" style="display: none;">Close Poll</button>
                     </div>
                 </div>
@@ -252,7 +226,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a href="/results" class="btn btn-primary">View Results</a>
+                        <a href="?page=results" class="btn btn-primary">View Results</a>
                         <button id="close-poll" class="btn btn-danger">Close Poll</button>
                     </div>
                 </div>

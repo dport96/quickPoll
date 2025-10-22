@@ -44,6 +44,8 @@ class GitHubAPIClient {
      * Make authenticated request to GitHub API
      */
     async makeRequest(endpoint, options = {}) {
+        // Always reload token from localStorage before each request
+        this.loadToken();
         const url = `${this.apiBase}${endpoint}`;
         const headers = {
             'Accept': 'application/vnd.github.v3+json',
@@ -51,9 +53,11 @@ class GitHubAPIClient {
             ...options.headers
         };
 
-        if (this.token) {
-            headers['Authorization'] = `token ${this.token}`;
+        if (!this.token) {
+            alert('Authentication required: Please sign in with your GitHub token.');
+            throw new Error('Requires authentication');
         }
+        headers['Authorization'] = `token ${this.token}`;
 
         const response = await fetch(url, {
             ...options,

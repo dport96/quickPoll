@@ -147,7 +147,8 @@ class QuickPollGitHubApp {
      * Navigate to a page
      */
     navigateTo(page) {
-        window.history.pushState({}, '', `/${page}`);
+        const qs = page ? `?page=${page}` : '';
+        window.history.pushState({}, '', qs);
         this.handleRoute();
     }
 
@@ -155,16 +156,18 @@ class QuickPollGitHubApp {
      * Handle routing based on URL
      */
     async handleRoute() {
-        const path = window.location.pathname.substring(1) || '';
-        
-        console.log('📍 Navigating to:', path || 'landing');
-        
+        // Use query string for routing
+        const params = new URLSearchParams(window.location.search);
+        const page = params.get('page') || '';
+
+        console.log('📍 Navigating to:', page || 'landing');
+
         // Hide all pages
-        document.querySelectorAll('.page').forEach(page => {
-            page.style.display = 'none';
+        document.querySelectorAll('.page').forEach(pageEl => {
+            pageEl.style.display = 'none';
         });
 
-        switch (path) {
+        switch (page) {
             case '':
             case 'index.html':
                 await this.loadLandingPage();
@@ -244,8 +247,8 @@ class QuickPollGitHubApp {
                 <p><strong>Created:</strong> ${createdDate}</p>
                 <p>You have an active poll running. Go to the results page to manage it.</p>
                 <div class="active-poll-actions">
-                    <a href="/results" class="btn btn-primary">Manage Your Poll</a>
-                    <a href="/vote" class="btn btn-secondary">Preview Vote Page</a>
+                    <a href="?page=results" class="btn btn-primary">Manage Your Poll</a>
+                    <a href="?page=vote" class="btn btn-secondary">Preview Vote Page</a>
                 </div>
             `;
         } else {
@@ -256,8 +259,8 @@ class QuickPollGitHubApp {
                 <p><strong>Created by:</strong> ${poll.createdBy}</p>
                 <p>There is currently an active poll. You cannot create a new poll until this one is closed.</p>
                 <div class="active-poll-actions">
-                    <a href="/vote" class="btn btn-primary">Vote in Current Poll</a>
-                    <a href="/results" class="btn btn-secondary">View Results</a>
+                    <a href="?page=vote" class="btn btn-primary">Vote in Current Poll</a>
+                    <a href="?page=results" class="btn btn-secondary">View Results</a>
                 </div>
             `;
         }

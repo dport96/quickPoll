@@ -4,7 +4,7 @@
 # WARNING: This action is irreversible!
 
 # Configuration
-GITHUB_TOKEN="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"
+GITHUB_TOKEN="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"
 REPO_OWNER="dport96"
 REPO_NAME="quickPoll"
 
